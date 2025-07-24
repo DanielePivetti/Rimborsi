@@ -1,0 +1,152 @@
+/* Stili personalizzati per l'applicazione di rimborsi */
+
+/* Override dei colori principali per adattarli ai colori della PA */
+:root {
+    --bs-primary: #0066cc !important;  /* Blu primario PA */
+    --bs-primary-rgb: 0, 102, 204 !important;
+    --bs-secondary: #5c6f82 !important;  /* Grigio scuro */
+    --bs-success: #008758 !important;  /* Verde */
+    --bs-warning: #a66300 !important;  /* Arancione */
+    --bs-danger: #d9364f !important;  /* Rosso */
+}
+
+/* Stili per le card dei rimborsi */
+.card-rimborso {
+    margin-bottom: 1.5rem;
+    transition: transform 0.2s ease-in-out;
+}
+
+.card-rimborso:hover {
+    transform: translateY(-5px);
+}
+
+/* Stili per le tabelle */
+.table-rimborsi th {
+    background-color: var(--bs-primary);
+    color: white;
+}
+
+/* Stile per il nome dell'agenzia nell'header */
+.it-header-slim-wrapper-content .navbar-brand {
+    font-size: 1.05rem;  /* Aumentato da 0.85rem */
+    max-width: 70%;      /* Aumentato da 60% per dare più spazio */
+    line-height: 1.2;
+    font-weight: 500;    /* Aggiunto un po' di spessore */
+}
+
+.it-header-slim-wrapper-content .nav-mobile span {
+    font-size: 0.95rem;  /* Aumentato da 0.75rem */
+    display: inline-block;
+    max-width: 280px;    /* Aumentato da 250px */
+    white-space: normal;
+    line-height: 1.2;
+    font-weight: 500;    /* Aggiunto un po' di spessore */
+}
+
+/* Stile per il titolo e sottotitolo nella sezione centrale */
+.it-brand-text h2 {
+    font-size: 1.5rem;
+    line-height: 1.2;
+    margin-left: 0;  /* Rimuove il margine sinistro che potrebbe essere stato impostato per l'icona */
+}
+
+.it-brand-text h3 {
+    font-size: 0.9rem;
+    line-height: 1.2;
+    font-weight: normal;
+    font-style: italic;
+    margin-left: 0;  /* Rimuove il margine sinistro che potrebbe essere stato impostato per l'icona */
+}
+
+/* Stile per il messaggio di benvenuto */
+.it-user-wrapper {
+    padding: 10px;
+    text-align: right;
+    font-weight: 600;
+    color: var(--bs-primary);
+}
+
+/* Stile per il copyright */
+.it-copyright small {
+    color: #ffffff;
+    opacity: 0.8;
+}
+.it-footer-links {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 10px 0;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.it-footer-links li {
+    margin-right: 1.5rem;
+}
+
+.it-footer-links a {
+    color: #ffffff;
+    font-size: 1.1rem;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.it-footer-links a:hover {
+    color: #ffffff;
+    text-decoration: underline;
+}
+
+/* Badge personalizzati per lo stato del rimborso */
+.badge-stato-in-attesa {
+    background-color: var(--bs-warning);
+    color: white;
+}
+
+.badge-stato-approvato {
+    background-color: var(--bs-success);
+    color: white;
+}
+
+.badge-stato-rifiutato {
+    background-color: var(--bs-danger);
+    color: white;
+}
+
+/* Personalizzazione dei form */
+.form-rimborso .form-label {
+    font-weight: 600;
+}
+
+.form-rimborso .form-text {
+    color: var(--bs-secondary);
+}
+
+/* Stile per la dashboard */
+.dashboard-stats {
+    padding: 1.5rem;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+    background-color: #f8f9fa;
+    border-left: 4px solid var(--bs-primary);
+}
+
+.dashboard-stats h3 {
+    color: var(--bs-primary);
+    margin-bottom: 0.5rem;
+}
+
+.dashboard-stats p {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0;
+}
+
+/* Personalizzazione per dispositivi mobili */
+@media (max-width: 768px) {
+    .it-header-center-wrapper {
+        padding: 1rem 0;
+    }
+    
+    .it-header-center-content-wrapper .it-brand-text h2 {
+        font-size: 1.2rem;
+    }
+}

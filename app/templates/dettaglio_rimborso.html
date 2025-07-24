@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="it-page-title-wrapper">
+                <h1 class="it-page-title">Dettaglio rimborso #{{ rimborso.id }}</h1>
+                <p class="lead">Richiesta del {{ rimborso.data_richiesta.strftime('%d/%m/%Y') }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card-wrapper card-space">
+                <div class="card card-bg">
+                    <div class="card-header border-bottom">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h2 class="h5 mb-0">Informazioni rimborso</h2>
+                            <span class="badge {% if rimborso.stato == 'in_attesa' %}badge-stato-in-attesa{% elif rimborso.stato == 'approvato' %}badge-stato-approvato{% elif rimborso.stato == 'rifiutato' %}badge-stato-rifiutato{% endif %}">
+                                {{ rimborso.stato_formattato }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <h5 class="small text-muted mb-1">Descrizione</h5>
+                                <p>{{ rimborso.descrizione }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h5 class="small text-muted mb-1">Importo</h5>
+                                <p class="h4 text-primary">{{ "%.2f"|format(rimborso.importo) }} €</p>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <h5 class="small text-muted mb-1">Categoria</h5>
+                                <p>{{ rimborso.categoria|capitalize if rimborso.categoria else 'Non specificata' }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h5 class="small text-muted mb-1">Data spesa</h5>
+                                <p>{{ rimborso.data_spesa.strftime('%d/%m/%Y') }}</p>
+                            </div>
+                        </div>
+
+                        {% if rimborso.note %}
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <h5 class="small text-muted mb-1">Note</h5>
+                                <p>{{ rimborso.note }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if rimborso.file_allegato %}
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <h5 class="small text-muted mb-1">Allegato</h5>
+                                <p>
+                                    <a href="#" class="btn btn-outline-primary btn-sm">
+                                        <svg class="icon icon-sm">
+                                            <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-download"></use>
+                                        </svg>
+                                        Scarica allegato
+                                    </a>
+                                </p>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card-wrapper card-space">
+                <div class="card card-bg">
+                    <div class="card-header border-bottom">
+                        <h2 class="h5 mb-0">Informazioni richiedente</h2>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="small text-muted mb-1">Nome e Cognome</h5>
+                        <p>{{ rimborso.richiedente.nome }} {{ rimborso.richiedente.cognome }}</p>
+
+                        <h5 class="small text-muted mb-1">Email</h5>
+                        <p>{{ rimborso.richiedente.email }}</p>
+                    </div>
+                </div>
+            </div>
+
+            {% if current_user.is_approvatore() and rimborso.stato == 'in_attesa' %}
+            <div class="card-wrapper card-space mt-4">
+                <div class="card card-bg">
+                    <div class="card-header border-bottom">
+                        <h2 class="h5 mb-0">Azioni</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <button type="button" class="btn btn-success btn-block w-100">
+                                    <svg class="icon icon-white icon-sm me-2">
+                                        <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-check"></use>
+                                    </svg>
+                                    Approva rimborso
+                                </button>
+                            </div>
+                            <div class="col-12">
+                                <button type="button" class="btn btn-danger btn-block w-100">
+                                    <svg class="icon icon-white icon-sm me-2">
+                                        <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-close"></use>
+                                    </svg>
+                                    Rifiuta rimborso
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if rimborso.stato == 'approvato' and rimborso.approvato_da %}
+            <div class="card-wrapper card-space mt-4">
+                <div class="card card-bg">
+                    <div class="card-header border-bottom">
+                        <h2 class="h5 mb-0">Informazioni approvazione</h2>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="small text-muted mb-1">Approvato da</h5>
+                        <p>{{ User.query.get(rimborso.approvato_da).nome }} {{ User.query.get(rimborso.approvato_da).cognome }}</p>
+
+                        <h5 class="small text-muted mb-1">Data approvazione</h5>
+                        <p>{{ rimborso.data_approvazione.strftime('%d/%m/%Y %H:%M') }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <a href="{{ url_for('main.lista_rimborsi') }}" class="btn btn-outline-primary">
+                <svg class="icon icon-sm me-2">
+                    <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-arrow-left"></use>
+                </svg>
+                Torna all'elenco
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
