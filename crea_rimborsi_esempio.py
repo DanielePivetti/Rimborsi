@@ -108,10 +108,10 @@ def crea_rimborsi_esempio():
                 note=f"Rimborso {i+1} di test per l'utente {pivetti.username}"
             )
             
-            # Se è stato approvato o rifiutato, aggiungi l'approvatore
+            # Se è stato approvato o rifiutato, aggiungi l'istruttore
             if stato in ['approvato', 'rifiutato']:
-                # Usiamo pinna come approvatore
-                rimborso.approvatore_id = pinna.id
+                # Usiamo pinna come istruttore
+                rimborso.approvato_da = pinna.id
                 rimborso.data_approvazione = data_richiesta + timedelta(days=random.randint(1, 5))
                 
                 if stato == 'rifiutato':
@@ -152,7 +152,7 @@ def crea_rimborsi_esempio():
                 # Utilizziamo l'utente admin come approvatore per i rimborsi di Pinna
                 admin = User.query.filter_by(username="admin").first()
                 if admin:
-                    rimborso.approvatore_id = admin.id
+                    rimborso.approvato_da = admin.id
                     rimborso.data_approvazione = data_richiesta + timedelta(days=random.randint(1, 5))
             
             rimborsi_pinna.append(rimborso)

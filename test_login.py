@@ -30,7 +30,7 @@ def test_login(username, password):
 if __name__ == "__main__":
     print("Test di autenticazione per gli utenti esistenti...")
     test_login("admin", "admin123")
-    test_login("approvatore", "approvatore123")
+    test_login("istruttore", "istruttore123")
     test_login("mario", "mario123")
     test_login("giulia", "giulia123")
     

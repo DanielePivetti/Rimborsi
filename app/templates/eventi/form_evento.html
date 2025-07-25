@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card-wrapper card-space">
+                <div class="card card-bg">
+                    <div class="card-body">
+                        <h2 class="mb-4">
+                            {% if evento %}
+                            Modifica Evento
+                            {% else %}
+                            Nuovo Evento
+                            {% endif %}
+                        </h2>
+                        
+                        <form method="POST" novalidate>
+                            {{ form.hidden_tag() }}
+                            
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <div class="form-group">
+                                        {{ form.tipo.label(class="form-label custom-label") }}
+                                        <div class="input-wrapper">
+                                            {{ form.tipo(class="form-select custom-input" + (" is-invalid" if form.tipo.errors else "")) }}
+                                        </div>
+                                        {% for error in form.tipo.errors %}
+                                            <div class="invalid-feedback">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-8 mb-3">
+                                    <div class="form-group">
+                                        {{ form.nome.label(class="form-label custom-label") }}
+                                        <div class="input-wrapper">
+                                            {{ form.nome(class="form-control custom-input" + (" is-invalid" if form.nome.errors else ""), placeholder="Nome dell'evento") }}
+                                        {% for error in form.nome.errors %}
+                                            <div class="invalid-feedback">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-group">
+                                        {{ form.numero_attivazione.label(class="form-label custom-label") }}
+                                        <div class="input-wrapper">
+                                            {{ form.numero_attivazione(class="form-control custom-input" + (" is-invalid" if form.numero_attivazione.errors else ""), placeholder="Numero protocollo di attivazione") }}
+                                        </div>
+                                        {% for error in form.numero_attivazione.errors %}
+                                            <div class="invalid-feedback">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-group">
+                                        {{ form.data_attivazione.label(class="form-label custom-label") }}
+                                        <div class="input-wrapper">
+                                            {{ form.data_attivazione(class="form-control custom-input" + (" is-invalid" if form.data_attivazione.errors else ""), type="date") }}
+                                        {% for error in form.data_attivazione.errors %}
+                                            <div class="invalid-feedback">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="form-group">
+                                    {{ form.luogo.label(class="form-label custom-label") }}
+                                    <div class="input-wrapper luogo-wrapper">
+                                        {{ form.luogo(class="form-control custom-input luogo-textarea" + (" is-invalid" if form.luogo.errors else ""), rows=3, placeholder="Descrivi la località o le località dell'evento") }}
+                                    {% for error in form.luogo.errors %}
+                                        <div class="invalid-feedback">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-group">
+                                        {{ form.data_inizio.label(class="form-label custom-label") }}
+                                        <div class="input-wrapper">
+                                            {{ form.data_inizio(class="form-control custom-input" + (" is-invalid" if form.data_inizio.errors else ""), type="date") }}
+                                        </div>
+                                        {% for error in form.data_inizio.errors %}
+                                            <div class="invalid-feedback">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-group">
+                                        {{ form.data_fine.label(class="form-label custom-label") }}
+                                        <div class="input-wrapper">
+                                            {{ form.data_fine(class="form-control custom-input" + (" is-invalid" if form.data_fine.errors else ""), type="date") }}
+                                        {% for error in form.data_fine.errors %}
+                                            <div class="invalid-feedback">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mt-4">
+                                <a href="{{ url_for('evento.lista_eventi') }}" class="btn btn-outline-secondary">
+                                    <svg class="icon icon-xs">
+                                        <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-arrow-left"></use>
+                                    </svg>
+                                    Torna alla lista
+                                </a>
+                                {{ form.submit(class="btn btn-primary") }}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

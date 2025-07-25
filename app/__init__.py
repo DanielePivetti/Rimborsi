@@ -31,11 +31,13 @@ def create_app(config_class=Config):
     # Registra i blueprint
     from app.routes.main import main_bp
     from app.routes.auth import auth_bp
+    from app.routes.evento import evento_bp
     
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp, url_prefix='/auth')
+    app.register_blueprint(evento_bp, url_prefix='/admin')
     
     return app
 
 # Importa i modelli per renderli disponibili a Flask-Migrate
-from app.models import user, rimborso
+from app.models import user, rimborso, evento

@@ -101,6 +101,57 @@
     color: white;
 }
 
+/* Stili per i form degli eventi */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.form-control, .form-select {
+    padding: 0.75rem 0.75rem;
+    height: auto;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.2rem rgba(0, 102, 204, 0.25);
+}
+
+/* Stili specifici per i form di data */
+input[type="date"].form-control {
+    padding: 0.5rem 0.75rem;
+    min-height: 44px;
+}
+
+/* Stile per l'area di testo del campo luogo */
+textarea[name="luogo"], .luogo-textarea {
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    box-shadow: 0 0 0 1px rgba(0, 102, 204, 0.1);
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    padding: 10px;
+    min-height: 100px;
+}
+
+textarea[name="luogo"]:focus, .luogo-textarea:focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.25);
+    outline: none;
+}
+
+/* Wrapper per il campo luogo */
+.luogo-wrapper {
+    margin-bottom: 0.5rem;
+    position: relative;
+    padding: 0;
+}
+
 .badge-stato-approvato {
     background-color: var(--bs-success);
     color: white;
@@ -149,4 +200,212 @@
     .it-header-center-content-wrapper .it-brand-text h2 {
         font-size: 1.2rem;
     }
+}
+
+/* Correzioni per i form e le etichette */
+.form-group {
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+.form-label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: block;
+    position: static !important;
+    transform: none !important;
+    opacity: 1 !important;
+    color: #000 !important;
+    font-size: 1rem !important;
+    top: auto !important;
+    left: auto !important;
+    pointer-events: auto !important;
+}
+
+.form-select, .form-control {
+    padding: 0.5rem 0.75rem;
+    height: auto;
+    min-height: 40px;
+    position: relative;
+}
+
+/* Fix per la sovrapposizione delle etichette nei select */
+.form-select {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    background-position: right 0.75rem center;
+}
+
+/* Migliore spaziatura per i wrapper dei select di Bootstrap Italia */
+.bootstrap-select-wrapper {
+    margin-top: 0.25rem;
+    position: relative;
+}
+
+.bootstrap-select-wrapper .dropdown-menu {
+    padding: 0.5rem;
+}
+
+/* Assicuriamoci che le etichette non si sovrappongano */
+.form-label + .form-control,
+.form-label + .form-select,
+.form-label + .bootstrap-select-wrapper {
+    margin-top: 0.25rem;
+}
+
+/* Reset stili nativi di Bootstrap Italia che causano sovrapposizione */
+.form-group [class*='-input'] ~ label {
+    position: static !important;
+    transform: none !important;
+    opacity: 1 !important;
+    font-size: 1rem !important;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+/* Disabilitiamo l'effetto fluttuante delle etichette */
+.form-group label.active {
+    transform: none !important;
+    position: static !important;
+}
+
+/* Stili personalizzati per input wrapper e etichette */
+.custom-label {
+    display: block;
+    position: static !important;
+    font-size: 1rem !important;
+    color: #000 !important;
+    margin-bottom: 0.5rem !important;
+    font-weight: 600;
+    transform: none !important;
+    opacity: 1 !important;
+}
+
+.input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.custom-input {
+    width: 100%;
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+    height: auto;
+    position: relative;
+    z-index: 1;
+}
+
+/* Correzione del z-index per assicurarci che il contenuto non venga sovrapposto dalle etichette */
+.form-group {
+    position: relative;
+    z-index: 1;
+}
+
+/* Rimuove completamente lo stile fluttuante delle etichette di Bootstrap Italia */
+.input-group-input:focus-within ~ label,
+.input-group-input ~ label,
+.form-control ~ label,
+.form-select ~ label,
+input ~ label,
+textarea ~ label,
+select ~ label {
+    transform: none !important;
+    position: static !important;
+    font-size: 1rem !important;
+    top: auto !important;
+    left: 0 !important;
+    margin-bottom: 0.5rem !important;
+}
+
+/* Stile per centrare le label nei bottoni */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    vertical-align: middle;
+}
+
+.btn .icon {
+    margin-right: 0.5rem;
+    flex-shrink: 0;
+}
+
+/* Stile specifico per il pulsante Nuovo Evento */
+.col-md-4.text-md-right .btn {
+    width: auto;
+    white-space: nowrap;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.btn-nuovo-evento {
+    width: auto !important;
+    min-width: 0 !important;
+    padding: 0.5rem 1rem !important;
+}
+
+.btn-nuovo-evento span {
+    padding: 0;
+    margin-left: 0.25rem;
+    display: inline-block;
+    text-align: center;
+}
+
+/* Stile generale per tutti i pulsanti piccoli e con icone */
+.btn-sm {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-group .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Stile per il testo nei pulsanti */
+.btn-text {
+    display: inline-block;
+    text-align: center;
+    vertical-align: middle;
+    line-height: 1.2;
+}
+
+/* Override specifico per le etichette di Bootstrap Italia */
+.it-datepicker-wrapper label,
+.bootstrap-select-wrapper label,
+.select-wrapper label,
+.form-group label {
+    position: static !important;
+    transform: none !important;
+    font-size: 1rem !important;
+    margin-bottom: 0.5rem !important;
+    top: auto !important;
+    left: 0 !important;
+    color: #000 !important;
+    opacity: 1 !important;
+}
+
+/* Reset aggiuntivo per i pulsanti di Bootstrap Italia */
+.btn,
+.btn-default,
+.btn-primary,
+.btn-secondary,
+.btn-outline-primary,
+.btn-outline-secondary {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+}
+
+/* Assicuriamo che i pulsanti nei gruppi siano ben allineati */
+.btn-group {
+    display: inline-flex;
+    align-items: stretch;
 }

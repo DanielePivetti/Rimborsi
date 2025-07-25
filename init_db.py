@@ -32,15 +32,15 @@ def create_users():
         )
         admin.set_password("admin123")
         
-        # Crea un approvatore
-        approvatore = User(
-            username="approvatore",
-            email="approvatore@example.com",
+        # Crea un istruttore
+        istruttore = User(
+            username="istruttore",
+            email="istruttore@example.com",
             nome="Paolo",
             cognome="Verdi",
-            ruolo="approvatore"
+            ruolo="istruttore"
         )
-        approvatore.set_password("approvatore123")
+        istruttore.set_password("istruttore123")
         
         # Crea utenti normali
         utente1 = User(
@@ -61,12 +61,12 @@ def create_users():
         )
         utente2.set_password("giulia123")
         
-        db.session.add_all([admin, approvatore, utente1, utente2])
+        db.session.add_all([admin, istruttore, utente1, utente2])
         db.session.commit()
         
         print("Utenti creati:")
         print(f"Amministratore: admin@example.com (admin123)")
-        print(f"Approvatore: approvatore@example.com (approvatore123)")
+        print(f"Istruttore: istruttore@example.com (istruttore123)")
         print(f"Utente: mario.rossi@example.com (mario123)")
         print(f"Utente: giulia.bianchi@example.com (giulia123)")
 
@@ -149,8 +149,8 @@ def create_rimborsi():
             )
             
             if stato == 'approvato':
-                approvatore = User.query.filter_by(ruolo="approvatore").first()
-                rimborso.approvato_da = approvatore.id
+                istruttore = User.query.filter_by(ruolo="istruttore").first()
+                rimborso.approvato_da = istruttore.id
                 rimborso.data_approvazione = data_richiesta + timedelta(days=random.randint(1, 3))
             
             db.session.add(rimborso)

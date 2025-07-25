@@ -91,7 +91,7 @@
                 </div>
             </div>
 
-            {% if current_user.is_approvatore() and rimborso.stato == 'in_attesa' %}
+            {% if current_user.is_istruttore() and rimborso.stato == 'in_attesa' %}
             <div class="card-wrapper card-space mt-4">
                 <div class="card card-bg">
                     <div class="card-header border-bottom">

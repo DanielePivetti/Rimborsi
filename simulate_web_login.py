@@ -73,7 +73,7 @@ if __name__ == "__main__":
     
     # Prova a fare login con le credenziali degli utenti
     simulate_login("admin", "admin123")
-    simulate_login("approvatore", "approvatore123")
+    simulate_login("istruttore", "istruttore123")
     simulate_login("mario", "mario123")
     simulate_login("giulia", "giulia123")
     

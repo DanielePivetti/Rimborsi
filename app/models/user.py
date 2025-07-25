@@ -14,7 +14,7 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(128), nullable=False)
     nome = db.Column(db.String(64))
     cognome = db.Column(db.String(64))
-    ruolo = db.Column(db.String(20), default='utente')  # 'utente', 'amministratore', 'approvatore'
+    ruolo = db.Column(db.String(20), default='utente')  # 'utente', 'amministratore', 'istruttore'
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def __repr__(self):
@@ -29,5 +29,5 @@ class User(UserMixin, db.Model):
     def is_admin(self):
         return self.ruolo == 'amministratore'
     
-    def is_approvatore(self):
-        return self.ruolo == 'approvatore' or self.ruolo == 'amministratore'
+    def is_istruttore(self):
+        return self.ruolo == 'istruttore' or self.ruolo == 'amministratore'

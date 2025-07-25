@@ -17,21 +17,32 @@
                 <h2 class="h4 mb-0">
                     {% if current_user.is_admin() %}
                         Tutti i rimborsi
-                    {% elif current_user.is_approvatore() %}
-                        Rimborsi in attesa di approvazione
+                    {% elif current_user.is_istruttore() %}
+                        Rimborsi in attesa di istruttoria
                     {% else %}
                         I miei rimborsi
                     {% endif %}
                 </h2>
                 
-                {% if not current_user.is_admin() and not current_user.is_approvatore() %}
-                <a href="#" class="btn btn-primary">
-                    <svg class="icon icon-white icon-sm me-2">
-                        <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-plus-circle"></use>
-                    </svg>
-                    Nuova richiesta
-                </a>
-                {% endif %}
+                <div>
+                    {% if current_user.is_istruttore() %}
+                    <a href="{{ url_for('evento.lista_eventi') }}" class="btn btn-outline-primary me-2">
+                        <svg class="icon icon-sm me-2">
+                            <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-calendar"></use>
+                        </svg>
+                        Gestione Eventi
+                    </a>
+                    {% endif %}
+                    
+                    {% if not current_user.is_admin() and not current_user.is_istruttore() %}
+                    <a href="#" class="btn btn-primary">
+                        <svg class="icon icon-white icon-sm me-2">
+                            <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-plus-circle"></use>
+                        </svg>
+                        Nuova richiesta
+                    </a>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
@@ -51,7 +62,7 @@
                                         <th scope="col">Descrizione</th>
                                         <th scope="col">Importo</th>
                                         <th scope="col">Stato</th>
-                                        {% if current_user.is_admin() or current_user.is_approvatore() %}
+                                        {% if current_user.is_admin() or current_user.is_istruttore() %}
                                         <th scope="col">Richiedente</th>
                                         {% endif %}
                                         <th scope="col">Azioni</th>
@@ -73,7 +84,7 @@
                                             <span class="badge badge-stato-rifiutato">Rifiutato</span>
                                             {% endif %}
                                         </td>
-                                        {% if current_user.is_admin() or current_user.is_approvatore() %}
+                                        {% if current_user.is_admin() or current_user.is_istruttore() %}
                                         <td>{{ rimborso.richiedente.nome }} {{ rimborso.richiedente.cognome }}</td>
                                         {% endif %}
                                         <td>
@@ -84,7 +95,7 @@
                                                     </svg>
                                                     Dettagli
                                                 </a>
-                                                {% if current_user.is_approvatore() and rimborso.stato == 'in_attesa' %}
+                                                {% if current_user.is_istruttore() and rimborso.stato == 'in_attesa' %}
                                                 <div class="btn-group" role="group">
                                                     <button type="button" class="btn btn-success btn-sm">
                                                         <svg class="icon icon-sm icon-white">
@@ -121,7 +132,7 @@
                 </svg>
                 {% if current_user.is_admin() %}
                     Non ci sono rimborsi presenti nel sistema.
-                {% elif current_user.is_approvatore() %}
+                {% elif current_user.is_istruttore() %}
                     Non ci sono rimborsi in attesa di approvazione.
                 {% else %}
                     Non hai ancora richiesto nessun rimborso.

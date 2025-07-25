@@ -19,8 +19,8 @@ def dashboard():
     if current_user.is_admin():
         # Gli amministratori vedono tutti i rimborsi
         rimborsi = Rimborso.query.order_by(Rimborso.data_richiesta.desc()).all()
-    elif current_user.is_approvatore():
-        # Gli approvatori vedono solo i rimborsi in attesa
+    elif current_user.is_istruttore():
+        # Gli istruttori vedono solo i rimborsi in attesa
         rimborsi = Rimborso.query.filter_by(stato='in_attesa').order_by(Rimborso.data_richiesta.desc()).all()
     else:
         # Gli utenti normali vedono solo i propri rimborsi
@@ -38,7 +38,7 @@ def lista_rimborsi():
 @login_required
 def dettaglio_rimborso(id):
     rimborso = Rimborso.query.get_or_404(id)
-    if rimborso.user_id != current_user.id and not current_user.is_approvatore():
+    if rimborso.user_id != current_user.id and not current_user.is_istruttore():
         flash('Non hai il permesso di visualizzare questo rimborso.', 'danger')
         return redirect(url_for('main.dashboard'))
     return render_template('dettaglio_rimborso.html', title='Dettaglio rimborso', rimborso=rimborso)

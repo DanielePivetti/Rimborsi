@@ -11,10 +11,10 @@ app = create_app()
 
 def update_user_roles():
     with app.app_context():
-        # Trova l'utente Pinna_v e impostalo come approvatore
+        # Trova l'utente Pinna_v e impostalo come istruttore
         pinna = User.query.filter_by(username="Pinna_v").first()
         if pinna:
-            pinna.ruolo = "approvatore"
+            pinna.ruolo = "istruttore"
             print(f"Utente {pinna.username} impostato come {pinna.ruolo}")
         else:
             print("Utente Pinna_v non trovato nel database!")
