@@ -20,6 +20,7 @@ class Odv(db.Model):
     
     # Relazioni
     mezzi = db.relationship('Mezzo', backref='organizzazione', lazy=True, cascade="all, delete-orphan")
+    # La relazione con i compilatori è già definita come backref nel modello User
     
     def __repr__(self):
         return f'<ODV {self.nome} ({self.acronimo})>'

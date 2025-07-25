@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="it-page-title-wrapper">
+                <h1 class="it-page-title">{{ title }}</h1>
+                <p class="lead">Inserisci i dettagli della richiesta di rimborso</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card-wrapper card-space">
+                <div class="card card-bg">
+                    <div class="card-body">
+                        <form method="POST" action="" novalidate>
+                            {{ form.hidden_tag() }}
+
+                            <div class="row">
+                                <div class="col-md-6 form-group">
+                                    <div class="form-label-group">
+                                        {{ form.odv_id.label }}
+                                        {{ form.odv_id(class="form-select", placeholder="Seleziona l'organizzazione") }}
+                                        {% if form.odv_id.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.odv_id.errors %}
+                                            <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 form-group">
+                                    <div class="form-label-group">
+                                        {{ form.evento_id.label }}
+                                        {{ form.evento_id(class="form-select", placeholder="Seleziona l'evento") }}
+                                        {% if form.evento_id.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.evento_id.errors %}
+                                            <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group mt-3">
+                                <div class="form-label-group">
+                                    {{ form.note_richiedente.label }}
+                                    {{ form.note_richiedente(class="form-control", rows=3, placeholder="Note opzionali") }}
+                                    {% if form.note_richiedente.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.note_richiedente.errors %}
+                                        <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="form-group mt-4">
+                                <div class="d-flex justify-content-between">
+                                    <a href="{{ url_for('richiesta.lista_richieste') }}" class="btn btn-outline-secondary">
+                                        <svg class="icon icon-xs icon-secondary">
+                                            <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-arrow-left"></use>
+                                        </svg>
+                                        Torna alla lista
+                                    </a>
+                                    {{ form.submit(class="btn btn-primary") }}
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

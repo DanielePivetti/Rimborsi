@@ -17,6 +17,10 @@ def create_app(config_class=Config):
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(config_class)
     
+    # Directory per gli upload
+    app.config['UPLOAD_FOLDER'] = os.path.join(app.instance_path, 'uploads')
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+    
     # Inizializza le estensioni
     db.init_app(app)
     migrate.init_app(app, db)
@@ -34,14 +38,18 @@ def create_app(config_class=Config):
     from app.routes.evento import evento_bp
     from app.blueprints.odv import odv_bp
     from app.blueprints.mezzo import mezzo_bp
+    from app.blueprints.impiego_mezzo import impiego_mezzo_bp
+    from app.blueprints.richiesta import richiesta_bp
     
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(evento_bp, url_prefix='/admin')
     app.register_blueprint(odv_bp, url_prefix='/admin/odv')
     app.register_blueprint(mezzo_bp, url_prefix='/admin/mezzi')
+    app.register_blueprint(impiego_mezzo_bp)
+    app.register_blueprint(richiesta_bp)
     
     return app
 
 # Importa i modelli per renderli disponibili a Flask-Migrate
-from app.models import user, rimborso, evento, odv, mezzo
+from app.models import user, evento, odv, mezzo, impiego_mezzo, richiesta, spesa, giustificativo

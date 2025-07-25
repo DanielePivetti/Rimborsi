@@ -2,6 +2,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from datetime import datetime
 from app import db, login_manager
+from app.models.user_odv import user_odv_association
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -17,6 +18,14 @@ class User(UserMixin, db.Model):
     ruolo = db.Column(db.String(20), default='utente')  # 'utente', 'amministratore', 'istruttore'
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
+    # Relazione molti-a-molti con le organizzazioni
+    organizzazioni = db.relationship('Odv', 
+                                    secondary=user_odv_association,
+                                    primaryjoin=(user_odv_association.c.user_id == id),
+                                    secondaryjoin="Odv.id == user_odv_association.c.odv_id",
+                                    backref=db.backref('compilatori', lazy='dynamic'),
+                                    lazy='dynamic')
+    
     def __repr__(self):
         return f'<User {self.username}>'
     
@@ -31,3 +40,15 @@ class User(UserMixin, db.Model):
     
     def is_istruttore(self):
         return self.ruolo == 'istruttore' or self.ruolo == 'amministratore'
+    
+    def is_compilatore(self):
+        return self.ruolo == 'utente'
+    
+    def can_access_odv(self, odv_id):
+        """Verifica se l'utente può accedere a una specifica organizzazione"""
+        # Amministratori e istruttori possono accedere a tutte le organizzazioni
+        if self.is_admin() or self.is_istruttore():
+            return True
+        
+        # Per i compilatori, verifica se l'organizzazione è associata
+        return self.organizzazioni.filter_by(id=odv_id).first() is not None
