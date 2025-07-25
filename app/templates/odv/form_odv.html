@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card-wrapper">
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">{{ title }}</h2>
+                        
+                        <form method="POST" novalidate>
+                            {{ form.hidden_tag() }}
+                            
+                            <div class="row">
+                                <div class="col-md-8 form-group">
+                                    <div class="form-label-group">
+                                        {{ form.nome.label }}
+                                        {{ form.nome(class="form-control", placeholder="Nome completo dell'organizzazione") }}
+                                        {% if form.nome.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.nome.errors %}
+                                            <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4 form-group">
+                                    <div class="form-label-group">
+                                        {{ form.acronimo.label }}
+                                        {{ form.acronimo(class="form-control", placeholder="Sigla dell'organizzazione") }}
+                                        {% if form.acronimo.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.acronimo.errors %}
+                                            <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <div class="form-label-group">
+                                    {{ form.codice_interno.label }}
+                                    {{ form.codice_interno(class="form-control", placeholder="Codice identificativo interno") }}
+                                    {% if form.codice_interno.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.codice_interno.errors %}
+                                        <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 form-group">
+                                    <div class="form-label-group">
+                                        {{ form.provincia.label }}
+                                        {{ form.provincia(class="form-control", placeholder="Provincia dell'organizzazione") }}
+                                        {% if form.provincia.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.provincia.errors %}
+                                            <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 form-group">
+                                    <div class="form-label-group">
+                                        {{ form.comune.label }}
+                                        {{ form.comune(class="form-control", placeholder="Comune dell'organizzazione") }}
+                                        {% if form.comune.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.comune.errors %}
+                                            <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <div class="form-label-group">
+                                    {{ form.indirizzo.label }}
+                                    {{ form.indirizzo(class="form-control", placeholder="Indirizzo completo dell'organizzazione") }}
+                                    {% if form.indirizzo.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.indirizzo.errors %}
+                                        <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 form-group">
+                                    <div class="form-label-group">
+                                        {{ form.pec.label }}
+                                        {{ form.pec(class="form-control", placeholder="Indirizzo PEC dell'organizzazione") }}
+                                        {% if form.pec.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.pec.errors %}
+                                            <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 form-group">
+                                    <div class="form-label-group">
+                                        {{ form.recapito_telefonico.label }}
+                                        {{ form.recapito_telefonico(class="form-control", placeholder="Numero di telefono") }}
+                                        {% if form.recapito_telefonico.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.recapito_telefonico.errors %}
+                                            <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 form-group">
+                                    <div class="form-label-group">
+                                        {{ form.legale_rappresentante.label }}
+                                        {{ form.legale_rappresentante(class="form-control", placeholder="Nome e cognome del legale rappresentante") }}
+                                        {% if form.legale_rappresentante.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.legale_rappresentante.errors %}
+                                            <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 form-group">
+                                    <div class="form-label-group">
+                                        {{ form.iban.label }}
+                                        {{ form.iban(class="form-control", placeholder="IBAN dell'organizzazione") }}
+                                        {% if form.iban.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.iban.errors %}
+                                            <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group mt-4">
+                                <div class="d-flex justify-content-between">
+                                    <a href="{{ url_for('odv.lista_odv') }}" class="btn btn-outline-secondary">
+                                        <svg class="icon icon-xs icon-secondary">
+                                            <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-arrow-left"></use>
+                                        </svg>
+                                        Torna alla lista
+                                    </a>
+                                    {{ form.submit(class="btn btn-primary") }}
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

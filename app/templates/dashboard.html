@@ -34,6 +34,21 @@
                     </a>
                     {% endif %}
                     
+                    {% if current_user.is_admin() %}
+                    <a href="{{ url_for('odv.lista_odv') }}" class="btn btn-outline-primary me-2">
+                        <svg class="icon icon-sm me-2">
+                            <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-pa"></use>
+                        </svg>
+                        Gestione Organizzazioni
+                    </a>
+                    <a href="{{ url_for('mezzo.lista_mezzi') }}" class="btn btn-outline-primary me-2">
+                        <svg class="icon icon-sm me-2">
+                            <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-truck"></use>
+                        </svg>
+                        Gestione Mezzi
+                    </a>
+                    {% endif %}
+                    
                     {% if not current_user.is_admin() and not current_user.is_istruttore() %}
                     <a href="#" class="btn btn-primary">
                         <svg class="icon icon-white icon-sm me-2">
