@@ -23,6 +23,12 @@ class Richiesta(db.Model):
     approvato_da = db.Column(db.Integer, db.ForeignKey('user.id'))
     data_approvazione = db.Column(db.DateTime)
     
+    # Nuovi campi aggiunti
+    attivita_svolta = db.Column(db.Text, nullable=False, comment="Descrizione dettagliata dell'attività svolta")
+    data_inizio_attivita = db.Column(db.DateTime, nullable=False, comment="Data di inizio dell'attività")
+    data_fine_attivita = db.Column(db.DateTime, nullable=False, comment="Data di fine dell'attività")
+    volontari_impiegati = db.Column(db.Integer, nullable=False, comment="Numero di volontari impiegati nell'attività")
+    
     # Relazioni
     richiedente = relationship("User", foreign_keys=[user_id], backref="richieste_inviate")
     approvatore = relationship("User", foreign_keys=[approvato_da], backref="richieste_approvate")

@@ -49,6 +49,66 @@
                                 </div>
                             </div>
 
+                            <div class="row mt-3">
+                                <div class="col-md-6 form-group">
+                                    <div class="form-label-group">
+                                        {{ form.data_inizio_attivita.label }}
+                                        {{ form.data_inizio_attivita(class="form-control", type="date") }}
+                                        {% if form.data_inizio_attivita.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.data_inizio_attivita.errors %}
+                                            <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 form-group">
+                                    <div class="form-label-group">
+                                        {{ form.data_fine_attivita.label }}
+                                        {{ form.data_fine_attivita(class="form-control", type="date") }}
+                                        {% if form.data_fine_attivita.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.data_fine_attivita.errors %}
+                                            <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group mt-3">
+                                <div class="form-label-group">
+                                    {{ form.volontari_impiegati.label }}
+                                    {{ form.volontari_impiegati(class="form-control", type="number", min="1") }}
+                                    <small class="form-text text-muted">{{ form.volontari_impiegati.description }}</small>
+                                    {% if form.volontari_impiegati.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.volontari_impiegati.errors %}
+                                        <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="form-group mt-3">
+                                <div class="form-label-group">
+                                    {{ form.attivita_svolta.label }}
+                                    {{ form.attivita_svolta(class="form-control", rows=5, placeholder="Descrivi l'attività svolta") }}
+                                    <small class="form-text text-muted">{{ form.attivita_svolta.description }}</small>
+                                    {% if form.attivita_svolta.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.attivita_svolta.errors %}
+                                        <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
                             <div class="form-group mt-3">
                                 <div class="form-label-group">
                                     {{ form.note_richiedente.label }}

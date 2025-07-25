@@ -9,6 +9,12 @@ class RichiestaBaseForm(FlaskForm):
     """Form base per la creazione e modifica di una richiesta di rimborso"""
     odv_id = SelectField('Organizzazione', coerce=int, validators=[DataRequired()])
     evento_id = SelectField('Evento', coerce=int, validators=[DataRequired()])
+    attivita_svolta = TextAreaField('Attività Svolta', validators=[DataRequired(), Length(max=1000)], 
+                                  description="Descrivi in dettaglio l'attività svolta")
+    data_inizio_attivita = DateField('Data Inizio Attività', format='%Y-%m-%d', validators=[DataRequired()])
+    data_fine_attivita = DateField('Data Fine Attività', format='%Y-%m-%d', validators=[DataRequired()])
+    volontari_impiegati = IntegerField('Volontari Impiegati', validators=[DataRequired(), NumberRange(min=1)],
+                                     description="Numero di volontari impiegati nell'attività")
     note_richiedente = TextAreaField('Note', validators=[Optional(), Length(max=500)])
     submit = SubmitField('Salva')
 

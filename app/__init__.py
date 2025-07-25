@@ -49,6 +49,10 @@ def create_app(config_class=Config):
     app.register_blueprint(impiego_mezzo_bp)
     app.register_blueprint(richiesta_bp)
     
+    # Registra i filtri Jinja2 personalizzati
+    from app.utils.jinja_filters import nl2br
+    app.jinja_env.filters['nl2br'] = nl2br
+    
     return app
 
 # Importa i modelli per renderli disponibili a Flask-Migrate

@@ -20,7 +20,7 @@ from app.forms.richiesta_forms import (
 from app.utils.decorators import admin_required, istruttore_required
 from werkzeug.utils import secure_filename
 import os
-from datetime import datetime
+from datetime import datetime, time
 
 richiesta_bp = Blueprint('richiesta', __name__, url_prefix='/richieste')
 
@@ -64,19 +64,47 @@ def nuova_richiesta():
                             for e in Evento.query.all()]
     
     if form.validate_on_submit():
-        richiesta = Richiesta(
-            user_id=current_user.id,
-            odv_id=form.odv_id.data,
-            evento_id=form.evento_id.data,
-            note_richiedente=form.note_richiedente.data,
-            stato=StatoRichiesta.IN_ATTESA
-        )
-        
-        db.session.add(richiesta)
-        db.session.commit()
-        
-        flash('Richiesta di rimborso creata con successo. Ora aggiungi le spese.', 'success')
-        return redirect(url_for('richiesta.aggiungi_spesa', richiesta_id=richiesta.id))
+        try:
+            # Log dei dati del form
+            current_app.logger.info(f"Form data: {form.data}")
+            
+            # Converti date.date in datetime.datetime se necessario
+            data_inizio = form.data_inizio_attivita.data
+            data_fine = form.data_fine_attivita.data
+            
+            # Se sono oggetti date, convertili in datetime
+            if hasattr(data_inizio, 'year') and not hasattr(data_inizio, 'hour'):
+                data_inizio = datetime.combine(data_inizio, datetime.min.time())
+            
+            if hasattr(data_fine, 'year') and not hasattr(data_fine, 'hour'):
+                data_fine = datetime.combine(data_fine, datetime.min.time())
+            
+            richiesta = Richiesta(
+                user_id=current_user.id,
+                odv_id=form.odv_id.data,
+                evento_id=form.evento_id.data,
+                note_richiedente=form.note_richiedente.data,
+                stato=StatoRichiesta.IN_ATTESA,
+                # Aggiunti nuovi campi
+                attivita_svolta=form.attivita_svolta.data,
+                data_inizio_attivita=data_inizio,
+                data_fine_attivita=data_fine,
+                volontari_impiegati=form.volontari_impiegati.data
+            )
+            
+            # Log dell'oggetto richiesta
+            current_app.logger.info(f"Richiesta object: {richiesta.__dict__}")
+            
+            db.session.add(richiesta)
+            db.session.commit()
+            
+            flash('Richiesta di rimborso creata con successo. Ora aggiungi le spese.', 'success')
+            return redirect(url_for('richiesta.aggiungi_spesa', richiesta_id=richiesta.id))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Errore durante il salvataggio della richiesta: {str(e)}', 'danger')
+            current_app.logger.error(f"Errore durante il salvataggio della richiesta: {str(e)}", exc_info=True)
+            return render_template('richieste/form_richiesta.html', form=form, title='Nuova Richiesta di Rimborso')
     
     return render_template('richieste/form_richiesta.html', form=form, title='Nuova Richiesta di Rimborso')
 
@@ -136,11 +164,38 @@ def modifica_richiesta(id):
                 flash('Non hai il permesso di selezionare questa organizzazione', 'danger')
                 return redirect(url_for('richiesta.modifica_richiesta', id=richiesta.id))
         
-        form.populate_obj(richiesta)
-        db.session.commit()
-        
-        flash('Richiesta di rimborso aggiornata con successo', 'success')
-        return redirect(url_for('richiesta.dettaglio_richiesta', id=richiesta.id))
+        try:
+            # Log dei dati del form
+            current_app.logger.info(f"Form data (modifica): {form.data}")
+            
+            # Salva lo stato attuale dell'oggetto per debug
+            current_app.logger.info(f"Richiesta prima di populate_obj: {richiesta.__dict__}")
+            
+            # Converti date.date in datetime.datetime se necessario
+            data_inizio = form.data_inizio_attivita.data
+            data_fine = form.data_fine_attivita.data
+            
+            # Se sono oggetti date, convertili in datetime
+            if hasattr(data_inizio, 'year') and not hasattr(data_inizio, 'hour'):
+                form.data_inizio_attivita.data = datetime.combine(data_inizio, time())
+            
+            if hasattr(data_fine, 'year') and not hasattr(data_fine, 'hour'):
+                form.data_fine_attivita.data = datetime.combine(data_fine, time())
+            
+            form.populate_obj(richiesta)
+            
+            # Salva lo stato aggiornato dell'oggetto per debug
+            current_app.logger.info(f"Richiesta dopo populate_obj: {richiesta.__dict__}")
+            
+            db.session.commit()
+            
+            flash('Richiesta di rimborso aggiornata con successo', 'success')
+            return redirect(url_for('richiesta.dettaglio_richiesta', id=richiesta.id))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Errore durante l\'aggiornamento della richiesta: {str(e)}', 'danger')
+            current_app.logger.error(f"Errore durante l'aggiornamento della richiesta: {str(e)}", exc_info=True)
+            return render_template('richieste/form_richiesta.html', form=form, title='Modifica Richiesta di Rimborso')
     
     return render_template('richieste/form_richiesta.html', form=form, title='Modifica Richiesta di Rimborso')
 
