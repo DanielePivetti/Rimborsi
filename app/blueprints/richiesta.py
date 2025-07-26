@@ -24,6 +24,54 @@ from datetime import datetime, time
 
 richiesta_bp = Blueprint('richiesta', __name__, url_prefix='/richieste')
 
+# Reindirizzamento dalle vecchie route alla nuova interfaccia
+@richiesta_bp.route('/<int:richiesta_id>/spese/documenti/aggiungi', methods=['GET', 'POST'])
+@login_required
+def aggiungi_spesa_documenti(richiesta_id):
+    """Reindirizza alla nuova interfaccia di gestione spese"""
+    return redirect(url_for('spesa.gestione_spese', richiesta_id=richiesta_id))
+
+@richiesta_bp.route('/spese/modifica/<int:spesa_id>', methods=['GET', 'POST'])
+@login_required
+def modifica_spesa(spesa_id):
+    """Reindirizza alla nuova interfaccia di gestione spese"""
+    # Ottieni la richiesta associata alla spesa
+    spesa = Spesa.query.get_or_404(spesa_id)
+    return redirect(url_for('spesa.gestione_spese', richiesta_id=spesa.richiesta_id))
+
+@richiesta_bp.route('/spese/elimina/<int:spesa_id>', methods=['POST'])
+@login_required
+def elimina_spesa(spesa_id):
+    """Elimina una spesa"""
+    spesa = Spesa.query.get_or_404(spesa_id)
+    richiesta_id = spesa.richiesta_id
+    
+    # Verifica dei permessi
+    if not (current_user.id == spesa.richiesta.user_id or current_user.is_admin()):
+        flash('Non hai i permessi per eliminare questa spesa.', 'danger')
+        return redirect(url_for('richiesta.dettaglio_richiesta', id=richiesta_id))
+    
+    # Verifica che la richiesta sia in stato "in attesa"
+    if spesa.richiesta.stato != StatoRichiesta.IN_ATTESA:
+        flash('Non è possibile eliminare una spesa di una richiesta che non è in attesa.', 'warning')
+        return redirect(url_for('richiesta.dettaglio_richiesta', id=richiesta_id))
+    
+    try:
+        # Elimina i documenti associati
+        for documento in spesa.documenti:
+            db.session.delete(documento)
+        
+        # Elimina la spesa
+        db.session.delete(spesa)
+        db.session.commit()
+        flash('Spesa eliminata con successo', 'success')
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Errore durante l'eliminazione della spesa: {str(e)}", exc_info=True)
+        flash(f'Errore durante l\'eliminazione della spesa: {str(e)}', 'danger')
+    
+    return redirect(url_for('richiesta.dettaglio_richiesta', id=richiesta_id))
+
 @richiesta_bp.route('/')
 @login_required
 def lista_richieste():
@@ -99,7 +147,7 @@ def nuova_richiesta():
             db.session.commit()
             
             flash('Richiesta di rimborso creata con successo. Ora aggiungi le spese.', 'success')
-            return redirect(url_for('richiesta.aggiungi_spesa', richiesta_id=richiesta.id))
+            return redirect(url_for('spesa.gestione_spese', richiesta_id=richiesta.id))
         except Exception as e:
             db.session.rollback()
             flash(f'Errore durante il salvataggio della richiesta: {str(e)}', 'danger')
@@ -220,130 +268,6 @@ def elimina_richiesta(id):
     
     flash('Richiesta di rimborso eliminata con successo', 'success')
     return redirect(url_for('richiesta.lista_richieste'))
-
-@richiesta_bp.route('/<int:richiesta_id>/spese/aggiungi', methods=['GET', 'POST'])
-@login_required
-def aggiungi_spesa(richiesta_id):
-    """Aggiunge una nuova spesa a una richiesta di rimborso"""
-    richiesta = Richiesta.query.get_or_404(richiesta_id)
-    
-    # Verifica che l'utente possa aggiungere spese a questa richiesta
-    if not current_user.is_admin() and richiesta.user_id != current_user.id:
-        flash('Non hai il permesso di aggiungere spese a questa richiesta', 'danger')
-        return redirect(url_for('richiesta.lista_richieste'))
-    
-    # Non permettere aggiunte se la richiesta è già stata approvata o rifiutata
-    if richiesta.stato != StatoRichiesta.IN_ATTESA and not current_user.is_admin():
-        flash('Non è possibile aggiungere spese a una richiesta già approvata o rifiutata', 'warning')
-        return redirect(url_for('richiesta.dettaglio_richiesta', id=richiesta_id))
-    
-    # Scelta del tipo di spesa
-    tipo_spesa = request.args.get('tipo', TipoSpesa.CARBURANTE.value)
-    
-    # Selezione del form appropriato in base al tipo di spesa
-    if tipo_spesa == TipoSpesa.CARBURANTE.value:
-        form = SpesaCarburanteForm()
-        form.impiego_mezzo_id.choices = [
-            (i.id, f"{i.mezzo.tipologia.value} {i.mezzo.targa_inventario} ({i.data_inizio.strftime('%d/%m/%Y')} - {i.data_fine.strftime('%d/%m/%Y')})")
-            for i in ImpiegoMezzo.query.filter_by(evento_id=richiesta.evento_id).all()
-        ]
-    elif tipo_spesa == TipoSpesa.PEDAGGI.value:
-        form = SpesaPedaggiForm()
-        form.impiego_mezzo_id.choices = [
-            (i.id, f"{i.mezzo.tipologia.value} {i.mezzo.targa_inventario} ({i.data_inizio.strftime('%d/%m/%Y')} - {i.data_fine.strftime('%d/%m/%Y')})")
-            for i in ImpiegoMezzo.query.filter_by(evento_id=richiesta.evento_id).all()
-        ]
-    elif tipo_spesa == TipoSpesa.RIPRISTINO.value:
-        form = SpesaRipristinoForm()
-        form.impiego_mezzo_id.choices = [
-            (i.id, f"{i.mezzo.tipologia.value} {i.mezzo.targa_inventario} ({i.data_inizio.strftime('%d/%m/%Y')} - {i.data_fine.strftime('%d/%m/%Y')})")
-            for i in ImpiegoMezzo.query.filter_by(evento_id=richiesta.evento_id).all()
-        ]
-    elif tipo_spesa == TipoSpesa.VITTO.value:
-        form = SpesaVittoForm()
-    elif tipo_spesa == TipoSpesa.PARCHEGGIO.value:
-        form = SpesaParcheggioForm()
-    else:  # TipoSpesa.ALTRO.value
-        form = SpesaAltroForm()
-    
-    # Imposta il tipo di spesa come valore predefinito nel form
-    form.tipo.data = tipo_spesa
-    
-    if form.validate_on_submit():
-        # Crea l'oggetto spesa appropriato in base al tipo
-        if tipo_spesa == TipoSpesa.CARBURANTE.value:
-            spesa = SpesaCarburante(
-                richiesta_id=richiesta_id,
-                tipo=TipoSpesa.CARBURANTE,
-                data_spesa=form.data_spesa.data,
-                importo_richiesto=form.importo_richiesto.data,
-                note=form.note.data,
-                impiego_mezzo_id=form.impiego_mezzo_id.data,
-                tipo_carburante=form.tipo_carburante.data,
-                litri=form.litri.data
-            )
-        elif tipo_spesa == TipoSpesa.PEDAGGI.value:
-            spesa = SpesaPedaggi(
-                richiesta_id=richiesta_id,
-                tipo=TipoSpesa.PEDAGGI,
-                data_spesa=form.data_spesa.data,
-                importo_richiesto=form.importo_richiesto.data,
-                note=form.note.data,
-                impiego_mezzo_id=form.impiego_mezzo_id.data,
-                tratta=form.tratta.data
-            )
-        elif tipo_spesa == TipoSpesa.RIPRISTINO.value:
-            spesa = SpesaRipristino(
-                richiesta_id=richiesta_id,
-                tipo=TipoSpesa.RIPRISTINO,
-                data_spesa=form.data_spesa.data,
-                importo_richiesto=form.importo_richiesto.data,
-                note=form.note.data,
-                impiego_mezzo_id=form.impiego_mezzo_id.data,
-                descrizione_intervento=form.descrizione_intervento.data
-            )
-        elif tipo_spesa == TipoSpesa.VITTO.value:
-            spesa = SpesaVitto(
-                richiesta_id=richiesta_id,
-                tipo=TipoSpesa.VITTO,
-                data_spesa=form.data_spesa.data,
-                importo_richiesto=form.importo_richiesto.data,
-                note=form.note.data,
-                numero_pasti=form.numero_pasti.data
-            )
-        elif tipo_spesa == TipoSpesa.PARCHEGGIO.value:
-            spesa = SpesaParcheggio(
-                richiesta_id=richiesta_id,
-                tipo=TipoSpesa.PARCHEGGIO,
-                data_spesa=form.data_spesa.data,
-                importo_richiesto=form.importo_richiesto.data,
-                note=form.note.data,
-                indirizzo=form.indirizzo.data,
-                durata_ore=form.durata_ore.data
-            )
-        else:  # TipoSpesa.ALTRO.value
-            spesa = SpesaAltro(
-                richiesta_id=richiesta_id,
-                tipo=TipoSpesa.ALTRO,
-                data_spesa=form.data_spesa.data,
-                importo_richiesto=form.importo_richiesto.data,
-                note=form.note.data,
-                descrizione_dettagliata=form.descrizione_dettagliata.data
-            )
-        
-        db.session.add(spesa)
-        db.session.commit()
-        
-        flash('Spesa aggiunta con successo. Ora aggiungi un giustificativo.', 'success')
-        return redirect(url_for('richiesta.aggiungi_giustificativo', spesa_id=spesa.id))
-    
-    return render_template(
-        'richieste/form_spesa.html', 
-        form=form, 
-        richiesta=richiesta, 
-        tipo_spesa=tipo_spesa,
-        title='Aggiungi Spesa'
-    )
 
 @richiesta_bp.route('/spese/<int:spesa_id>/giustificativo/aggiungi', methods=['GET', 'POST'])
 @login_required

@@ -1,0 +1,328 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="it-page-title-wrapper">
+                <h1 class="it-page-title">Aggiungi Nuova Spesa</h1>
+                <p class="lead">Richiesta #{{ richiesta.id }} - {{ richiesta.odv.nome }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h3 class="card-title">Inserimento dati spesa</h3>
+                    <p class="card-text">Seleziona il tipo di spesa e compila i campi richiesti.</p>
+                    
+                    <form method="POST" enctype="multipart/form-data" class="needs-validation" id="spesaForm">
+                        {{ form.hidden_tag() }}
+                        
+                        <!-- Tipo spesa -->
+                        <div class="form-group mb-4">
+                            <label for="tipo_spesa" class="form-label fw-bold">Tipo di spesa</label>
+                            <select id="tipo_spesa" name="tipo_spesa" class="form-select" required>
+                                <option value="" selected disabled>Seleziona una categoria...</option>
+                                <option value="01">01 - Carburante</option>
+                                <option value="02">02 - Vitto</option>
+                                <option value="03">03 - Pedaggi</option>
+                                <option value="04">04 - Ripristino</option>
+                                <option value="05">05 - Parcheggio</option>
+                                <option value="06">06 - Altro</option>
+                            </select>
+                            <small class="form-text text-muted">Seleziona il tipo di spesa che desideri inserire</small>
+                        </div>
+                        
+                        <hr class="my-4">
+                        
+                        <!-- Campi comuni a tutte le spese -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <!-- Data spesa -->
+                                <div class="form-group mb-3">
+                                    <label for="data_spesa" class="form-label">Data spesa</label>
+                                    <input type="date" id="data_spesa" name="data_spesa" class="form-control" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <!-- Importo richiesto -->
+                                <div class="form-group mb-3">
+                                    <label for="importo_richiesto" class="form-label">Importo richiesto (€)</label>
+                                    <input type="number" id="importo_richiesto" name="importo_richiesto" class="form-control" step="0.01" min="0.01" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Campi specifici per tipo di spesa, visibili in base alla selezione -->
+                        
+                        <!-- Campi per Carburante (01) -->
+                        <div id="campi_carburante" class="campi-specifici d-none">
+                            <div class="alert alert-info">
+                                <svg class="icon icon-xs me-2">
+                                    <use href="/static/bootstrap-italia/svg/sprites.svg#it-info-circle"></use>
+                                </svg>
+                                Inserisci i dettagli relativi alla spesa di carburante
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <!-- Tipo carburante -->
+                                    <div class="form-group mb-3">
+                                        <label for="tipo_carburante" class="form-label">Tipo carburante</label>
+                                        <select id="tipo_carburante" name="tipo_carburante" class="form-select">
+                                            <option value="">Seleziona...</option>
+                                            <option value="benzina">Benzina</option>
+                                            <option value="diesel">Diesel</option>
+                                            <option value="gpl">GPL</option>
+                                            <option value="metano">Metano</option>
+                                            <option value="elettrico">Ricarica elettrica</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <!-- Litri -->
+                                    <div class="form-group mb-3">
+                                        <label for="litri" class="form-label">Litri</label>
+                                        <input type="number" id="litri" name="litri" class="form-control" step="0.1" min="0.1">
+                                        <small class="form-text text-muted">Opzionale</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Impiego mezzo -->
+                            <div class="form-group mb-3">
+                                <label for="impiego_mezzo_id" class="form-label">Impiego mezzo</label>
+                                <select id="impiego_mezzo_id" name="impiego_mezzo_id" class="form-select">
+                                    <option value="0">Seleziona un mezzo...</option>
+                                    {% for impiego in impieghi_mezzo %}
+                                    <option value="{{ impiego.id }}">{{ impiego.mezzo.tipologia.value }} {{ impiego.mezzo.targa_inventario }} ({{ impiego.data_inizio.strftime('%d/%m/%Y') }} - {{ impiego.data_fine.strftime('%d/%m/%Y') }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Campi per Vitto (02) -->
+                        <div id="campi_vitto" class="campi-specifici d-none">
+                            <div class="alert alert-info">
+                                <svg class="icon icon-xs me-2">
+                                    <use href="/static/bootstrap-italia/svg/sprites.svg#it-info-circle"></use>
+                                </svg>
+                                Inserisci i dettagli relativi alla spesa di vitto
+                            </div>
+                            
+                            <div class="form-group mb-3">
+                                <label for="numero_pasti" class="form-label">Numero pasti</label>
+                                <input type="number" id="numero_pasti" name="numero_pasti" class="form-control" min="1" value="1">
+                            </div>
+                        </div>
+                        
+                        <!-- Campi per Pedaggi (03) -->
+                        <div id="campi_pedaggi" class="campi-specifici d-none">
+                            <div class="alert alert-info">
+                                <svg class="icon icon-xs me-2">
+                                    <use href="/static/bootstrap-italia/svg/sprites.svg#it-info-circle"></use>
+                                </svg>
+                                Inserisci i dettagli relativi alla spesa di pedaggio
+                            </div>
+                            
+                            <div class="form-group mb-3">
+                                <label for="tratta" class="form-label">Tratta</label>
+                                <input type="text" id="tratta" name="tratta" class="form-control" maxlength="255">
+                            </div>
+                            
+                            <!-- Impiego mezzo -->
+                            <div class="form-group mb-3">
+                                <label for="impiego_mezzo_id_pedaggi" class="form-label">Impiego mezzo</label>
+                                <select id="impiego_mezzo_id_pedaggi" name="impiego_mezzo_id" class="form-select">
+                                    <option value="0">Seleziona un mezzo...</option>
+                                    {% for impiego in impieghi_mezzo %}
+                                    <option value="{{ impiego.id }}">{{ impiego.mezzo.tipologia.value }} {{ impiego.mezzo.targa_inventario }} ({{ impiego.data_inizio.strftime('%d/%m/%Y') }} - {{ impiego.data_fine.strftime('%d/%m/%Y') }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Campi per Ripristino (04) -->
+                        <div id="campi_ripristino" class="campi-specifici d-none">
+                            <div class="alert alert-info">
+                                <svg class="icon icon-xs me-2">
+                                    <use href="/static/bootstrap-italia/svg/sprites.svg#it-info-circle"></use>
+                                </svg>
+                                Inserisci i dettagli relativi alla spesa di ripristino
+                            </div>
+                            
+                            <div class="form-group mb-3">
+                                <label for="descrizione_intervento" class="form-label">Descrizione intervento</label>
+                                <textarea id="descrizione_intervento" name="descrizione_intervento" class="form-control" rows="3"></textarea>
+                            </div>
+                            
+                            <!-- Impiego mezzo -->
+                            <div class="form-group mb-3">
+                                <label for="impiego_mezzo_id_ripristino" class="form-label">Impiego mezzo</label>
+                                <select id="impiego_mezzo_id_ripristino" name="impiego_mezzo_id" class="form-select">
+                                    <option value="0">Seleziona un mezzo...</option>
+                                    {% for impiego in impieghi_mezzo %}
+                                    <option value="{{ impiego.id }}">{{ impiego.mezzo.tipologia.value }} {{ impiego.mezzo.targa_inventario }} ({{ impiego.data_inizio.strftime('%d/%m/%Y') }} - {{ impiego.data_fine.strftime('%d/%m/%Y') }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Campi per Parcheggio (05) -->
+                        <div id="campi_parcheggio" class="campi-specifici d-none">
+                            <div class="alert alert-info">
+                                <svg class="icon icon-xs me-2">
+                                    <use href="/static/bootstrap-italia/svg/sprites.svg#it-info-circle"></use>
+                                </svg>
+                                Inserisci i dettagli relativi alla spesa di parcheggio
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="indirizzo" class="form-label">Indirizzo</label>
+                                        <input type="text" id="indirizzo" name="indirizzo" class="form-control" maxlength="255">
+                                        <small class="form-text text-muted">Opzionale</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="durata_ore" class="form-label">Durata (ore)</label>
+                                        <input type="number" id="durata_ore" name="durata_ore" class="form-control" step="0.5" min="0.5">
+                                        <small class="form-text text-muted">Opzionale</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Campi per Altro (06) -->
+                        <div id="campi_altro" class="campi-specifici d-none">
+                            <div class="alert alert-info">
+                                <svg class="icon icon-xs me-2">
+                                    <use href="/static/bootstrap-italia/svg/sprites.svg#it-info-circle"></use>
+                                </svg>
+                                Inserisci i dettagli relativi ad altra tipologia di spesa
+                            </div>
+                            
+                            <div class="form-group mb-3">
+                                <label for="descrizione_dettagliata" class="form-label">Descrizione dettagliata</label>
+                                <textarea id="descrizione_dettagliata" name="descrizione_dettagliata" class="form-control" rows="3"></textarea>
+                            </div>
+                        </div>
+                        
+                        <!-- Note (comuni a tutte le spese) -->
+                        <div class="form-group mb-3">
+                            <label for="note" class="form-label">Note</label>
+                            <textarea id="note" name="note" class="form-control" rows="3"></textarea>
+                            <small class="form-text text-muted">Opzionale</small>
+                        </div>
+                        
+                        <div class="form-group mt-4 text-center">
+                            <a href="{{ url_for('spesa.gestione_spese', richiesta_id=richiesta.id) }}" class="btn btn-outline-secondary me-2">Annulla</a>
+                            <button type="submit" class="btn btn-primary">Salva e continua con i documenti</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script per gestire la visibilità dinamica dei campi -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tipoSpesaSelect = document.getElementById('tipo_spesa');
+    const campiSpecifici = document.querySelectorAll('.campi-specifici');
+    
+    // Gestisce la visibilità dei campi in base al tipo di spesa selezionato
+    tipoSpesaSelect.addEventListener('change', function() {
+        // Nascondi tutti i campi specifici
+        campiSpecifici.forEach(campo => {
+            campo.classList.add('d-none');
+        });
+        
+        // Mostra i campi relativi al tipo selezionato
+        const tipoSelezionato = this.value;
+        switch(tipoSelezionato) {
+            case '01':
+                document.getElementById('campi_carburante').classList.remove('d-none');
+                break;
+            case '02':
+                document.getElementById('campi_vitto').classList.remove('d-none');
+                break;
+            case '03':
+                document.getElementById('campi_pedaggi').classList.remove('d-none');
+                break;
+            case '04':
+                document.getElementById('campi_ripristino').classList.remove('d-none');
+                break;
+            case '05':
+                document.getElementById('campi_parcheggio').classList.remove('d-none');
+                break;
+            case '06':
+                document.getElementById('campi_altro').classList.remove('d-none');
+                break;
+        }
+    });
+    
+    // Gestione della validazione del form prima dell'invio
+    const form = document.getElementById('spesaForm');
+    form.addEventListener('submit', function(event) {
+        const tipoSelezionato = tipoSpesaSelect.value;
+        
+        if (!tipoSelezionato) {
+            alert('Seleziona un tipo di spesa');
+            event.preventDefault();
+            return;
+        }
+        
+        // Validazione campi specifici per tipo
+        switch(tipoSelezionato) {
+            case '01': // Carburante
+                const tipoCarburante = document.getElementById('tipo_carburante');
+                if (!tipoCarburante.value) {
+                    alert('Seleziona il tipo di carburante');
+                    event.preventDefault();
+                    return;
+                }
+                break;
+            case '02': // Vitto
+                const numeroPasti = document.getElementById('numero_pasti');
+                if (!numeroPasti.value || numeroPasti.value < 1) {
+                    alert('Inserisci un numero valido di pasti');
+                    event.preventDefault();
+                    return;
+                }
+                break;
+            case '03': // Pedaggi
+                const tratta = document.getElementById('tratta');
+                if (!tratta.value) {
+                    alert('Inserisci la tratta del pedaggio');
+                    event.preventDefault();
+                    return;
+                }
+                break;
+            case '04': // Ripristino
+                const descrizioneIntervento = document.getElementById('descrizione_intervento');
+                if (!descrizioneIntervento.value) {
+                    alert('Inserisci la descrizione dell\'intervento');
+                    event.preventDefault();
+                    return;
+                }
+                break;
+            case '06': // Altro
+                const descrizioneDettagliata = document.getElementById('descrizione_dettagliata');
+                if (!descrizioneDettagliata.value) {
+                    alert('Inserisci una descrizione dettagliata');
+                    event.preventDefault();
+                    return;
+                }
+                break;
+        }
+    });
+});
+</script>
+{% endblock %}

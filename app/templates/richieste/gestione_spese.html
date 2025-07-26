@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="it-page-title-wrapper">
+                <h1 class="it-page-title">Gestione Spese</h1>
+                <p class="lead">Richiesta #{{ richiesta.id }} - {{ richiesta.odv.nome }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Riepilogo Spese</h4>
+                    <p class="card-text">Qui puoi visualizzare tutte le spese inserite per questa richiesta di rimborso.</p>
+                    
+                    {% if not (spese_carburante or spese_vitto or spese_pedaggi or spese_ripristino or spese_parcheggio or spese_altro) %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> Non ci sono ancora spese inserite per questa richiesta.
+                        </div>
+                    {% else %}
+                        <div class="accordion" id="speseAccordion">
+                            <!-- Spese Carburante -->
+                            {% if spese_carburante %}
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingCarburante">
+                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCarburante" aria-expanded="true" aria-controls="collapseCarburante">
+                                        <svg class="icon me-2">
+                                            <use href="/static/bootstrap-italia/svg/sprites.svg#it-fuel"></use>
+                                        </svg>
+                                        Spese Carburante ({{ spese_carburante|length }})
+                                    </button>
+                                </h2>
+                                <div id="collapseCarburante" class="accordion-collapse collapse show" aria-labelledby="headingCarburante" data-bs-parent="#speseAccordion">
+                                    <div class="accordion-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-striped">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Data</th>
+                                                        <th>Importo</th>
+                                                        <th>Tipo carburante</th>
+                                                        <th>Litri</th>
+                                                        <th>Note</th>
+                                                        <th>Azioni</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for spesa in spese_carburante %}
+                                                    <tr>
+                                                        <td>{{ spesa.data_spesa.strftime('%d/%m/%Y') }}</td>
+                                                        <td>{{ "%.2f"|format(spesa.importo_richiesto) }} €</td>
+                                                        <td>{{ spesa.tipo_carburante }}</td>
+                                                        <td>{{ spesa.litri if spesa.litri else '-' }}</td>
+                                                        <td>{{ spesa.note if spesa.note else '-' }}</td>
+                                                        <td>
+                                                            <a href="{{ url_for('spesa.gestisci_documenti', spesa_id=spesa.id) }}" class="btn btn-sm btn-primary">
+                                                                <svg class="icon icon-xs icon-white">
+                                                                    <use href="/static/bootstrap-italia/svg/sprites.svg#it-file"></use>
+                                                                </svg>
+                                                                Documenti
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Spese Vitto -->
+                            {% if spese_vitto %}
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingVitto">
+                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseVitto" aria-expanded="true" aria-controls="collapseVitto">
+                                        <svg class="icon me-2">
+                                            <use href="/static/bootstrap-italia/svg/sprites.svg#it-restaurant"></use>
+                                        </svg>
+                                        Spese Vitto ({{ spese_vitto|length }})
+                                    </button>
+                                </h2>
+                                <div id="collapseVitto" class="accordion-collapse collapse" aria-labelledby="headingVitto" data-bs-parent="#speseAccordion">
+                                    <div class="accordion-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-striped">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Data</th>
+                                                        <th>Importo</th>
+                                                        <th>Pasti</th>
+                                                        <th>Note</th>
+                                                        <th>Azioni</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for spesa in spese_vitto %}
+                                                    <tr>
+                                                        <td>{{ spesa.data_spesa.strftime('%d/%m/%Y') }}</td>
+                                                        <td>{{ "%.2f"|format(spesa.importo_richiesto) }} €</td>
+                                                        <td>{{ spesa.numero_pasti }}</td>
+                                                        <td>{{ spesa.note if spesa.note else '-' }}</td>
+                                                        <td>
+                                                            <a href="{{ url_for('spesa.gestisci_documenti', spesa_id=spesa.id) }}" class="btn btn-sm btn-primary">
+                                                                <svg class="icon icon-xs icon-white">
+                                                                    <use href="/static/bootstrap-italia/svg/sprites.svg#it-file"></use>
+                                                                </svg>
+                                                                Documenti
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Altre categorie di spese... -->
+                            <!-- Spese Pedaggi -->
+                            {% if spese_pedaggi %}
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingPedaggi">
+                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePedaggi" aria-expanded="true" aria-controls="collapsePedaggi">
+                                        <svg class="icon me-2">
+                                            <use href="/static/bootstrap-italia/svg/sprites.svg#it-card"></use>
+                                        </svg>
+                                        Spese Pedaggi ({{ spese_pedaggi|length }})
+                                    </button>
+                                </h2>
+                                <div id="collapsePedaggi" class="accordion-collapse collapse" aria-labelledby="headingPedaggi" data-bs-parent="#speseAccordion">
+                                    <div class="accordion-body">
+                                        <!-- Contenuto simile ad altre spese -->
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Altre categorie... -->
+                        </div>
+                    {% endif %}
+                    
+                    <div class="mt-4 text-center">
+                        <a href="{{ url_for('spesa.aggiungi_spesa', richiesta_id=richiesta.id) }}" class="btn btn-primary">
+                            <svg class="icon icon-xs icon-white me-2">
+                                <use href="/static/bootstrap-italia/svg/sprites.svg#it-plus-circle"></use>
+                            </svg>
+                            Aggiungi Nuova Spesa
+                        </a>
+                        <a href="{{ url_for('richiesta.dettaglio_richiesta', id=richiesta.id) }}" class="btn btn-outline-primary ms-2">Torna al Dettaglio Richiesta</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -40,6 +40,7 @@ def create_app(config_class=Config):
     from app.blueprints.mezzo import mezzo_bp
     from app.blueprints.impiego_mezzo import impiego_mezzo_bp
     from app.blueprints.richiesta import richiesta_bp
+    from app.blueprints.spesa_nuova import spesa_bp
     
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp, url_prefix='/auth')
@@ -47,7 +48,8 @@ def create_app(config_class=Config):
     app.register_blueprint(odv_bp, url_prefix='/admin/odv')
     app.register_blueprint(mezzo_bp, url_prefix='/admin/mezzi')
     app.register_blueprint(impiego_mezzo_bp)
-    app.register_blueprint(richiesta_bp)
+    app.register_blueprint(richiesta_bp, url_prefix='/richieste')
+    app.register_blueprint(spesa_bp)
     
     # Registra i filtri Jinja2 personalizzati
     from app.utils.jinja_filters import nl2br

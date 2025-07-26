@@ -1,0 +1,59 @@
+/* Bootstrap Italia minimal CSS */
+.icon {
+  width: 24px;
+  height: 24px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.icon-xs {
+  width: 16px;
+  height: 16px;
+}
+
+.icon-white {
+  fill: white;
+}
+
+.nav-tabs-icon .nav-link {
+  display: flex;
+  align-items: center;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-text {
+  color: #6c757d;
+  font-size: 0.875rem;
+}
+
+.tab-content {
+  padding-top: 1rem;
+}
+
+.card-title {
+  margin-bottom: 0.75rem;
+}
+
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+.me-1 {
+  margin-right: 0.25rem;
+}
+
+.mb-3 {
+  margin-bottom: 1rem;
+}
+
+.mb-4 {
+  margin-bottom: 1.5rem;
+}
+
+.p-4 {
+  padding: 1.5rem;
+}

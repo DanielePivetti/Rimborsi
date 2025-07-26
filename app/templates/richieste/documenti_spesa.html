@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+                                        <form method="POST" enctype="multipart/form-data">
+                                    <div class="row">
+                                        {{ form.hidden_tag() }}v class="col-12">
+            <div class="it-page-title-wrapper">
+                <h1 class="it-page-title">{{ title }}</h1>
+                <p class="lead">Spesa #{{ spesa.id }} - {{ spesa.tipo.name }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h3 class="card-title">Carica documenti</h3>
+                    
+                    <div class="alert alert-info">
+                        <p>
+                            <strong>Requisiti per i documenti:</strong>
+                        </p>
+                        <ul>
+                            <li>Ogni voce di spesa deve avere obbligatoriamente un documento di tipo A (scontrino), B (quietanza) o C (fattura).</li>
+                            {% if spesa.tipo.value == '04' %}
+                            <li>Per spese di tipo "Ripristino" è necessario anche un documento di tipo E (attestazione danno).</li>
+                            {% endif %}
+                            {% if spesa.tipo.value in ['05', '06'] %}
+                            <li>Per spese di tipo "{{ spesa.tipo.name }}" è necessario anche un documento di tipo D (autorizzazione).</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    
+                    <h5 class="mt-4 mb-3">Documenti caricati</h5>
+                    
+                    {% if spesa.documenti %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Tipo</th>
+                                        <th>Numero</th>
+                                        <th>Data</th>
+                                        <th>Descrizione</th>
+                                        <th>File</th>
+                                        <th>Azioni</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for doc in spesa.documenti %}
+                                    <tr>
+                                        <td>{{ doc.tipo.value }} - {{ doc.tipo.name.replace('_', ' ').capitalize() }}</td>
+                                        <td>{{ doc.numero or '' }}</td>
+                                        <td>{{ doc.data.strftime('%d/%m/%Y') }}</td>
+                                        <td>{{ doc.descrizione or '' }}</td>
+                                        <td>
+                                            <a href="{{ url_for('spesa.download_documento', documento_id=doc.id) }}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fa fa-download"></i> Scarica
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteDocModal{{ doc.id }}">
+                                                <i class="fa fa-trash"></i> Elimina
+                                            </button>
+                                            
+                                            <!-- Modal di conferma eliminazione -->
+                                            <div class="modal fade" id="deleteDocModal{{ doc.id }}" tabindex="-1" aria-labelledby="deleteDocModalLabel{{ doc.id }}" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title" id="deleteDocModalLabel{{ doc.id }}">Conferma eliminazione</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            Sei sicuro di voler eliminare questo documento?
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annulla</button>
+                                                            <form action="{{ url_for('spesa.elimina_documento', documento_id=doc.id) }}" method="POST">
+                                                                <button type="submit" class="btn btn-danger">Elimina</button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            Non ci sono ancora documenti caricati per questa spesa.
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Pulsante per aprire la modale di caricamento -->
+                    <button type="button" class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#addDocumentModal">
+                        <i class="fa fa-plus"></i> Aggiungi documento
+                    </button>
+                    
+                    <!-- Modale per l'aggiunta di un documento -->
+                    <div class="modal fade" id="addDocumentModal" tabindex="-1" aria-labelledby="addDocumentModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="addDocumentModalLabel">Aggiungi documento</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <form method="POST" enctype="multipart/form-data" >
+                                    <div class="modal-body">
+                                        {{ form.hidden_tag() }}
+                                        
+                                        <!-- Tipo documento -->
+                                        <div class="form-group mb-3">
+                                            {{ form.tipo.label(class="form-label") }}
+                                            {{ form.tipo(class="form-select" + (" is-invalid" if form.tipo.errors else "")) }}
+                                            {% if form.tipo.errors %}
+                                                <div class="invalid-feedback">
+                                                    {% for error in form.tipo.errors %}
+                                                        {{ error }}
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <!-- Numero documento -->
+                                                <div class="form-group mb-3">
+                                                    {{ form.numero.label(class="form-label") }}
+                                                    {{ form.numero(class="form-control" + (" is-invalid" if form.numero.errors else "")) }}
+                                                    {% if form.numero.errors %}
+                                                        <div class="invalid-feedback">
+                                                            {% for error in form.numero.errors %}
+                                                                {{ error }}
+                                                            {% endfor %}
+                                                        </div>
+                                                    {% endif %}
+                                                    <small class="form-text text-muted">Opzionale</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <!-- Data documento -->
+                                                <div class="form-group mb-3">
+                                                    {{ form.data.label(class="form-label") }}
+                                                    {{ form.data(class="form-control" + (" is-invalid" if form.data.errors else ""), type="date") }}
+                                                    {% if form.data.errors %}
+                                                        <div class="invalid-feedback">
+                                                            {% for error in form.data.errors %}
+                                                                {{ error }}
+                                                            {% endfor %}
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Descrizione documento -->
+                                        <div class="form-group mb-3">
+                                            {{ form.descrizione.label(class="form-label") }}
+                                            {{ form.descrizione(class="form-control" + (" is-invalid" if form.descrizione.errors else ""), rows=3) }}
+                                            {% if form.descrizione.errors %}
+                                                <div class="invalid-feedback">
+                                                    {% for error in form.descrizione.errors %}
+                                                        {{ error }}
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                            <small class="form-text text-muted">Opzionale</small>
+                                        </div>
+                                        
+                                        <!-- File documento -->
+                                        <div class="form-group mb-3">
+                                            {{ form.file.label(class="form-label") }}
+                                            {{ form.file(class="form-control" + (" is-invalid" if form.file.errors else "")) }}
+                                            {% if form.file.errors %}
+                                                <div class="invalid-feedback">
+                                                    {% for error in form.file.errors %}
+                                                        {{ error }}
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                            <small class="form-text text-muted">Formati accettati: JPG, PNG, PDF. Max 10MB.</small>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annulla</button>
+                                        {{ form.submit(class="btn btn-primary") }}
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <a href="{{ url_for('richiesta.dettaglio_richiesta', id=spesa.richiesta_id) }}" class="btn btn-outline-primary">
+                            <i class="fa fa-arrow-left"></i> Torna al dettaglio richiesta
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

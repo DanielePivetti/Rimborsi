@@ -21,6 +21,7 @@ class Spesa(db.Model):
     importo_richiesto = db.Column(db.Float, nullable=False)
     importo_approvato = db.Column(db.Float)
     note = db.Column(db.Text)
+    nota_istruttoria = db.Column(db.Text)  # Nota dell'istruttore per questa spesa
     
     # Campi per il polimorfismo
     __mapper_args__ = {
@@ -28,8 +29,11 @@ class Spesa(db.Model):
         'polymorphic_identity': None
     }
     
-    # Relazione con i giustificativi (fatture, scontrini, ecc.)
+    # Relazione con i giustificativi (fatture, scontrini, ecc.) - vecchio modello
     giustificativi = relationship("Giustificativo", backref="spesa", cascade="all, delete-orphan")
+    
+    # Relazione con i nuovi documenti spesa
+    # Il backref è definito nel modello DocumentoSpesa
     
     data_creazione = db.Column(db.DateTime, default=datetime.utcnow)
     data_modifica = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
