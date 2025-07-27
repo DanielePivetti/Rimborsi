@@ -7,16 +7,18 @@ from app.models.spesa import (
     SpesaCarburante, SpesaPedaggi, SpesaRipristino,
     SpesaVitto, SpesaParcheggio, SpesaAltro
 )
-from app.models.giustificativo import Giustificativo, TipoGiustificativo
+from app.models.documento_spesa import DocumentoSpesa, TipoDocumento
 from app.models.odv import Odv
 from app.models.evento import Evento
 from app.models.impiego_mezzo import ImpiegoMezzo
+from app.models.mezzo import Mezzo
 from app.forms.richiesta_forms import (
     RichiestaBaseForm, 
     SpesaCarburanteForm, SpesaPedaggiForm, SpesaRipristinoForm,
     SpesaVittoForm, SpesaParcheggioForm, SpesaAltroForm,
-    GiustificativoForm
+    DocumentoSpesaForm
 )
+from app.forms.impiego_mezzo_form import ImpiegoMezzoForm
 from app.utils.decorators import admin_required, istruttore_required
 from werkzeug.utils import secure_filename
 import os
@@ -167,7 +169,39 @@ def dettaglio_richiesta(id):
         flash('Non hai il permesso di visualizzare questa richiesta', 'danger')
         return redirect(url_for('richiesta.lista_richieste'))
     
-    return render_template('richieste/dettaglio_richiesta.html', richiesta=richiesta)
+    # Ottieni gli impieghi mezzi associati alla richiesta
+    impieghi_mezzi = ImpiegoMezzo.query.filter_by(richiesta_id=id).all()
+    
+    # Form per aggiungere un nuovo impiego mezzo
+    impiego_mezzo_form = ImpiegoMezzoForm()
+    
+    # Popola le scelte dei mezzi disponibili
+    mezzi = Mezzo.query.filter_by(odv_id=richiesta.odv_id).all()
+    impiego_mezzo_form.mezzo_id.choices = [(m.id, f"{m.targa_inventario} - {m.tipologia.value}") for m in mezzi]
+    
+    # Prepara il form per la modifica se la richiesta è in attesa
+    form = None
+    if richiesta.stato == StatoRichiesta.IN_ATTESA and (current_user.is_admin() or richiesta.user_id == current_user.id):
+        form = RichiestaBaseForm(obj=richiesta)
+        
+        # Popola le scelte delle ODV in base al ruolo dell'utente
+        if current_user.is_admin() or current_user.is_istruttore():
+            # Admin e istruttori possono vedere tutte le organizzazioni
+            form.odv_id.choices = [(o.id, f"{o.nome} ({o.acronimo})") for o in Odv.query.all()]
+        else:
+            # I compilatori possono vedere solo le organizzazioni a cui sono associati
+            form.odv_id.choices = [(o.id, f"{o.nome} ({o.acronimo})") for o in current_user.organizzazioni.all()]
+        
+        # Popola le scelte degli eventi
+        form.evento_id.choices = [(e.id, f"{e.nome} ({e.data_inizio.strftime('%d/%m/%Y')} - {e.data_fine.strftime('%d/%m/%Y')})") 
+                                for e in Evento.query.all()]
+    
+    return render_template('richieste/dettaglio_richiesta.html', 
+                           richiesta=richiesta, 
+                           impieghi_mezzi=impieghi_mezzi,
+                           impiego_mezzo_form=impiego_mezzo_form,
+                           form=form,
+                           title='Dettaglio Richiesta di Rimborso')
 
 @richiesta_bp.route('/<int:id>/modifica', methods=['GET', 'POST'])
 @login_required
@@ -286,7 +320,7 @@ def aggiungi_giustificativo(spesa_id):
         flash('Non è possibile aggiungere giustificativi a una richiesta già approvata o rifiutata', 'warning')
         return redirect(url_for('richiesta.dettaglio_richiesta', id=richiesta.id))
     
-    form = GiustificativoForm()
+    form = DocumentoSpesaForm()
     
     if form.validate_on_submit():
         # Salva il file
@@ -297,38 +331,37 @@ def aggiungi_giustificativo(spesa_id):
         new_filename = f"{timestamp}_{filename}"
         
         # Crea la cartella se non esiste
-        upload_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'giustificativi')
+        upload_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'documenti')
         os.makedirs(upload_dir, exist_ok=True)
         
         # Salva il file
         file_path = os.path.join(upload_dir, new_filename)
         file.save(file_path)
         
-        # Crea il giustificativo
-        giustificativo = Giustificativo(
+        # Crea il documento
+        documento = DocumentoSpesa(
             spesa_id=spesa_id,
-            tipo=TipoGiustificativo[form.tipo.data],
+            tipo=TipoDocumento[form.tipo.data],
             numero=form.numero.data,
-            data_emissione=form.data_emissione.data,
-            emesso_da=form.emesso_da.data,
-            importo=form.importo.data,
-            file_path=os.path.join('giustificativi', new_filename)
+            data=form.data.data,
+            descrizione=form.descrizione.data,
+            file_path=os.path.join('documenti', new_filename)
         )
         
-        db.session.add(giustificativo)
+        db.session.add(documento)
         db.session.commit()
         
-        flash('Giustificativo aggiunto con successo', 'success')
+        flash('Documento aggiunto con successo', 'success')
         
         # Offri la possibilità di aggiungere un'altra spesa
         return redirect(url_for('richiesta.dettaglio_richiesta', id=richiesta.id))
     
     return render_template(
-        'richieste/form_giustificativo.html', 
+        'richieste/form_documento_spesa.html', 
         form=form, 
         spesa=spesa,
         richiesta=richiesta,
-        title='Aggiungi Giustificativo'
+        title='Aggiungi Documento'
     )
 
 @richiesta_bp.route('/<int:id>/approva', methods=['POST'])
@@ -426,3 +459,123 @@ def approva_parzialmente_richiesta(id):
     
     flash('Richiesta approvata parzialmente con successo', 'success')
     return redirect(url_for('richiesta.lista_richieste'))
+
+@richiesta_bp.route('/<int:richiesta_id>/impiego-mezzo/aggiungi', methods=['POST'])
+@login_required
+def aggiungi_impiego_mezzo(richiesta_id):
+    """Aggiunge un nuovo impiego mezzo a una richiesta"""
+    richiesta = Richiesta.query.get_or_404(richiesta_id)
+    
+    # Verifica che l'utente possa modificare questa richiesta
+    if not current_user.is_admin() and richiesta.user_id != current_user.id:
+        flash('Non hai il permesso di modificare questa richiesta', 'danger')
+        return redirect(url_for('richiesta.dettaglio_richiesta', id=richiesta_id))
+    
+    # Verifica che la richiesta sia in stato "in attesa"
+    if richiesta.stato != StatoRichiesta.IN_ATTESA:
+        flash('Non è possibile modificare una richiesta che non è in attesa', 'warning')
+        return redirect(url_for('richiesta.dettaglio_richiesta', id=richiesta_id))
+    
+    form = ImpiegoMezzoForm()
+    
+    # Popola le scelte dei mezzi disponibili
+    mezzi = Mezzo.query.filter_by(odv_id=richiesta.odv_id).all()
+    form.mezzo_id.choices = [(m.id, f"{m.targa_inventario} - {m.tipologia.value}") for m in mezzi]
+    
+    if form.validate_on_submit():
+        try:
+            # Crea un nuovo impiego mezzo
+            impiego_mezzo = ImpiegoMezzo(
+                mezzo_id=form.mezzo_id.data,
+                evento_id=richiesta.evento_id,
+                richiesta_id=richiesta_id,
+                conducente=form.conducente.data,
+                localita=form.localita.data,
+                data_inizio=form.data_inizio.data,
+                data_fine=form.data_fine.data,
+                km_partenza=form.km_partenza.data,
+                km_arrivo=form.km_arrivo.data,
+                note=form.note.data
+            )
+            
+            db.session.add(impiego_mezzo)
+            db.session.commit()
+            flash('Impiego mezzo aggiunto con successo', 'success')
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f"Errore durante l'aggiunta dell'impiego mezzo: {str(e)}", exc_info=True)
+            flash(f'Errore durante l\'aggiunta dell\'impiego mezzo: {str(e)}', 'danger')
+    else:
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f"Errore nel campo {getattr(form, field).label.text}: {error}", 'danger')
+    
+    return redirect(url_for('richiesta.dettaglio_richiesta', id=richiesta_id))
+
+@richiesta_bp.route('/<int:id>/inoltra', methods=['GET', 'POST'])
+@login_required
+def inoltra_richiesta(id):
+    """Inoltra una richiesta di rimborso per l'approvazione"""
+    richiesta = Richiesta.query.get_or_404(id)
+    
+    # Verifica che l'utente possa modificare questa richiesta
+    if not current_user.is_admin() and richiesta.user_id != current_user.id:
+        flash('Non hai il permesso di inoltrare questa richiesta', 'danger')
+        return redirect(url_for('richiesta.dettaglio_richiesta', id=id))
+    
+    # Verifica che la richiesta sia in stato "in attesa"
+    if richiesta.stato != StatoRichiesta.IN_ATTESA:
+        flash('Non è possibile inoltrare una richiesta che non è in attesa', 'warning')
+        return redirect(url_for('richiesta.dettaglio_richiesta', id=id))
+    
+    # Verifica che ci siano spese registrate
+    if not richiesta.spese:
+        flash('Non puoi inoltrare una richiesta senza spese registrate', 'warning')
+        return redirect(url_for('richiesta.dettaglio_richiesta', id=id))
+    
+    try:
+        # Qui in futuro potrebbe essere aggiunto uno stato "INOLTRATA" 
+        # Per ora lasciamo IN_ATTESA perché è quello che gestisce l'interfaccia
+        
+        # Segnaliamo solo che la richiesta è stata inoltrata, senza memorizzare la data
+        db.session.commit()
+        flash('Richiesta inoltrata con successo', 'success')
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Errore durante l'inoltro della richiesta: {str(e)}", exc_info=True)
+        flash(f'Errore durante l\'inoltro della richiesta: {str(e)}', 'danger')
+    
+    return redirect(url_for('richiesta.dettaglio_richiesta', id=id))
+
+@richiesta_bp.route('/<int:richiesta_id>/impiego-mezzo/<int:impiego_id>/elimina', methods=['POST'])
+@login_required
+def elimina_impiego_mezzo(richiesta_id, impiego_id):
+    """Elimina un impiego mezzo"""
+    impiego_mezzo = ImpiegoMezzo.query.get_or_404(impiego_id)
+    richiesta = Richiesta.query.get_or_404(richiesta_id)
+    
+    # Verifica che l'impiego mezzo appartenga alla richiesta
+    if impiego_mezzo.richiesta_id != richiesta_id:
+        flash('Impiego mezzo non associato a questa richiesta', 'danger')
+        return redirect(url_for('richiesta.dettaglio_richiesta', id=richiesta_id))
+    
+    # Verifica che l'utente possa modificare questa richiesta
+    if not current_user.is_admin() and richiesta.user_id != current_user.id:
+        flash('Non hai il permesso di modificare questa richiesta', 'danger')
+        return redirect(url_for('richiesta.dettaglio_richiesta', id=richiesta_id))
+    
+    # Verifica che la richiesta sia in stato "in attesa"
+    if richiesta.stato != StatoRichiesta.IN_ATTESA:
+        flash('Non è possibile modificare una richiesta che non è in attesa', 'warning')
+        return redirect(url_for('richiesta.dettaglio_richiesta', id=richiesta_id))
+    
+    try:
+        db.session.delete(impiego_mezzo)
+        db.session.commit()
+        flash('Impiego mezzo eliminato con successo', 'success')
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Errore durante l'eliminazione dell'impiego mezzo: {str(e)}", exc_info=True)
+        flash(f'Errore durante l\'eliminazione dell\'impiego mezzo: {str(e)}', 'danger')
+    
+    return redirect(url_for('richiesta.dettaglio_richiesta', id=richiesta_id))

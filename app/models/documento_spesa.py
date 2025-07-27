@@ -1,13 +1,28 @@
 from app import db
 from datetime import datetime
 import enum
+from sqlalchemy.types import TypeDecorator, Enum
+from sqlalchemy import event
 
+# Definiamo la vecchia versione dell'enum che corrisponde ai valori nel database
 class TipoDocumento(enum.Enum):
     SCONTRINO = "A"
     QUIETANZA = "B"
     FATTURA = "C"
     AUTORIZZAZIONE = "D"
     ATTESTAZIONE_DANNO = "E"
+    
+    def get_display_name(self):
+        """Restituisce il nome leggibile dell'enum"""
+        return self.name.replace('_', ' ').capitalize()
+        
+    @classmethod
+    def from_name(cls, name):
+        """Converte un nome come 'SCONTRINO' nell'enum appropriato"""
+        try:
+            return cls[name]
+        except KeyError:
+            return None
 
 class DocumentoSpesa(db.Model):
     __tablename__ = 'documenti_spesa'
@@ -27,4 +42,4 @@ class DocumentoSpesa(db.Model):
     spesa = db.relationship("Spesa", backref="documenti", foreign_keys=[spesa_id])
     
     def __repr__(self):
-        return f'<DocumentoSpesa {self.id} - Tipo: {self.tipo.value} - Data: {self.data}>'
+        return f'<DocumentoSpesa {self.id} - Tipo: {self.tipo.value if self.tipo else "None"} - Data: {self.data}>'

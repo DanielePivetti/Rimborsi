@@ -40,7 +40,7 @@ def create_app(config_class=Config):
     from app.blueprints.mezzo import mezzo_bp
     from app.blueprints.impiego_mezzo import impiego_mezzo_bp
     from app.blueprints.richiesta import richiesta_bp
-    from app.blueprints.spesa_nuova import spesa_bp
+    from app.blueprints.spesa import spesa_bp  # Aggiornato per usare il file consolidato
     
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp, url_prefix='/auth')
@@ -58,4 +58,4 @@ def create_app(config_class=Config):
     return app
 
 # Importa i modelli per renderli disponibili a Flask-Migrate
-from app.models import user, evento, odv, mezzo, impiego_mezzo, richiesta, spesa, giustificativo
+from app.models import user, evento, odv, mezzo, impiego_mezzo, richiesta, spesa, documento_spesa

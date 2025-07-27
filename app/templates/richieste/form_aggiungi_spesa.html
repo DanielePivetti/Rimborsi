@@ -313,6 +313,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
                 break;
+            case '05': // Parcheggio
+                const indirizzo = document.getElementById('indirizzo');
+                const durataOre = document.getElementById('durata_ore');
+                if (!indirizzo.value) {
+                    alert('Inserisci l\'indirizzo del parcheggio');
+                    event.preventDefault();
+                    return;
+                }
+                if (!durataOre.value) {
+                    alert('Inserisci la durata del parcheggio (ore)');
+                    event.preventDefault();
+                    return;
+                }
+                break;
             case '06': // Altro
                 const descrizioneDettagliata = document.getElementById('descrizione_dettagliata');
                 if (!descrizioneDettagliata.value) {

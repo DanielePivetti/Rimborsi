@@ -1,0 +1,47 @@
+{# Macro per la visualizzazione dei dettagli specifici per tipo di spesa #}
+
+{% macro dettagli_spesa(spesa) %}
+    {# Verifica il tipo di spesa e mostra i campi appropriati #}
+    {% if spesa.tipo.name == 'CARBURANTE' %}
+        <p><strong>Tipo carburante:</strong> {{ spesa.tipo_carburante }}</p>
+        <p><strong>Litri:</strong> {{ spesa.litri }}</p>
+        {% if spesa.impiego_mezzo_id %}
+        <p><strong>Mezzo utilizzato:</strong> {{ spesa.impiego_mezzo.mezzo.targa_inventario }}</p>
+        {% endif %}
+    
+    {% elif spesa.tipo.name == 'VITTO' %}
+        <p><strong>Numero pasti:</strong> {{ spesa.numero_pasti }}</p>
+    
+    {% elif spesa.tipo.name == 'PEDAGGI' %}
+        <p><strong>Tratta:</strong> {{ spesa.tratta }}</p>
+        {% if spesa.impiego_mezzo_id %}
+        <p><strong>Mezzo utilizzato:</strong> {{ spesa.impiego_mezzo.mezzo.targa_inventario }}</p>
+        {% endif %}
+    
+    {% elif spesa.tipo.name == 'RIPRISTINO' %}
+        <p><strong>Descrizione intervento:</strong> {{ spesa.descrizione_intervento }}</p>
+        {% if spesa.impiego_mezzo_id %}
+        <p><strong>Mezzo utilizzato:</strong> {{ spesa.impiego_mezzo.mezzo.targa_inventario }}</p>
+        {% endif %}
+    
+    {% elif spesa.tipo.name == 'PARCHEGGIO' %}
+        <p><strong>Indirizzo:</strong> {{ spesa.indirizzo }}</p>
+        <p><strong>Durata (ore):</strong> {{ spesa.durata_ore }}</p>
+    
+    {% elif spesa.tipo.name == 'ALTRO' %}
+        <p><strong>Descrizione dettagliata:</strong> {{ spesa.descrizione_dettagliata }}</p>
+    {% endif %}
+{% endmacro %}
+
+{# Macro per visualizzare lo stato della richiesta con badge appropriato #}
+{% macro stato_richiesta(stato) %}
+    {% if stato.value == 'in_attesa' %}
+        <span class="badge bg-warning text-dark">In attesa</span>
+    {% elif stato.value == 'approvata' %}
+        <span class="badge bg-success">Approvata</span>
+    {% elif stato.value == 'parzialmente_approvata' %}
+        <span class="badge bg-info">Parzialmente approvata</span>
+    {% elif stato.value == 'rifiutata' %}
+        <span class="badge bg-danger">Rifiutata</span>
+    {% endif %}
+{% endmacro %}

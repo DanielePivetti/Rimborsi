@@ -12,4 +12,4 @@ from app.models.spesa import (
     SpesaCarburante, SpesaPedaggi, SpesaRipristino,
     SpesaVitto, SpesaParcheggio, SpesaAltro
 )
-from app.models.giustificativo import Giustificativo, TipoGiustificativo
+from app.models.documento_spesa import DocumentoSpesa, TipoDocumento

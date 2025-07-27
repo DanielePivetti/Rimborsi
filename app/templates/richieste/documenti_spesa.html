@@ -26,10 +26,10 @@
                         <ul>
                             <li>Ogni voce di spesa deve avere obbligatoriamente un documento di tipo A (scontrino), B (quietanza) o C (fattura).</li>
                             {% if spesa.tipo.value == '04' %}
-                            <li>Per spese di tipo "Ripristino" è necessario anche un documento di tipo E (attestazione danno).</li>
+                            <li>Per spese di tipo "Ripristino" è necessario anche un documento di tipo ATTESTAZIONE_DANNO.</li>
                             {% endif %}
                             {% if spesa.tipo.value in ['05', '06'] %}
-                            <li>Per spese di tipo "{{ spesa.tipo.name }}" è necessario anche un documento di tipo D (autorizzazione).</li>
+                            <li>Per spese di tipo "{{ spesa.tipo.name }}" è necessario anche un documento di tipo AUTORIZZAZIONE.</li>
                             {% endif %}
                         </ul>
                     </div>
@@ -52,7 +52,7 @@
                                 <tbody>
                                     {% for doc in spesa.documenti %}
                                     <tr>
-                                        <td>{{ doc.tipo.value }} - {{ doc.tipo.name.replace('_', ' ').capitalize() }}</td>
+                                        <td>{{ doc.tipo.get_display_name() }}</td>
                                         <td>{{ doc.numero or '' }}</td>
                                         <td>{{ doc.data.strftime('%d/%m/%Y') }}</td>
                                         <td>{{ doc.descrizione or '' }}</td>

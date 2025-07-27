@@ -1,9 +1,8 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed, FileRequired
-from wtforms import StringField, TextAreaField, SelectField, DateField, FloatField, IntegerField, SubmitField, HiddenField
+from wtforms import StringField, TextAreaField, SelectField, DateField, FloatField, IntegerField, SubmitField, HiddenField, FieldList, FormField
 from wtforms.validators import DataRequired, Optional, NumberRange, Length
 from app.models.spesa import TipoSpesa
-from app.models.giustificativo import TipoGiustificativo
 from app.models.documento_spesa import TipoDocumento
 
 class AggiungiSpesaForm(FlaskForm):
@@ -73,24 +72,10 @@ class SpesaAltroForm(SpesaBaseForm):
     descrizione_dettagliata = TextAreaField('Descrizione dettagliata', validators=[DataRequired(), Length(max=500)])
     submit = SubmitField('Salva')
 
-class GiustificativoForm(FlaskForm):
-    """Form per i giustificativi"""
-    tipo = SelectField('Tipo documento', validators=[DataRequired()],
-                      choices=[(tipo.value, tipo.name.capitalize()) for tipo in TipoGiustificativo])
-    numero = StringField('Numero documento', validators=[Optional(), Length(max=100)])
-    data_emissione = DateField('Data emissione', format='%Y-%m-%d', validators=[DataRequired()])
-    emesso_da = StringField('Emesso da', validators=[DataRequired(), Length(max=255)])
-    importo = FloatField('Importo', validators=[DataRequired(), NumberRange(min=0.01)])
-    file = FileField('File allegato', validators=[
-        FileRequired(),
-        FileAllowed(['jpg', 'jpeg', 'png', 'pdf'], 'Solo immagini o PDF sono permessi.')
-    ])
-    submit = SubmitField('Salva')
-
 class DocumentoSpesaForm(FlaskForm):
     """Form per i documenti di spesa"""
     tipo = SelectField('Tipo documento', validators=[DataRequired()],
-                      choices=[(tipo.value, f"{tipo.value} - {tipo.name.replace('_', ' ').capitalize()}") for tipo in TipoDocumento])
+                      choices=[(tipo.name, f"{tipo.value} - {tipo.get_display_name()}") for tipo in TipoDocumento])
     numero = StringField('Numero documento', validators=[Optional(), Length(max=100)])
     data = DateField('Data emissione', format='%Y-%m-%d', validators=[DataRequired()])
     descrizione = TextAreaField('Descrizione', validators=[Optional(), Length(max=500)])
@@ -141,9 +126,9 @@ class SpesaDocumentiForm(FlaskForm):
     # Campi per il documento principale (A, B o C)
     doc_tipo = SelectField('Tipo documento', validators=[DataRequired()],
                        choices=[
-                           (TipoDocumento.SCONTRINO.value, f"{TipoDocumento.SCONTRINO.value} - Scontrino"),
-                           (TipoDocumento.QUIETANZA.value, f"{TipoDocumento.QUIETANZA.value} - Quietanza"),
-                           (TipoDocumento.FATTURA.value, f"{TipoDocumento.FATTURA.value} - Fattura")
+                           (TipoDocumento.SCONTRINO.name, f"{TipoDocumento.SCONTRINO.value} - Scontrino"),
+                           (TipoDocumento.QUIETANZA.name, f"{TipoDocumento.QUIETANZA.value} - Quietanza"),
+                           (TipoDocumento.FATTURA.name, f"{TipoDocumento.FATTURA.value} - Fattura")
                        ])
     doc_numero = StringField('Numero documento', validators=[Optional(), Length(max=100)])
     doc_data = DateField('Data emissione', format='%Y-%m-%d', validators=[DataRequired()])
@@ -164,6 +149,9 @@ class SpesaDocumentiForm(FlaskForm):
         Optional(),
         FileAllowed(['jpg', 'jpeg', 'png', 'pdf'], 'Solo immagini o PDF sono permessi.')
     ])
+    
+    # Campo per i documenti multipli
+    documenti = FieldList(FormField(DocumentoSpesaForm), min_entries=0)
     
     submit = SubmitField('Salva')
 

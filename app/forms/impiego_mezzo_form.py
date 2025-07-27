@@ -1,11 +1,12 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField, SelectField, DateTimeField, IntegerField, SubmitField
-from wtforms.validators import DataRequired, Optional, NumberRange
+from wtforms.validators import DataRequired, Optional, NumberRange, Length
 from app.models.mezzo import Mezzo
 
 class ImpiegoMezzoForm(FlaskForm):
     mezzo_id = SelectField('Mezzo', coerce=int, validators=[DataRequired()])
-    evento_id = SelectField('Evento', coerce=int, validators=[DataRequired()])
+    conducente = StringField('Conducente', validators=[DataRequired(), Length(max=100)])
+    localita = StringField('Località', validators=[DataRequired(), Length(max=200)])
     data_inizio = DateTimeField('Data e ora inizio', format='%Y-%m-%dT%H:%M', validators=[DataRequired()])
     data_fine = DateTimeField('Data e ora fine', format='%Y-%m-%dT%H:%M', validators=[DataRequired()])
     km_partenza = IntegerField('Km alla partenza', validators=[DataRequired(), NumberRange(min=0)])

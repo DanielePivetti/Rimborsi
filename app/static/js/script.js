@@ -2,7 +2,7 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     // Inizializza tutti i componenti di Bootstrap Italia
-    window.bootstrap.init();
+    // window.bootstrap.init();  // Questa funzione non esiste in Bootstrap Italia
     
     // Gestione degli alerts
     const alertList = document.querySelectorAll('.alert');

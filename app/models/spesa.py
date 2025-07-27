@@ -10,6 +10,7 @@ class TipoSpesa(enum.Enum):
     RIPRISTINO = "04"
     PARCHEGGIO = "05"
     ALTRO = "06"
+    TRASPORTO_PUBBLICO = "07"
 
 class Spesa(db.Model):
     __tablename__ = 'spese'
@@ -29,11 +30,7 @@ class Spesa(db.Model):
         'polymorphic_identity': None
     }
     
-    # Relazione con i giustificativi (fatture, scontrini, ecc.) - vecchio modello
-    giustificativi = relationship("Giustificativo", backref="spesa", cascade="all, delete-orphan")
-    
-    # Relazione con i nuovi documenti spesa
-    # Il backref è definito nel modello DocumentoSpesa
+    # Relazione con i documenti spesa (il backref è definito nel modello DocumentoSpesa)
     
     data_creazione = db.Column(db.DateTime, default=datetime.utcnow)
     data_modifica = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -113,4 +110,15 @@ class SpesaAltro(Spesa):
     
     __mapper_args__ = {
         'polymorphic_identity': TipoSpesa.ALTRO
+    }
+
+class SpesaTrasportoPubblico(Spesa):
+    __tablename__ = 'spese_trasporto_pubblico'
+    
+    id = db.Column(db.Integer, db.ForeignKey('spese.id'), primary_key=True)
+    tipo_trasporto = db.Column(db.String(100), nullable=False)  # Treno, Bus, Metro, ecc.
+    tratta = db.Column(db.String(255), nullable=False)  # es. "Milano-Roma"
+    
+    __mapper_args__ = {
+        'polymorphic_identity': TipoSpesa.TRASPORTO_PUBBLICO
     }
