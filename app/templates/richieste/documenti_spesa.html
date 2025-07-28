@@ -3,9 +3,7 @@
 {% block content %}
 <div class="container">
     <div class="row mb-4">
-                                        <form method="POST" enctype="multipart/form-data">
-                                    <div class="row">
-                                        {{ form.hidden_tag() }}v class="col-12">
+        <div class="col-12">
             <div class="it-page-title-wrapper">
                 <h1 class="it-page-title">{{ title }}</h1>
                 <p class="lead">Spesa #{{ spesa.id }} - {{ spesa.tipo.name }}</p>
@@ -28,7 +26,7 @@
                             {% if spesa.tipo.value == '04' %}
                             <li>Per spese di tipo "Ripristino" è necessario anche un documento di tipo ATTESTAZIONE_DANNO.</li>
                             {% endif %}
-                            {% if spesa.tipo.value in ['05', '06'] %}
+                            {% if spesa.tipo.value in ['06'] %}
                             <li>Per spese di tipo "{{ spesa.tipo.name }}" è necessario anche un documento di tipo AUTORIZZAZIONE.</li>
                             {% endif %}
                         </ul>
@@ -111,86 +109,56 @@
                                     <h5 class="modal-title" id="addDocumentModalLabel">Aggiungi documento</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
-                                <form method="POST" enctype="multipart/form-data" >
+                                <form method="POST" enctype="multipart/form-data">
                                     <div class="modal-body">
-                                        {{ form.hidden_tag() }}
+                                        <!-- Form CSRF token -->
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}"/>
                                         
                                         <!-- Tipo documento -->
                                         <div class="form-group mb-3">
-                                            {{ form.tipo.label(class="form-label") }}
-                                            {{ form.tipo(class="form-select" + (" is-invalid" if form.tipo.errors else "")) }}
-                                            {% if form.tipo.errors %}
-                                                <div class="invalid-feedback">
-                                                    {% for error in form.tipo.errors %}
-                                                        {{ error }}
-                                                    {% endfor %}
-                                                </div>
-                                            {% endif %}
+                                            <label class="form-label">Tipo documento</label>
+                                            <select name="tipo" class="form-select" required>
+                                                {% for tipo in tipi_documento %}
+                                                <option value="{{ tipo.name }}">{{ tipo.value }} - {{ tipo.get_display_name() }}</option>
+                                                {% endfor %}
+                                            </select>
                                         </div>
                                         
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <!-- Numero documento -->
                                                 <div class="form-group mb-3">
-                                                    {{ form.numero.label(class="form-label") }}
-                                                    {{ form.numero(class="form-control" + (" is-invalid" if form.numero.errors else "")) }}
-                                                    {% if form.numero.errors %}
-                                                        <div class="invalid-feedback">
-                                                            {% for error in form.numero.errors %}
-                                                                {{ error }}
-                                                            {% endfor %}
-                                                        </div>
-                                                    {% endif %}
+                                                    <label class="form-label">Numero documento</label>
+                                                    <input type="text" name="numero" class="form-control">
                                                     <small class="form-text text-muted">Opzionale</small>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <!-- Data documento -->
                                                 <div class="form-group mb-3">
-                                                    {{ form.data.label(class="form-label") }}
-                                                    {{ form.data(class="form-control" + (" is-invalid" if form.data.errors else ""), type="date") }}
-                                                    {% if form.data.errors %}
-                                                        <div class="invalid-feedback">
-                                                            {% for error in form.data.errors %}
-                                                                {{ error }}
-                                                            {% endfor %}
-                                                        </div>
-                                                    {% endif %}
+                                                    <label class="form-label">Data emissione</label>
+                                                    <input type="date" name="data" class="form-control" required>
                                                 </div>
                                             </div>
                                         </div>
                                         
                                         <!-- Descrizione documento -->
                                         <div class="form-group mb-3">
-                                            {{ form.descrizione.label(class="form-label") }}
-                                            {{ form.descrizione(class="form-control" + (" is-invalid" if form.descrizione.errors else ""), rows=3) }}
-                                            {% if form.descrizione.errors %}
-                                                <div class="invalid-feedback">
-                                                    {% for error in form.descrizione.errors %}
-                                                        {{ error }}
-                                                    {% endfor %}
-                                                </div>
-                                            {% endif %}
+                                            <label class="form-label">Descrizione</label>
+                                            <textarea name="descrizione" class="form-control" rows="3"></textarea>
                                             <small class="form-text text-muted">Opzionale</small>
                                         </div>
                                         
                                         <!-- File documento -->
                                         <div class="form-group mb-3">
-                                            {{ form.file.label(class="form-label") }}
-                                            {{ form.file(class="form-control" + (" is-invalid" if form.file.errors else "")) }}
-                                            {% if form.file.errors %}
-                                                <div class="invalid-feedback">
-                                                    {% for error in form.file.errors %}
-                                                        {{ error }}
-                                                    {% endfor %}
-                                                </div>
-                                            {% endif %}
-                                            <small class="form-text text-muted">Formati accettati: JPG, PNG, PDF. Max 10MB.</small>
+                                            <label class="form-label">File allegato</label>
+                                            <input type="file" name="file" class="form-control">
+                                            <small class="form-text text-muted">Opzionale. Formati accettati: JPG, PNG, PDF. Max 10MB.</small>
                                         </div>
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annulla</button>
-                                        {{ form.submit(class="btn btn-primary") }}
+                                        <button type="submit" class="btn btn-primary">Salva</button>
                                     </div>
                                 </form>
                             </div>

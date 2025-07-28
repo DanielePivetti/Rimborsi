@@ -18,7 +18,7 @@
                     <h4 class="card-title">Riepilogo Spese</h4>
                     <p class="card-text">Qui puoi visualizzare tutte le spese inserite per questa richiesta di rimborso.</p>
                     
-                    {% if not (spese_carburante or spese_vitto or spese_pedaggi or spese_ripristino or spese_parcheggio or spese_altro) %}
+                    {% if not (spese_carburante or spese_vitto or spese_pedaggi or spese_ripristino or spese_viaggi or spese_altro) %}
                         <div class="alert alert-info">
                             <i class="bi bi-info-circle"></i> Non ci sono ancora spese inserite per questa richiesta.
                         </div>
@@ -58,7 +58,7 @@
                                                         <td>{{ spesa.litri if spesa.litri else '-' }}</td>
                                                         <td>{{ spesa.note if spesa.note else '-' }}</td>
                                                         <td>
-                                                            <a href="{{ url_for('spesa.gestisci_documenti', spesa_id=spesa.id) }}" class="btn btn-sm btn-primary">
+                                                            <a href="{{ url_for('spesa.documenti_spesa', spesa_id=spesa.id) }}" class="btn btn-sm btn-primary">
                                                                 <svg class="icon icon-xs icon-white">
                                                                     <use href="/static/bootstrap-italia/svg/sprites.svg#it-file"></use>
                                                                 </svg>
@@ -107,7 +107,7 @@
                                                         <td>{{ spesa.numero_pasti }}</td>
                                                         <td>{{ spesa.note if spesa.note else '-' }}</td>
                                                         <td>
-                                                            <a href="{{ url_for('spesa.gestisci_documenti', spesa_id=spesa.id) }}" class="btn btn-sm btn-primary">
+                                                            <a href="{{ url_for('spesa.documenti_spesa', spesa_id=spesa.id) }}" class="btn btn-sm btn-primary">
                                                                 <svg class="icon icon-xs icon-white">
                                                                     <use href="/static/bootstrap-italia/svg/sprites.svg#it-file"></use>
                                                                 </svg>

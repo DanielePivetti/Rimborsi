@@ -10,6 +10,6 @@ from app.models.richiesta import Richiesta, StatoRichiesta
 from app.models.spesa import (
     Spesa, TipoSpesa, 
     SpesaCarburante, SpesaPedaggi, SpesaRipristino,
-    SpesaVitto, SpesaParcheggio, SpesaAltro
+    SpesaVitto, SpesaViaggi, SpesaAltro
 )
 from app.models.documento_spesa import DocumentoSpesa, TipoDocumento

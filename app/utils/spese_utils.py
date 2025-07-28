@@ -12,7 +12,7 @@ class TipoSpesa(Enum):
     VITTO = "VITTO"
     PEDAGGI = "PEDAGGI"
     RIPRISTINO = "RIPRISTINO"
-    PARCHEGGIO = "PARCHEGGIO"
+    VIAGGI = "VIAGGI"
     ALTRO = "ALTRO"
 
 # Definizione dei campi specifici per ogni tipo di spesa
@@ -22,7 +22,7 @@ CAMPI_SPESA: Dict[TipoSpesa, List[str]] = {
     TipoSpesa.VITTO: ["numero_pasti"],
     TipoSpesa.PEDAGGI: ["tratta", "impiego_mezzo_id"],
     TipoSpesa.RIPRISTINO: ["descrizione_intervento", "impiego_mezzo_id"],
-    TipoSpesa.PARCHEGGIO: ["indirizzo", "durata_ore"],
+    TipoSpesa.VIAGGI: ["viaggio"],
     TipoSpesa.ALTRO: ["descrizione_dettagliata"],
 }
 
@@ -34,8 +34,7 @@ ETICHETTE_CAMPI: Dict[str, str] = {
     "numero_pasti": "Numero pasti",
     "tratta": "Tratta",
     "descrizione_intervento": "Descrizione intervento",
-    "indirizzo": "Indirizzo",
-    "durata_ore": "Durata (ore)",
+    "viaggio": "Numero viaggi",
     "descrizione_dettagliata": "Descrizione dettagliata",
 }
 

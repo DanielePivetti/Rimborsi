@@ -1,11 +1,11 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, send_from_directory, session
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, send_from_directory
 from flask_login import login_required, current_user
 from app import db
 from app.models.richiesta import Richiesta, StatoRichiesta
 from app.models.spesa import (
     Spesa, TipoSpesa, 
     SpesaCarburante, SpesaPedaggi, SpesaRipristino,
-    SpesaVitto, SpesaViaggi, SpesaAltro
+    SpesaVitto, SpesaParcheggio, SpesaAltro
 )
 from app.models.documento_spesa import DocumentoSpesa, TipoDocumento
 from app.models.odv import Odv
@@ -45,7 +45,7 @@ def gestione_spese(richiesta_id):
     spese_vitto = SpesaVitto.query.filter_by(richiesta_id=richiesta_id).all()
     spese_pedaggi = SpesaPedaggi.query.filter_by(richiesta_id=richiesta_id).all()
     spese_ripristino = SpesaRipristino.query.filter_by(richiesta_id=richiesta_id).all()
-    spese_viaggi = SpesaViaggi.query.filter_by(richiesta_id=richiesta_id).all()
+    spese_parcheggio = SpesaParcheggio.query.filter_by(richiesta_id=richiesta_id).all()
     spese_altro = SpesaAltro.query.filter_by(richiesta_id=richiesta_id).all()
     
     return render_template(
@@ -55,7 +55,7 @@ def gestione_spese(richiesta_id):
         spese_vitto=spese_vitto,
         spese_pedaggi=spese_pedaggi,
         spese_ripristino=spese_ripristino,
-        spese_viaggi=spese_viaggi,
+        spese_parcheggio=spese_parcheggio,
         spese_altro=spese_altro
     )
 
@@ -159,24 +159,34 @@ def aggiungi_spesa(richiesta_id):
                     impiego_mezzo_id=impiego_mezzo_id
                 )
             
-            elif tipo_spesa == TipoSpesa.VIAGGI.value:
-                viaggio = request.form.get('viaggio', 1)
+            elif tipo_spesa == TipoSpesa.PARCHEGGIO.value:
+                citta = request.form.get('citta')
+                durata = request.form.get('durata')
                 
-                spesa = SpesaViaggi(
+                if not citta:
+                    flash('Inserisci la città del parcheggio', 'danger')
+                    return redirect(url_for('spesa.aggiungi_spesa', richiesta_id=richiesta_id))
+                
+                if not durata:
+                    flash('Inserisci la durata del parcheggio', 'danger')
+                    return redirect(url_for('spesa.aggiungi_spesa', richiesta_id=richiesta_id))
+                
+                spesa = SpesaParcheggio(
                     richiesta_id=richiesta_id,
-                    tipo=TipoSpesa.VIAGGI,
+                    tipo=TipoSpesa.PARCHEGGIO,
                     data_spesa=data_spesa,
                     importo_richiesto=importo_richiesto,
                     note=note,
-                    viaggio=int(viaggio)
+                    citta=citta,
+                    durata=durata
                 )
             
             elif tipo_spesa == TipoSpesa.RIPRISTINO.value:
-                descrizione_intervento = request.form.get('descrizione_intervento')
+                tipo_ripristino = request.form.get('descrizione_intervento')
                 impiego_mezzo_id = request.form.get('impiego_mezzo_id')
                 
-                if not descrizione_intervento:
-                    flash('Inserisci la descrizione dell\'intervento', 'danger')
+                if not tipo_ripristino:
+                    flash('Inserisci il tipo di ripristino', 'danger')
                     return redirect(url_for('spesa.aggiungi_spesa', richiesta_id=richiesta_id))
                 
                 impiego_mezzo_id = int(impiego_mezzo_id) if impiego_mezzo_id and impiego_mezzo_id != '0' else None
@@ -187,7 +197,7 @@ def aggiungi_spesa(richiesta_id):
                     data_spesa=data_spesa,
                     importo_richiesto=importo_richiesto,
                     note=note,
-                    descrizione_intervento=descrizione_intervento,
+                    tipo_ripristino=tipo_ripristino,
                     impiego_mezzo_id=impiego_mezzo_id
                 )
             
@@ -269,7 +279,6 @@ def elimina_spesa(spesa_id):
     return redirect(url_for('spesa.gestione_spese', richiesta_id=richiesta.id))
 
 @spesa_bp.route('/documenti/<int:spesa_id>', methods=['GET', 'POST'])
-@spesa_bp.route('/gestisci-documenti/<int:spesa_id>', methods=['GET', 'POST'])
 @login_required
 def documenti_spesa(spesa_id):
     """Gestisce i documenti associati a una spesa"""
@@ -287,70 +296,52 @@ def documenti_spesa(spesa_id):
     # Recupera i documenti esistenti
     documenti = DocumentoSpesa.query.filter_by(spesa_id=spesa_id).all()
     
-    # Utilizzo diretto di request per elaborare il form, evitando i problemi con WTForms
-    if request.method == 'POST' and modifica_consentita:
+    form = SpesaDocumentiForm()
+    # Aggiunge campi dinamici per nuovi documenti
+    for _ in range(3):
+        form.documenti.append_entry()
+    
+    if form.validate_on_submit() and modifica_consentita:
         try:
-            # Estrai i dati dal form
-            tipo = request.form.get('tipo')
-            numero = request.form.get('numero', '')
-            data_str = request.form.get('data')
-            descrizione = request.form.get('descrizione', '')
-            file = request.files.get('file')
-            
-            # Verifica che i dati essenziali siano presenti
-            if tipo and data_str:
-                # Converti la data
-                try:
-                    data = datetime.strptime(data_str, '%Y-%m-%d').date()
+            # Gestisce l'upload di ciascun documento
+            for doc_form in form.documenti:
+                # Verifica se un file è stato caricato in questo campo
+                if doc_form.file.data and doc_form.file.data.filename:
+                    # Genera un nome univoco per il file
+                    nome_originale = secure_filename(doc_form.file.data.filename)
+                    estensione = os.path.splitext(nome_originale)[1]
+                    nome_file = f"{uuid.uuid4()}{estensione}"
                     
-                    # Gestisci l'upload del file se presente
-                    file_path = None
-                    if file and file.filename:
-                        nome_originale = secure_filename(file.filename)
-                        estensione = os.path.splitext(nome_originale)[1]
-                        nome_file = f"{uuid.uuid4()}{estensione}"
-                        
-                        # Salva il file
-                        percorso_file = os.path.join(current_app.config['UPLOAD_FOLDER'], nome_file)
-                        file.save(percorso_file)
-                        file_path = nome_file
+                    # Salva il file
+                    percorso_file = os.path.join(current_app.config['UPLOAD_FOLDER'], nome_file)
+                    doc_form.file.data.save(percorso_file)
                     
                     # Crea il record del documento
                     documento = DocumentoSpesa(
                         spesa_id=spesa_id,
-                        tipo=tipo,
-                        numero=numero,
-                        data=data,
-                        descrizione=descrizione,
-                        file_path=file_path
+                        tipo=doc_form.tipo.data,
+                        nome_originale=nome_originale,
+                        nome_file=nome_file,
+                        note=doc_form.note.data
                     )
-                    
                     db.session.add(documento)
-                    db.session.commit()
-                    flash('Documento caricato con successo', 'success')
-                    return redirect(url_for('spesa.documenti_spesa', spesa_id=spesa_id))
-                    
-                except ValueError:
-                    flash('Formato data non valido. Usa il formato YYYY-MM-DD', 'danger')
-            else:
-                flash('Tipo documento e data sono obbligatori', 'danger')
-                
+            
+            db.session.commit()
+            flash('Documenti caricati con successo', 'success')
+            return redirect(url_for('spesa.documenti_spesa', spesa_id=spesa_id))
+        
         except Exception as e:
             db.session.rollback()
-            flash(f'Errore durante il caricamento del documento: {str(e)}', 'danger')
-    
-    # Questo è un csrf_token fittizio, poiché non stiamo usando più WTForms per il form
-    # Useremo solo la validazione server-side in questo caso
-    csrf_token = 'document_upload_form'
+            flash(f'Errore durante il caricamento dei documenti: {str(e)}', 'danger')
     
     return render_template(
         'richieste/documenti_spesa.html',
         spesa=spesa,
         richiesta=richiesta,
+        form=form,
         documenti=documenti,
         modifica_consentita=modifica_consentita,
-        tipi_documento=TipoDocumento,
-        csrf_token=csrf_token
+        tipi_documento=TipoDocumento
     )
 
 @spesa_bp.route('/documento/<int:documento_id>/elimina', methods=['POST'])
@@ -401,25 +392,10 @@ def download_documento(documento_id):
         flash('Non hai il permesso di scaricare questo documento', 'danger')
         return redirect(url_for('richiesta.lista_richieste'))
     
-    # Verifica che il file esista
-    file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], documento.nome_file)
-    if not os.path.exists(file_path):
-        flash('Il file richiesto non esiste', 'danger')
-        return redirect(url_for('spesa.documenti_spesa', spesa_id=spesa.id))
-    
-    # Determina il nome del file per il download (usa il nome originale se disponibile)
-    nome_download = documento.nome_file
-    estensione = os.path.splitext(documento.nome_file)[1]
-    
-    # Crea un nome descrittivo basato sul tipo di documento e sulla data
-    data_str = documento.data.strftime('%Y%m%d')
-    tipo_str = documento.tipo.name.lower()
-    
-    nome_descrittivo = f"{tipo_str}_{data_str}{estensione}"
-    
+    # Invia il file
     return send_from_directory(
         current_app.config['UPLOAD_FOLDER'],
         documento.nome_file,
-        as_attachment=True,
-        download_name=nome_descrittivo
+        download_name=documento.nome_originale,
+        as_attachment=True
     )

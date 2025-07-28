@@ -24,9 +24,9 @@
         <p><strong>Mezzo utilizzato:</strong> {{ spesa.impiego_mezzo.mezzo.targa_inventario }}</p>
         {% endif %}
     
-    {% elif spesa.tipo.name == 'PARCHEGGIO' %}
-        <p><strong>Indirizzo:</strong> {{ spesa.indirizzo }}</p>
-        <p><strong>Durata (ore):</strong> {{ spesa.durata_ore }}</p>
+    {% elif spesa.tipo.name == 'VIAGGI' %}
+        <p><strong>Viaggio:</strong> {{ spesa.viaggio }}</p>
+        
     
     {% elif spesa.tipo.name == 'ALTRO' %}
         <p><strong>Descrizione dettagliata:</strong> {{ spesa.descrizione_dettagliata }}</p>

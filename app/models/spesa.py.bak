@@ -8,7 +8,6 @@ class TipoSpesa(enum.Enum):
     VITTO = "02"
     PEDAGGI = "03"
     RIPRISTINO = "04"
-    VIAGGI = "05"
     ALTRO = "06"
 
 class Spesa(db.Model):
@@ -87,17 +86,7 @@ class SpesaViaggi(Spesa):
     viaggio = db.Column(db.Integer, nullable=False, default=1)
     
     __mapper_args__ = {
-        'polymorphic_identity': TipoSpesa.VIAGGI
-    }
-
-class SpesaVitto(Spesa):
-    __tablename__ = 'spese_vitto'
-    
-    id = db.Column(db.Integer, db.ForeignKey('spese.id'), primary_key=True)
-    numero_pasti = db.Column(db.Integer, nullable=False, default=1)
-    
-    __mapper_args__ = {
-        'polymorphic_identity': TipoSpesa.VITTO
+        'polymorphic_identity': TipoSpesa.Viaggi
     }
 
 class SpesaAltro(Spesa):

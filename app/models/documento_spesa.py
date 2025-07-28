@@ -33,7 +33,7 @@ class DocumentoSpesa(db.Model):
     numero = db.Column(db.String(100))  # Numero del documento
     data = db.Column(db.Date, nullable=False)  # Data emissione documento
     descrizione = db.Column(db.Text)  # Descrizione breve
-    file_path = db.Column(db.String(255), nullable=False)  # Percorso del file allegato
+    file_path = db.Column(db.String(255), nullable=True)  # Percorso del file allegato (opzionale)
     
     data_creazione = db.Column(db.DateTime, default=datetime.utcnow)
     data_modifica = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

@@ -30,7 +30,7 @@
                                 <option value="02">02 - Vitto</option>
                                 <option value="03">03 - Pedaggi</option>
                                 <option value="04">04 - Ripristino</option>
-                                <option value="05">05 - Parcheggio</option>
+                                <option value="05">05 - Viaggi</option>
                                 <option value="06">06 - Altro</option>
                             </select>
                             <small class="form-text text-muted">Seleziona il tipo di spesa che desideri inserire</small>
@@ -171,13 +171,13 @@
                             </div>
                         </div>
                         
-                        <!-- Campi per Parcheggio (05) -->
-                        <div id="campi_parcheggio" class="campi-specifici d-none">
+                        <!-- Campi per Viaggi (05) -->
+                        <div id="campi_viaggi" class="campi-specifici d-none">
                             <div class="alert alert-info">
                                 <svg class="icon icon-xs me-2">
                                     <use href="/static/bootstrap-italia/svg/sprites.svg#it-info-circle"></use>
                                 </svg>
-                                Inserisci i dettagli relativi alla spesa di parcheggio
+                                Inserisci i dettagli relativi alla spesa di viaggi
                             </div>
                             
                             <div class="row">
@@ -260,7 +260,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('campi_ripristino').classList.remove('d-none');
                 break;
             case '05':
-                document.getElementById('campi_parcheggio').classList.remove('d-none');
+                document.getElementById('campi_viaggi').classList.remove('d-none');
                 break;
             case '06':
                 document.getElementById('campi_altro').classList.remove('d-none');
@@ -309,20 +309,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 const descrizioneIntervento = document.getElementById('descrizione_intervento');
                 if (!descrizioneIntervento.value) {
                     alert('Inserisci la descrizione dell\'intervento');
-                    event.preventDefault();
-                    return;
-                }
-                break;
-            case '05': // Parcheggio
-                const indirizzo = document.getElementById('indirizzo');
-                const durataOre = document.getElementById('durata_ore');
-                if (!indirizzo.value) {
-                    alert('Inserisci l\'indirizzo del parcheggio');
-                    event.preventDefault();
-                    return;
-                }
-                if (!durataOre.value) {
-                    alert('Inserisci la durata del parcheggio (ore)');
                     event.preventDefault();
                     return;
                 }

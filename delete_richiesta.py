@@ -26,7 +26,7 @@ with app.app_context():
         print(f"Eliminati {result.rowcount} documenti spesa.")
         
         # 2. Elimina le spese specifiche (tabelle figlie)
-        for table in ['spese_carburante', 'spese_vitto', 'spese_pedaggi', 'spese_ripristino', 'spese_parcheggio', 'spese_altro']:
+        for table in ['spese_carburante', 'spese_vitto', 'spese_pedaggi', 'spese_ripristino', 'spese_viaggi', 'spese_altro']:
             result = db.session.execute(text(f"DELETE FROM {table} WHERE id IN (SELECT id FROM spese WHERE richiesta_id = {richiesta_id})"))
             print(f"Eliminati {result.rowcount} record da {table}.")
         

@@ -5,7 +5,7 @@ from app.models.richiesta import Richiesta, StatoRichiesta
 from app.models.spesa import (
     Spesa, TipoSpesa, 
     SpesaCarburante, SpesaPedaggi, SpesaRipristino,
-    SpesaVitto, SpesaParcheggio, SpesaAltro
+    SpesaVitto, SpesaViaggi, SpesaAltro
 )
 from app.models.documento_spesa import DocumentoSpesa, TipoDocumento
 from app.models.odv import Odv
@@ -15,7 +15,7 @@ from app.models.mezzo import Mezzo
 from app.forms.richiesta_forms import (
     RichiestaBaseForm, 
     SpesaCarburanteForm, SpesaPedaggiForm, SpesaRipristinoForm,
-    SpesaVittoForm, SpesaParcheggioForm, SpesaAltroForm,
+    SpesaVittoForm, SpesaViaggiForm, SpesaAltroForm,
     DocumentoSpesaForm
 )
 from app.forms.impiego_mezzo_form import ImpiegoMezzoForm

@@ -68,11 +68,11 @@
                         </a>
                     </li>
                     <li>
-                        <a href="{{ url_for('richiesta.aggiungi_spesa', richiesta_id=richiesta.id, tipo='parcheggio') }}" 
-                           class="list-item {% if tipo_spesa == 'parcheggio' %}active{% endif %}">
+                        <a href="{{ url_for('richiesta.aggiungi_spesa', richiesta_id=richiesta.id, tipo='viaggi') }}" 
+                           class="list-item {% if tipo_spesa == 'viaggi' %}active{% endif %}">
                             <div class="it-right-zone">
-                                <span class="text">Parcheggio</span>
-                                {% if tipo_spesa == 'parcheggio' %}
+                                <span class="text">Viaggi</span>
+                                {% if tipo_spesa == 'viaggi' %}
                                 <svg class="icon icon-success">
                                     <use href="/static/bootstrap-italia/svg/sprites.svg#it-check-circle"></use>
                                 </svg>
@@ -281,7 +281,7 @@
                             </div>
                             {% endif %}
 
-                            {% if tipo_spesa == 'parcheggio' %}
+                            {% if tipo_spesa == 'viaggi' %}
                             <div class="row mt-3">
                                 <div class="col-md-6 form-group">
                                     <div class="form-label-group">

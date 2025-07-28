@@ -220,7 +220,7 @@
                                             </button>
                                             
                                             {% if richiesta.stato.value == 'in_attesa' and (current_user.id == richiesta.user_id or current_user.is_admin()) %}
-                                            <a href="{{ url_for('spesa.gestisci_documenti', spesa_id=spesa.id) }}" class="btn btn-sm btn-outline-primary">
+                                            <a href="{{ url_for('spesa.documenti_spesa', spesa_id=spesa.id) }}" class="btn btn-sm btn-outline-primary">
                                                 <svg class="icon icon-sm">
                                                     <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-file"></use>
                                                 </svg>

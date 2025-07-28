@@ -5,6 +5,13 @@ from wtforms.validators import DataRequired, Optional, NumberRange, Length
 from app.models.spesa import TipoSpesa
 from app.models.documento_spesa import TipoDocumento
 
+# Custom SelectField that ensures choices are never None
+class SafeSelectField(SelectField):
+    def pre_validate(self, form):
+        if self.choices is None:
+            self.choices = []
+        super().pre_validate(form)
+
 class AggiungiSpesaForm(FlaskForm):
     """Form vuoto per CSRF protection"""
     pass
@@ -61,10 +68,9 @@ class SpesaVittoForm(SpesaBaseForm):
     numero_pasti = IntegerField('Numero pasti', validators=[DataRequired(), NumberRange(min=1)], default=1)
     submit = SubmitField('Salva')
 
-class SpesaParcheggioForm(SpesaBaseForm):
-    """Form per spese di parcheggio (05)"""
-    indirizzo = StringField('Indirizzo', validators=[Optional(), Length(max=255)])
-    durata_ore = FloatField('Durata (ore)', validators=[Optional(), NumberRange(min=0.5)])
+class SpesaViaggiForm(SpesaBaseForm):
+    """Form per spese di viaggi (05)"""
+    viaggio = IntegerField('Numero viaggi', validators=[Optional(), NumberRange(min=1)], default=1)
     submit = SubmitField('Salva')
 
 class SpesaAltroForm(SpesaBaseForm):
@@ -74,29 +80,31 @@ class SpesaAltroForm(SpesaBaseForm):
 
 class DocumentoSpesaForm(FlaskForm):
     """Form per i documenti di spesa"""
-    tipo = SelectField('Tipo documento', validators=[DataRequired()],
-                      choices=[(tipo.name, f"{tipo.value} - {tipo.get_display_name()}") for tipo in TipoDocumento])
+    tipo = SafeSelectField('Tipo documento', validators=[DataRequired()], 
+                    choices=[(tipo.name, f"{tipo.value} - {tipo.get_display_name()}") for tipo in TipoDocumento],
+                    default=TipoDocumento.SCONTRINO.name)  # Imposta un default sicuro
     numero = StringField('Numero documento', validators=[Optional(), Length(max=100)])
     data = DateField('Data emissione', format='%Y-%m-%d', validators=[DataRequired()])
     descrizione = TextAreaField('Descrizione', validators=[Optional(), Length(max=500)])
     file = FileField('File allegato', validators=[
-        FileRequired(),
+        Optional(),
         FileAllowed(['jpg', 'jpeg', 'png', 'pdf'], 'Solo immagini o PDF sono permessi.')
     ])
+    
     submit = SubmitField('Salva')
 
 class SpesaDocumentiForm(FlaskForm):
     """Form combinato per la spesa e i suoi documenti"""
     # Campi comuni della spesa
-    tipo_spesa = SelectField('Tipo di spesa', validators=[DataRequired()], 
+    tipo_spesa = SafeSelectField('Tipo di spesa', validators=[DataRequired()], 
                       choices=[(tipo.value, f"{tipo.value} - {tipo.name.capitalize()}") for tipo in TipoSpesa])
     data_spesa = DateField('Data spesa', format='%Y-%m-%d', validators=[DataRequired()])
     importo_richiesto = FloatField('Importo richiesto', validators=[DataRequired(), NumberRange(min=0.01)])
     note = TextAreaField('Note spesa', validators=[Optional(), Length(max=500)])
     
     # Campi specifici per SpesaCarburante
-    impiego_mezzo_id = SelectField('Impiego mezzo', coerce=int, validators=[Optional()])
-    tipo_carburante = SelectField('Tipo carburante', validators=[Optional()],
+    impiego_mezzo_id = SafeSelectField('Impiego mezzo', coerce=int, validators=[Optional()], choices=[])
+    tipo_carburante = SafeSelectField('Tipo carburante', validators=[Optional()],
                                 choices=[
                                     ('', 'Seleziona...'),
                                     ('benzina', 'Benzina'),
@@ -116,15 +124,14 @@ class SpesaDocumentiForm(FlaskForm):
     # Campi per SpesaVitto
     numero_pasti = IntegerField('Numero pasti', validators=[Optional(), NumberRange(min=1)], default=1)
     
-    # Campi per SpesaParcheggio
-    indirizzo = StringField('Indirizzo', validators=[Optional(), Length(max=255)])
-    durata_ore = FloatField('Durata (ore)', validators=[Optional(), NumberRange(min=0.5)])
+    # Campi per SpesaViaggi
+    viaggio = IntegerField('Numero viaggi', validators=[Optional(), NumberRange(min=1)], default=1)
     
     # Campi per SpesaAltro
     descrizione_dettagliata = TextAreaField('Descrizione dettagliata', validators=[Optional(), Length(max=500)])
     
     # Campi per il documento principale (A, B o C)
-    doc_tipo = SelectField('Tipo documento', validators=[DataRequired()],
+    doc_tipo = SafeSelectField('Tipo documento', validators=[DataRequired()],
                        choices=[
                            (TipoDocumento.SCONTRINO.name, f"{TipoDocumento.SCONTRINO.value} - Scontrino"),
                            (TipoDocumento.QUIETANZA.name, f"{TipoDocumento.QUIETANZA.value} - Quietanza"),
@@ -144,7 +151,7 @@ class SpesaDocumentiForm(FlaskForm):
         FileAllowed(['jpg', 'jpeg', 'png', 'pdf'], 'Solo immagini o PDF sono permessi.')
     ])
     
-    # Campi per documento aggiuntivo autorizzazione (D) - per tipo 05 Parcheggio e 06 Altro
+    # Campi per documento aggiuntivo autorizzazione (D) - per tipo 05 Viaggi e 06 Altro
     autorizzazione_file = FileField('Autorizzazione', validators=[
         Optional(),
         FileAllowed(['jpg', 'jpeg', 'png', 'pdf'], 'Solo immagini o PDF sono permessi.')
@@ -152,6 +159,13 @@ class SpesaDocumentiForm(FlaskForm):
     
     # Campo per i documenti multipli
     documenti = FieldList(FormField(DocumentoSpesaForm), min_entries=0)
+    
+    def __init__(self, *args, **kwargs):
+        super(SpesaDocumentiForm, self).__init__(*args, **kwargs)
+        # Assicurati che le scelte siano impostate per tutti i form nidificati
+        for subform in self.documenti:
+            if not subform.tipo.choices:
+                subform.tipo.choices = [(tipo.name, f"{tipo.value} - {tipo.get_display_name()}") for tipo in TipoDocumento]
     
     submit = SubmitField('Salva')
 
@@ -196,12 +210,11 @@ class ManutenzioneForm(FlaskForm):
     note = TextAreaField('Note', validators=[Optional(), Length(max=500)])
     submit = SubmitField('Salva')
 
-class ParcheggioForm(FlaskForm):
-    """Form per spese di parcheggio (05) nell'interfaccia a tab"""
+class ViaggiForm(FlaskForm):
+    """Form per spese di viaggi (05) nell'interfaccia a tab"""
     data_spesa = DateField('Data spesa', format='%Y-%m-%d', validators=[DataRequired()])
     importo_richiesto = FloatField('Importo richiesto (€)', validators=[DataRequired(), NumberRange(min=0.01)])
-    indirizzo = StringField('Destinazione', validators=[DataRequired(), Length(max=255)])
-    durata_ore = FloatField('Durata (ore)', validators=[Optional(), NumberRange(min=0.5)])
+    viaggio = IntegerField('Numero viaggi', validators=[Optional(), NumberRange(min=1)], default=1)
     note = TextAreaField('Note', validators=[Optional(), Length(max=500)])
     submit = SubmitField('Salva')
 
