@@ -174,13 +174,18 @@ def aggiungi_spesa(richiesta_id):
             elif tipo_spesa == TipoSpesa.RIPRISTINO.value:
                 descrizione_intervento = request.form.get('descrizione_intervento')
                 impiego_mezzo_id = request.form.get('impiego_mezzo_id')
-                
                 if not descrizione_intervento:
                     flash('Inserisci la descrizione dell\'intervento', 'danger')
                     return redirect(url_for('spesa.aggiungi_spesa', richiesta_id=richiesta_id))
-                
                 impiego_mezzo_id = int(impiego_mezzo_id) if impiego_mezzo_id and impiego_mezzo_id != '0' else None
-                
+                if not impiego_mezzo_id:
+                    flash('Seleziona un impiego mezzo valido per la spesa di ripristino.', 'danger')
+                    return redirect(url_for('spesa.aggiungi_spesa', richiesta_id=richiesta_id))
+                # Verifica che l'impiego mezzo appartenga all'ODV della richiesta
+                impiego_mezzo = ImpiegoMezzo.query.get(impiego_mezzo_id)
+                if not impiego_mezzo or impiego_mezzo.mezzo.organizzazione.id != richiesta.odv_id:
+                    flash('Il mezzo selezionato non appartiene all\'ODV della richiesta.', 'danger')
+                    return redirect(url_for('spesa.aggiungi_spesa', richiesta_id=richiesta_id))
                 spesa = SpesaRipristino(
                     richiesta_id=richiesta_id,
                     tipo=TipoSpesa.RIPRISTINO,

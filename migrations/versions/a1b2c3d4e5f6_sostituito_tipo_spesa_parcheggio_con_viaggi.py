@@ -25,7 +25,7 @@ def upgrade():
         op.execute("UPDATE spese SET tipo = '07' WHERE tipo = '05'")
     
     # 2. Modifica della discriminator_type nelle spese polimorfe
-    op.execute("UPDATE spese SET discriminator_type = 'spesa_viaggi' WHERE discriminator_type = 'spesa_parcheggio'")
+    # op.execute("UPDATE spese SET discriminator_type = 'spesa_viaggi' WHERE discriminator_type = 'spesa_parcheggio'")
     
     # 3. Rinomina la colonna 'parcheggio' a 'viaggio' se esiste
     # Questo passaggio potrebbe richiedere adattamenti in base alla struttura effettiva del database
@@ -41,7 +41,7 @@ def downgrade():
         op.execute("UPDATE spese SET tipo = '05' WHERE tipo = '07'")
     
     # 2. Ripristina la discriminator_type
-    op.execute("UPDATE spese SET discriminator_type = 'spesa_parcheggio' WHERE discriminator_type = 'spesa_viaggi'")
+    # op.execute("UPDATE spese SET discriminator_type = 'spesa_parcheggio' WHERE discriminator_type = 'spesa_viaggi'")
     
     # 3. Rinomina la colonna 'viaggio' a 'parcheggio' se era stata rinominata
     

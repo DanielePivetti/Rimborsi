@@ -2,353 +2,356 @@
 {% import 'macros/spese_macros.html' as spese_macros %}
 
 {% block content %}
-<div class="container">
+<div class="container my-5">
     <div class="row mb-4">
-        <div class="col-12">
-            <div class="it-page-title-wrapper">
-                <h1 class="it-page-title">Dettaglio Richiesta #{{ richiesta.id }}</h1>
-                <p class="lead">
-                    Stato: 
-                    {{ spese_macros.stato_richiesta(richiesta.stato) }}
-                </p>
-            </div>
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <h1 class="it-page-title mb-0">Richiesta #{{ richiesta.id }}</h1>
+            <a href="{{ url_for('richiesta.lista_richieste') }}" class="btn btn-info fw-bold shadow-sm" style="border-radius: 2rem;">
+                <svg class="icon icon-sm me-2">
+                    <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-list"></use>
+                </svg>
+                Tutte le richieste
+            </a>
         </div>
     </div>
-
-    <!-- Informazioni Generali -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card-wrapper card-space">
-                <div class="card card-bg">
-                    <div class="card-header">
-                        <h5 class="card-title">Informazioni Generali</h5>
+    <ul class="nav nav-tabs" id="requestTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="dettagli-tab" data-bs-toggle="tab" data-bs-target="#dettagli" type="button" role="tab" aria-controls="dettagli" aria-selected="true">1. Dettagli</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="mezzi-tab" data-bs-toggle="tab" data-bs-target="#mezzi" type="button" role="tab" aria-controls="mezzi" aria-selected="false">2. Impiego Mezzi</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="spese-tab" data-bs-toggle="tab" data-bs-target="#spese" type="button" role="tab" aria-controls="spese" aria-selected="false">3. Spese</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="riepilogo-tab" data-bs-toggle="tab" data-bs-target="#riepilogo" type="button" role="tab" aria-controls="riepilogo" aria-selected="false">4. Riepilogo</button>
+        </li>
+    </ul>
+    <div class="tab-content" id="requestTabContent">
+        <div class="tab-pane fade show active" id="dettagli" role="tabpanel" aria-labelledby="dettagli-tab">
+            <!-- Dettagli richiesta: informazioni generali, attività svolta, note, stato -->
+            <div class="py-4">
+                <h4>Informazioni Generali</h4>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Organizzazione:</strong> {{ richiesta.odv.nome }} ({{ richiesta.odv.acronimo }})</p>
+                        <p><strong>Evento:</strong> {{ richiesta.evento.nome }}</p>
+                        <p><strong>Data richiesta:</strong> {{ richiesta.data_richiesta.strftime('%d/%m/%Y') }}</p>
+                        <p><strong>Richiedente:</strong> {{ richiesta.richiedente.nome }} {{ richiesta.richiedente.cognome }}</p>
                     </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <p><strong>Organizzazione:</strong> {{ richiesta.odv.nome }} ({{ richiesta.odv.acronimo }})</p>
-                                <p><strong>Evento:</strong> {{ richiesta.evento.nome }}</p>
-                                <p><strong>Data richiesta:</strong> {{ richiesta.data_richiesta.strftime('%d/%m/%Y') }}</p>
-                                <p><strong>Richiedente:</strong> {{ richiesta.richiedente.nome }} {{ richiesta.richiedente.cognome }}</p>
-                            </div>
-                            <div class="col-md-6">
-                                <p><strong>Periodo attività:</strong> Dal {{ richiesta.data_inizio_attivita.strftime('%d/%m/%Y') }} al {{ richiesta.data_fine_attivita.strftime('%d/%m/%Y') }}</p>
-                                <p><strong>Volontari impiegati:</strong> {{ richiesta.volontari_impiegati }}</p>
-                                <p><strong>Importo richiesto:</strong> {{ "%.2f"|format(richiesta.importo_totale_richiesto) }} €</p>
-                                <p><strong>Importo approvato:</strong> 
+                    <div class="col-md-6">
+                        <p><strong>Periodo attività:</strong> Dal {{ richiesta.data_inizio_attivita.strftime('%d/%m/%Y') }} al {{ richiesta.data_fine_attivita.strftime('%d/%m/%Y') }}</p>
+                        <p><strong>Volontari impiegati:</strong> {{ richiesta.volontari_impiegati }}</p>
+                        <p><strong>Importo richiesto:</strong> {{ "%.2f"|format(richiesta.importo_totale_richiesto) }} €</p>
+                        <p><strong>Importo approvato:</strong> 
+                            {% if richiesta.stato.value == 'in_attesa' %}
+                                <span class="text-muted">In attesa di approvazione</span>
+                            {% else %}
+                                {{ "%.2f"|format(richiesta.importo_totale_approvato) }} €
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6>Attività svolta:</h6>
+                        <div class="bg-light p-3 rounded">
+                            {{ richiesta.attivita_svolta|nl2br }}
+                        </div>
+                    </div>
+                </div>
+                {% if richiesta.note_richiedente %}
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6>Note del richiedente:</h6>
+                        <div class="bg-light p-3 rounded">
+                            {{ richiesta.note_richiedente|nl2br }}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% if richiesta.note_istruttore %}
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6>Note dell'istruttore:</h6>
+                        <div class="bg-light p-3 rounded">
+                            {{ richiesta.note_istruttore|nl2br }}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                <div class="row mt-4">
+                    <div class="col-12 d-flex justify-content-end">
+                        {% if richiesta.stato.value == 'in_attesa' and (current_user.id == richiesta.user_id or current_user.is_admin()) %}
+                        <a href="{{ url_for('richiesta.modifica_richiesta', id=richiesta.id) }}" class="btn btn-outline-primary">
+                            <svg class="icon icon-sm me-2">
+                                <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-pencil"></use>
+                            </svg>
+                            Modifica informazioni
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="tab-pane fade" id="mezzi" role="tabpanel" aria-labelledby="mezzi-tab">
+            <!-- Tab impiego mezzi -->
+            <div class="py-4">
+                <h4>Impiego Mezzi</h4>
+                <div class="d-flex justify-content-end mb-3">
+                    {% if richiesta.stato.value == 'in_attesa' and (current_user.id == richiesta.user_id or current_user.is_admin()) %}
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#aggiungiImpiegoMezzoModal">
+                        <svg class="icon icon-sm icon-white me-2">
+                            <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-plus-circle"></use>
+                        </svg>
+                        Registra Impiego Mezzo
+                    </button>
+                    {% endif %}
+                </div>
+                {% if impieghi_mezzi %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Mezzo</th>
+                                <th>Conducente</th>
+                                <th>Località</th>
+                                <th>Data Inizio</th>
+                                <th>Data Fine</th>
+                                <th>Km Percorsi</th>
+                                <th>Azioni</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for impiego in impieghi_mezzi %}
+                            <tr>
+                                <td>{{ impiego.mezzo.targa_inventario }} - {{ impiego.mezzo.descrizione }}</td>
+                                <td>{{ impiego.conducente }}</td>
+                                <td>{{ impiego.localita }}</td>
+                                <td>{{ impiego.data_inizio.strftime('%d/%m/%Y %H:%M') }}</td>
+                                <td>{{ impiego.data_fine.strftime('%d/%m/%Y %H:%M') }}</td>
+                                <td>{{ impiego.km_percorsi }} km</td>
+                                <td>
+                                    {% if richiesta.stato.value == 'in_attesa' and (current_user.id == richiesta.user_id or current_user.is_admin()) %}
+                                    <form action="{{ url_for('richiesta.elimina_impiego_mezzo', richiesta_id=richiesta.id, impiego_id=impiego.id) }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Sei sicuro di voler eliminare questo impiego mezzo?')">
+                                            <svg class="icon icon-sm icon-white">
+                                                <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-trash"></use>
+                                            </svg>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    Nessun impiego mezzo registrato per questa richiesta.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="tab-pane fade" id="spese" role="tabpanel" aria-labelledby="spese-tab">
+            <!-- Tab spese -->
+            <div class="py-4">
+                <h4>Spese</h4>
+                <div class="d-flex justify-content-end mb-3">
+                    {% if richiesta.stato.value == 'in_attesa' and (current_user.id == richiesta.user_id or current_user.is_admin()) %}
+                    <a href="{{ url_for('spesa.gestione_spese', richiesta_id=richiesta.id) }}" class="btn btn-primary">
+                        <svg class="icon icon-sm icon-white me-2">
+                            <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-plus-circle"></use>
+                        </svg>
+                        Gestione Spese
+                    </a>
+                    {% endif %}
+                </div>
+                {% if richiesta.spese %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Tipo</th>
+                                <th>Data</th>
+                                <th>Importo Richiesto</th>
+                                <th>Importo Approvato</th>
+                                <th>Dettagli</th>
+                                <th>Azioni</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for spesa in richiesta.spese %}
+                            <tr>
+                                <td>{{ spesa.tipo.name }}</td>
+                                <td>{{ spesa.data_spesa.strftime('%d/%m/%Y') }}</td>
+                                <td>{{ "%.2f"|format(spesa.importo_richiesto) }} €</td>
+                                <td>
                                     {% if richiesta.stato.value == 'in_attesa' %}
-                                        <span class="text-muted">In attesa di approvazione</span>
+                                        <span class="text-muted">In attesa</span>
+                                    {% else %}
+                                        {{ "%.2f"|format(spesa.importo_approvato or 0) }} €
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#dettaglioSpesa{{ spesa.id }}">
+                                        <svg class="icon icon-sm">
+                                            <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-info-circle"></use>
+                                        </svg>
+                                        Dettagli
+                                    </button>
+                                    {% if richiesta.stato.value == 'in_attesa' and (current_user.id == richiesta.user_id or current_user.is_admin()) %}
+                                    <a href="{{ url_for('spesa.documenti_spesa', spesa_id=spesa.id) }}" class="btn btn-sm btn-outline-primary">
+                                        <svg class="icon icon-sm">
+                                            <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-file"></use>
+                                        </svg>
+                                        Documenti
+                                    </a>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if richiesta.stato.value == 'in_attesa' and (current_user.id == richiesta.user_id or current_user.is_admin()) %}
+                                    <div class="btn-group">
+                                        <a href="{{ url_for('richiesta.modifica_spesa', spesa_id=spesa.id) }}" class="btn btn-sm btn-outline-primary">
+                                            <svg class="icon icon-sm">
+                                                <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-pencil"></use>
+                                            </svg>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#eliminaSpesa{{ spesa.id }}">
+                                            <svg class="icon icon-sm">
+                                                <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-trash"></use>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-active">
+                                <th colspan="2">Totale</th>
+                                <th>{{ "%.2f"|format(richiesta.importo_totale_richiesto) }} €</th>
+                                <th>
+                                    {% if richiesta.stato.value == 'in_attesa' %}
+                                        <span class="text-muted">In attesa</span>
                                     {% else %}
                                         {{ "%.2f"|format(richiesta.importo_totale_approvato) }} €
                                     {% endif %}
-                                </p>
-                            </div>
-                        </div>
-                        
-                        <div class="row mt-3">
-                            <div class="col-12">
-                                <h6>Attività svolta:</h6>
-                                <div class="bg-light p-3 rounded">
-                                    {{ richiesta.attivita_svolta|nl2br }}
-                                </div>
-                            </div>
-                        </div>
-                        
-                        {% if richiesta.note_richiedente %}
-                        <div class="row mt-3">
-                            <div class="col-12">
-                                <h6>Note del richiedente:</h6>
-                                <div class="bg-light p-3 rounded">
-                                    {{ richiesta.note_richiedente|nl2br }}
-                                </div>
-                            </div>
-                        </div>
-                        {% endif %}
-                        
-                        {% if richiesta.note_istruttore %}
-                        <div class="row mt-3">
-                            <div class="col-12">
-                                <h6>Note dell'istruttore:</h6>
-                                <div class="bg-light p-3 rounded">
-                                    {{ richiesta.note_istruttore|nl2br }}
-                                </div>
-                            </div>
-                        </div>
-                        {% endif %}
-
-                        <!-- Pulsanti di azione per la richiesta (solo se in attesa e proprietario o admin) -->
-                        {% if richiesta.stato.value == 'in_attesa' and (current_user.id == richiesta.user_id or current_user.is_admin()) %}
-                        <div class="row mt-4">
-                            <div class="col-12">
-                                <div class="d-flex justify-content-between">
-                                    <a href="{{ url_for('richiesta.modifica_richiesta', id=richiesta.id) }}" class="btn btn-outline-primary">
-                                        <svg class="icon icon-sm me-2">
-                                            <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-pencil"></use>
-                                        </svg>
-                                        Modifica informazioni
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        {% endif %}
-                    </div>
+                                </th>
+                                <th colspan="2"></th>
+                            </tr>
+                        </tfoot>
+                    </table>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Impiego Mezzi -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card-wrapper card-space">
-                <div class="card card-bg">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-0">Impiego Mezzi</h5>
-                        {% if richiesta.stato.value == 'in_attesa' and (current_user.id == richiesta.user_id or current_user.is_admin()) %}
-                        <div>
-                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#aggiungiImpiegoMezzoModal">
-                                <svg class="icon icon-sm icon-white me-2">
-                                    <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-plus-circle"></use>
-                                </svg>
-                                Registra Impiego Mezzo
-                            </button>
-                        </div>
-                        {% endif %}
-                    </div>
-                    <div class="card-body">
-                        {% if impieghi_mezzi %}
-                        <div class="table-responsive">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Mezzo</th>
-                                        <th>Conducente</th>
-                                        <th>Località</th>
-                                        <th>Data Inizio</th>
-                                        <th>Data Fine</th>
-                                        <th>Km Percorsi</th>
-                                        <th>Azioni</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for impiego in impieghi_mezzi %}
-                                    <tr>
-                                        <td>{{ impiego.mezzo.targa_inventario }} - {{ impiego.mezzo.descrizione }}</td>
-                                        <td>{{ impiego.conducente }}</td>
-                                        <td>{{ impiego.localita }}</td>
-                                        <td>{{ impiego.data_inizio.strftime('%d/%m/%Y %H:%M') }}</td>
-                                        <td>{{ impiego.data_fine.strftime('%d/%m/%Y %H:%M') }}</td>
-                                        <td>{{ impiego.km_percorsi }} km</td>
-                                        <td>
-                                            {% if richiesta.stato.value == 'in_attesa' and (current_user.id == richiesta.user_id or current_user.is_admin()) %}
-                                            <form action="{{ url_for('richiesta.elimina_impiego_mezzo', richiesta_id=richiesta.id, impiego_id=impiego.id) }}" method="POST" class="d-inline">
-                                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Sei sicuro di voler eliminare questo impiego mezzo?')">
-                                                    <svg class="icon icon-sm icon-white">
-                                                        <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-trash"></use>
-                                                    </svg>
-                                                </button>
-                                            </form>
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                        {% else %}
-                        <div class="alert alert-info">
-                            Nessun impiego mezzo registrato per questa richiesta.
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Spese -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card-wrapper card-space">
-                <div class="card card-bg">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-0">Spese</h5>
-                        {% if richiesta.stato.value == 'in_attesa' and (current_user.id == richiesta.user_id or current_user.is_admin()) %}
-                        <div>
-                            <a href="{{ url_for('spesa.gestione_spese', richiesta_id=richiesta.id) }}" class="btn btn-sm btn-primary">
-                                <svg class="icon icon-sm icon-white me-2">
-                                    <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-plus-circle"></use>
-                                </svg>
-                                Gestione Spese
-                            </a>
-                        </div>
-                        {% endif %}
-                    </div>
-                    <div class="card-body">
-                        {% if richiesta.spese %}
-                        <div class="table-responsive">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Tipo</th>
-                                        <th>Data</th>
-                                        <th>Importo Richiesto</th>
-                                        <th>Importo Approvato</th>
-                                        <th>Dettagli</th>
-                                        <th>Azioni</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for spesa in richiesta.spese %}
-                                    <tr>
-                                        <td>{{ spesa.tipo.name }}</td>
-                                        <td>{{ spesa.data_spesa.strftime('%d/%m/%Y') }}</td>
-                                        <td>{{ "%.2f"|format(spesa.importo_richiesto) }} €</td>
-                                        <td>
-                                            {% if richiesta.stato.value == 'in_attesa' %}
-                                                <span class="text-muted">In attesa</span>
-                                            {% else %}
-                                                {{ "%.2f"|format(spesa.importo_approvato or 0) }} €
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#dettaglioSpesa{{ spesa.id }}">
-                                                <svg class="icon icon-sm">
-                                                    <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-info-circle"></use>
-                                                </svg>
-                                                Dettagli
-                                            </button>
-                                            
-                                            {% if richiesta.stato.value == 'in_attesa' and (current_user.id == richiesta.user_id or current_user.is_admin()) %}
-                                            <a href="{{ url_for('spesa.documenti_spesa', spesa_id=spesa.id) }}" class="btn btn-sm btn-outline-primary">
-                                                <svg class="icon icon-sm">
-                                                    <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-file"></use>
-                                                </svg>
-                                                Documenti
-                                            </a>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            {% if richiesta.stato.value == 'in_attesa' and (current_user.id == richiesta.user_id or current_user.is_admin()) %}
-                                            <div class="btn-group">
-                                                <a href="{{ url_for('richiesta.modifica_spesa', spesa_id=spesa.id) }}" class="btn btn-sm btn-outline-primary">
-                                                    <svg class="icon icon-sm">
-                                                        <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-pencil"></use>
-                                                    </svg>
-                                                </a>
-                                                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#eliminaSpesa{{ spesa.id }}">
-                                                    <svg class="icon icon-sm">
-                                                        <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-trash"></use>
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                                <tfoot>
-                                    <tr class="table-active">
-                                        <th colspan="2">Totale</th>
-                                        <th>{{ "%.2f"|format(richiesta.importo_totale_richiesto) }} €</th>
-                                        <th>
-                                            {% if richiesta.stato.value == 'in_attesa' %}
-                                                <span class="text-muted">In attesa</span>
-                                            {% else %}
-                                                {{ "%.2f"|format(richiesta.importo_totale_approvato) }} €
-                                            {% endif %}
-                                        </th>
-                                        <th colspan="2"></th>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
-                        {% else %}
-                        <div class="alert alert-info">
-                            Nessuna spesa registrata per questa richiesta.
-                            {% if richiesta.stato.value == 'in_attesa' and (current_user.id == richiesta.user_id or current_user.is_admin()) %}
-                            <a href="{{ url_for('spesa.gestione_spese', richiesta_id=richiesta.id) }}" class="alert-link">Aggiungi una spesa</a>
-                            {% endif %}
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Pulsanti azione (elimina/inoltra richiesta) -->
-    {% if richiesta.stato.value == 'in_attesa' and (current_user.id == richiesta.user_id or current_user.is_admin()) %}
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between">
-                {% if current_user.id == richiesta.user_id or current_user.is_admin() %}
-                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#eliminaRichiesta">
-                    <svg class="icon icon-sm icon-white me-2">
-                        <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-trash"></use>
-                    </svg>
-                    Elimina Richiesta
-                </button>
-                {% endif %}
-                
-                {% if richiesta.spese|length > 0 %}
-                <a href="{{ url_for('richiesta.inoltra_richiesta', id=richiesta.id) }}" class="btn btn-success">
-                    <svg class="icon icon-sm icon-white me-2">
-                        <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-arrow-right-circle"></use>
-                    </svg>
-                    Inoltra Richiesta
-                </a>
                 {% else %}
-                <button type="button" class="btn btn-success" disabled title="Aggiungi almeno una spesa prima di inoltrare la richiesta">
-                    <svg class="icon icon-sm icon-white me-2">
-                        <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-arrow-right-circle"></use>
-                    </svg>
-                    Inoltra Richiesta
-                </button>
+                <div class="alert alert-info">
+                    Nessuna spesa registrata per questa richiesta.
+                    {% if richiesta.stato.value == 'in_attesa' and (current_user.id == richiesta.user_id or current_user.is_admin()) %}
+                    <a href="{{ url_for('spesa.gestione_spese', richiesta_id=richiesta.id) }}" class="alert-link">Aggiungi una spesa</a>
+                    {% endif %}
+                </div>
                 {% endif %}
             </div>
         </div>
-    </div>
-    {% endif %}
-    
-    <!-- Pulsanti azione istruttore -->
-    {% if richiesta.stato.value == 'in_attesa' and current_user.is_istruttore() %}
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-end">
-                <button type="button" class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#approvaRichiesta">
-                    <svg class="icon icon-sm icon-white me-2">
-                        <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-check-circle"></use>
-                    </svg>
-                    Approva
-                </button>
-                <button type="button" class="btn btn-warning me-2" data-bs-toggle="modal" data-bs-target="#approvaParzialeRichiesta">
-                    <svg class="icon icon-sm icon-white me-2">
-                        <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-check"></use>
-                    </svg>
-                    Approva Parzialmente
-                </button>
-                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rifiutaRichiesta">
-                    <svg class="icon icon-sm icon-white me-2">
-                        <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-close-circle"></use>
-                    </svg>
-                    Rifiuta
-                </button>
+        <div class="tab-pane fade" id="riepilogo" role="tabpanel" aria-labelledby="riepilogo-tab">
+            <!-- Tab riepilogo e trasmissione -->
+            <div class="py-4">
+                <h4>Riepilogo e Trasmissione</h4>
+                <p>Controlla tutti i dati inseriti prima di trasmettere la richiesta.</p>
+                <div class="alert alert-info" role="alert">
+                    Stato attuale: {{ spese_macros.stato_richiesta(richiesta.stato) }}<br>
+                    {% if richiesta.spese|length == 0 %}
+                        <span class="text-danger">Aggiungi almeno una spesa per poter trasmettere la richiesta.</span>
+                    {% endif %}
+                </div>
+                <form id="trasmettiForm" method="post" action="{{ url_for('richiesta.inoltra_richiesta', id=richiesta.id) }}">
+                    <div class="form-check mt-3">
+                        <input class="form-check-input" type="checkbox" value="1" id="dichiarazione1" required>
+                        <label class="form-check-label" for="dichiarazione1">
+                            Dichiaro che tutti i dati inseriti sono veritieri e completi.
+                        </label>
+                    </div>
+                    <div class="form-check mt-2">
+                        <input class="form-check-input" type="checkbox" value="1" id="dichiarazione2" required>
+                        <label class="form-check-label" for="dichiarazione2">
+                            Dichiaro di aver preso visione delle normative vigenti.
+                        </label>
+                    </div>
+                    <div class="form-check mt-2">
+                        <input class="form-check-input" type="checkbox" value="1" id="dichiarazione3" required>
+                        <label class="form-check-label" for="dichiarazione3">
+                            Dichiaro di essere consapevole delle responsabilità civili e penali.
+                        </label>
+                    </div>
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="#spese" class="btn btn-outline-primary" onclick="bootstrap.Tab.getOrCreateInstance(document.getElementById('spese-tab')).show(); return false;">Indietro</a>
+                        <button type="submit" class="btn btn-success" id="trasmettiBtn"
+                            {% if not (richiesta.stato.value == 'in_lavorazione' and (current_user.id == richiesta.user_id or current_user.is_admin()) and richiesta.spese|length > 0) %}disabled{% endif %}>
+                            <svg class="icon icon-sm icon-white me-2">
+                                <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-arrow-right-circle"></use>
+                            </svg>
+                            Trasmetti
+                        </button>
+                    </div>
+                </form>
+                <!-- Azioni istruttore -->
+                {% if richiesta.stato.value == 'in_attesa' and current_user.is_istruttore() %}
+                <div class="d-flex justify-content-end mt-4 gap-2">
+                    <button type="button" class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#approvaRichiesta">
+                        <svg class="icon icon-sm icon-white me-2">
+                            <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-check-circle"></use>
+                        </svg>
+                        Approva
+                    </button>
+                    <button type="button" class="btn btn-warning me-2" data-bs-toggle="modal" data-bs-target="#approvaParzialeRichiesta">
+                        <svg class="icon icon-sm icon-white me-2">
+                            <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-check"></use>
+                        </svg>
+                        Approva Parzialmente
+                    </button>
+                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rifiutaRichiesta">
+                        <svg class="icon icon-sm icon-white me-2">
+                            <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-close-circle"></use>
+                        </svg>
+                        Rifiuta
+                    </button>
+                </div>
+                {% endif %}
+                <div class="d-flex justify-content-end mt-4">
+                    <a href="{{ url_for('richiesta.lista_richieste') }}" class="btn btn-outline-secondary">
+                        <svg class="icon icon-sm me-2">
+                            <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-arrow-left"></use>
+                        </svg>
+                        Torna alla lista
+                    </a>
+                </div>
             </div>
         </div>
-    </div>
-    {% endif %}
-
-    <!-- Pulsante torna alla lista -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <a href="{{ url_for('richiesta.lista_richieste') }}" class="btn btn-outline-secondary">
-                <svg class="icon icon-sm me-2">
-                    <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-arrow-left"></use>
-                </svg>
-                Torna alla lista
-            </a>
-        </div>
+<script>
+// Abilita/disabilita il pulsante Trasmetti in base alle checkbox
+document.addEventListener('DOMContentLoaded', function() {
+    var form = document.getElementById('trasmettiForm');
+    if (!form) return;
+    var btn = document.getElementById('trasmettiBtn');
+    var checks = [
+        document.getElementById('dichiarazione1'),
+        document.getElementById('dichiarazione2'),
+        document.getElementById('dichiarazione3')
+    ];
+    function updateBtn() {
+        if (checks.every(c => c && c.checked)) {
+            btn && (btn.disabled = false);
+        } else {
+            btn && (btn.disabled = true);
+        }
+    }
+    checks.forEach(c => c && c.addEventListener('change', updateBtn));
+    updateBtn();
+});
+</script>
     </div>
 </div>
 

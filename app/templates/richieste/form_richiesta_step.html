@@ -1,0 +1,690 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="it-page-title-wrapper">
+                <h1 class="it-page-title">{{ title }}</h1>
+                <p class="lead">Compilazione guidata della richiesta di rimborso</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <!-- Tabs di navigazione -->
+            <ul class="nav nav-tabs" id="requestTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link {% if active_step == 'dati_base' %}active{% endif %}" 
+                            id="dati-base-tab" 
+                            data-bs-toggle="tab" 
+                            data-bs-target="#dati-base" 
+                            type="button" 
+                            role="tab" 
+                            aria-controls="dati-base" 
+                            aria-selected="{{ 'true' if active_step == 'dati_base' else 'false' }}">
+                        1. Dettagli Richiesta
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link {% if active_step == 'mezzi' %}active{% endif %}" 
+                            id="mezzi-tab" 
+                            data-bs-toggle="tab" 
+                            data-bs-target="#mezzi" 
+                            type="button" 
+                            role="tab" 
+                            aria-controls="mezzi" 
+                            aria-selected="{{ 'true' if active_step == 'mezzi' else 'false' }}"
+                            {% if not can_access_mezzi %}disabled{% endif %}>
+                        2. Impiego Mezzi
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link {% if active_step == 'spese' %}active{% endif %}" 
+                            id="spese-tab" 
+                            data-bs-toggle="tab" 
+                            data-bs-target="#spese" 
+                            type="button" 
+                            role="tab" 
+                            aria-controls="spese" 
+                            aria-selected="{{ 'true' if active_step == 'spese' else 'false' }}"
+                            {% if not can_access_spese %}disabled{% endif %}>
+                        3. Voci di Spesa
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link {% if active_step == 'trasmissione' %}active{% endif %}" 
+                            id="trasmissione-tab" 
+                            data-bs-toggle="tab" 
+                            data-bs-target="#trasmissione" 
+                            type="button" 
+                            role="tab" 
+                            aria-controls="trasmissione" 
+                            aria-selected="{{ 'true' if active_step == 'trasmissione' else 'false' }}"
+                            {% if not can_access_trasmissione %}disabled{% endif %}>
+                        4. Riepilogo e Trasmissione
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Contenuto delle tab -->
+            <div class="tab-content" id="requestTabContent">
+                <!-- Step 1: Dati di base della richiesta -->
+                <div class="tab-pane fade {% if active_step == 'dati_base' %}show active{% endif %}" 
+                     id="dati-base" 
+                     role="tabpanel" 
+                     aria-labelledby="dati-base-tab">
+                    <div class="card-wrapper card-space my-3">
+                        <div class="card card-bg">
+                            <div class="card-body">
+                                <h4 class="mb-3">Dettagli Generali della Richiesta</h4>
+                                <p>Inserisci i dati generali relativi alla richiesta di rimborso</p>
+                                
+                                <form method="POST" action="{{ url_for('richiesta.salva_richiesta_step', step='dati_base', richiesta_id=richiesta.id if richiesta else None) }}" novalidate>
+                                    {{ form_dati_base.hidden_tag() }}
+
+                                    <div class="row">
+                                        <div class="col-md-6 form-group">
+                                            <div class="form-label-group">
+                                                {{ form_dati_base.odv_id.label }}
+                                                {{ form_dati_base.odv_id(class="form-select", placeholder="Seleziona l'organizzazione") }}
+                                                {% if form_dati_base.odv_id.errors %}
+                                                <div class="invalid-feedback">
+                                                    {% for error in form_dati_base.odv_id.errors %}
+                                                    <span>{{ error }}</span>
+                                                    {% endfor %}
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-6 form-group">
+                                            <div class="form-label-group">
+                                                {{ form_dati_base.evento_id.label }}
+                                                {{ form_dati_base.evento_id(class="form-select", placeholder="Seleziona l'evento") }}
+                                                {% if form_dati_base.evento_id.errors %}
+                                                <div class="invalid-feedback">
+                                                    {% for error in form_dati_base.evento_id.errors %}
+                                                    <span>{{ error }}</span>
+                                                    {% endfor %}
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mt-3">
+                                        <div class="col-md-6 form-group">
+                                            <div class="form-label-group">
+                                                {{ form_dati_base.data_inizio_attivita.label }}
+                                                {{ form_dati_base.data_inizio_attivita(class="form-control", type="date") }}
+                                                {% if form_dati_base.data_inizio_attivita.errors %}
+                                                <div class="invalid-feedback">
+                                                    {% for error in form_dati_base.data_inizio_attivita.errors %}
+                                                    <span>{{ error }}</span>
+                                                    {% endfor %}
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-6 form-group">
+                                            <div class="form-label-group">
+                                                {{ form_dati_base.data_fine_attivita.label }}
+                                                {{ form_dati_base.data_fine_attivita(class="form-control", type="date") }}
+                                                {% if form_dati_base.data_fine_attivita.errors %}
+                                                <div class="invalid-feedback">
+                                                    {% for error in form_dati_base.data_fine_attivita.errors %}
+                                                    <span>{{ error }}</span>
+                                                    {% endfor %}
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group mt-3">
+                                        <div class="form-label-group">
+                                            {{ form_dati_base.volontari_impiegati.label }}
+                                            {{ form_dati_base.volontari_impiegati(class="form-control", type="number", min="1") }}
+                                            <small class="form-text text-muted">{{ form_dati_base.volontari_impiegati.description }}</small>
+                                            {% if form_dati_base.volontari_impiegati.errors %}
+                                            <div class="invalid-feedback">
+                                                {% for error in form_dati_base.volontari_impiegati.errors %}
+                                                <span>{{ error }}</span>
+                                                {% endfor %}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group mt-3">
+                                        <div class="form-label-group">
+                                            {{ form_dati_base.attivita_svolta.label }}
+                                            {{ form_dati_base.attivita_svolta(class="form-control", rows=5, placeholder="Descrivi l'attività svolta") }}
+                                            <small class="form-text text-muted">{{ form_dati_base.attivita_svolta.description }}</small>
+                                            {% if form_dati_base.attivita_svolta.errors %}
+                                            <div class="invalid-feedback">
+                                                {% for error in form_dati_base.attivita_svolta.errors %}
+                                                <span>{{ error }}</span>
+                                                {% endfor %}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group mt-3">
+                                        <div class="form-label-group">
+                                            {{ form_dati_base.note_richiedente.label }}
+                                            {{ form_dati_base.note_richiedente(class="form-control", rows=3, placeholder="Note opzionali") }}
+                                            {% if form_dati_base.note_richiedente.errors %}
+                                            <div class="invalid-feedback">
+                                                {% for error in form_dati_base.note_richiedente.errors %}
+                                                <span>{{ error }}</span>
+                                                {% endfor %}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group mt-4">
+                                        <div class="d-flex justify-content-between">
+                                            <a href="{{ url_for('richiesta.lista_richieste') }}" class="btn btn-outline-secondary">
+                                                <svg class="icon icon-xs icon-secondary">
+                                                    <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-arrow-left"></use>
+                                                </svg>
+                                                Torna alla lista
+                                            </a>
+                                            <button type="submit" class="btn btn-primary">
+                                                Salva e Continua
+                                                <svg class="icon icon-xs icon-white">
+                                                    <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-arrow-right"></use>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Impiego mezzi -->
+                <div class="tab-pane fade {% if active_step == 'mezzi' %}show active{% endif %}" 
+                     id="mezzi" 
+                     role="tabpanel" 
+                     aria-labelledby="mezzi-tab">
+                    <div class="card-wrapper card-space my-3">
+                        <div class="card card-bg">
+                            <div class="card-body">
+                                <h4 class="mb-3">Gestione Impiego Mezzi</h4>
+                                <p>Inserisci i mezzi utilizzati durante l'attività</p>
+                                
+                                {% if mezzi_impiegati %}
+                                <div class="table-responsive mt-3 mb-4">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Mezzo</th>
+                                                <th>Targa</th>
+                                                <th>Data Utilizzo</th>
+                                                <th>Km Percorsi</th>
+                                                <th>Azioni</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for mezzo in mezzi_impiegati %}
+                                            <tr>
+                                                <td>{{ mezzo.mezzo.nome }}</td>
+                                                <td>{{ mezzo.mezzo.targa }}</td>
+                                                <td>{{ mezzo.data_utilizzo.strftime('%d/%m/%Y') }}</td>
+                                                <td>{{ mezzo.km_percorsi }}</td>
+                                                <td>
+                                                    <div class="btn-group" role="group">
+                                                        <a href="{{ url_for('richiesta.modifica_mezzo', richiesta_id=richiesta.id, mezzo_id=mezzo.id) }}" class="btn btn-outline-primary btn-sm">
+                                                            <svg class="icon icon-xs icon-primary">
+                                                                <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-pencil"></use>
+                                                            </svg>
+                                                            Modifica
+                                                        </a>
+                                                        <button type="button" class="btn btn-outline-danger btn-sm" 
+                                                                data-bs-toggle="modal" 
+                                                                data-bs-target="#eliminaMezzoModal{{ mezzo.id }}">
+                                                            <svg class="icon icon-xs icon-danger">
+                                                                <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-delete"></use>
+                                                            </svg>
+                                                            Elimina
+                                                        </button>
+                                                    </div>
+                                                    
+                                                    <!-- Modal per conferma eliminazione -->
+                                                    <div class="modal fade" id="eliminaMezzoModal{{ mezzo.id }}" tabindex="-1" aria-labelledby="eliminaMezzoModalLabel{{ mezzo.id }}" aria-hidden="true">
+                                                        <div class="modal-dialog">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <h5 class="modal-title" id="eliminaMezzoModalLabel{{ mezzo.id }}">Conferma eliminazione</h5>
+                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                </div>
+                                                                <div class="modal-body">
+                                                                    Sei sicuro di voler eliminare questo impiego mezzo?
+                                                                </div>
+                                                                <div class="modal-footer">
+                                                                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annulla</button>
+                                                                    <form action="{{ url_for('richiesta.elimina_mezzo', richiesta_id=richiesta.id, mezzo_id=mezzo.id) }}" method="POST">
+                                                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                                        <button type="submit" class="btn btn-danger">Elimina</button>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% else %}
+                                <div class="alert alert-info" role="alert">
+                                    <span>Non hai ancora aggiunto mezzi impiegati. Utilizza il form per aggiungerne uno.</span>
+                                </div>
+                                {% endif %}
+                                
+                                <form method="POST" action="{{ url_for('richiesta.aggiungi_mezzo', richiesta_id=richiesta.id) }}" novalidate class="border-top pt-3 mt-3">
+                                    {{ form_mezzi.hidden_tag() }}
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6 form-group">
+                                            <div class="form-label-group">
+                                                {{ form_mezzi.mezzo_id.label }}
+                                                {{ form_mezzi.mezzo_id(class="form-select") }}
+                                                {% if form_mezzi.mezzo_id.errors %}
+                                                <div class="invalid-feedback">
+                                                    {% for error in form_mezzi.mezzo_id.errors %}
+                                                    <span>{{ error }}</span>
+                                                    {% endfor %}
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-6 form-group">
+                                            <div class="form-label-group">
+                                                {{ form_mezzi.data_utilizzo.label }}
+                                                {{ form_mezzi.data_utilizzo(class="form-control", type="date") }}
+                                                {% if form_mezzi.data_utilizzo.errors %}
+                                                <div class="invalid-feedback">
+                                                    {% for error in form_mezzi.data_utilizzo.errors %}
+                                                    <span>{{ error }}</span>
+                                                    {% endfor %}
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mt-3">
+                                        <div class="col-md-6 form-group">
+                                            <div class="form-label-group">
+                                                {{ form_mezzi.km_percorsi.label }}
+                                                {{ form_mezzi.km_percorsi(class="form-control", type="number", min="0") }}
+                                                {% if form_mezzi.km_percorsi.errors %}
+                                                <div class="invalid-feedback">
+                                                    {% for error in form_mezzi.km_percorsi.errors %}
+                                                    <span>{{ error }}</span>
+                                                    {% endfor %}
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-6 form-group">
+                                            <div class="form-label-group">
+                                                {{ form_mezzi.note.label }}
+                                                {{ form_mezzi.note(class="form-control") }}
+                                                {% if form_mezzi.note.errors %}
+                                                <div class="invalid-feedback">
+                                                    {% for error in form_mezzi.note.errors %}
+                                                    <span>{{ error }}</span>
+                                                    {% endfor %}
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-end mt-3">
+                                        <button type="submit" class="btn btn-secondary">
+                                            <svg class="icon icon-xs icon-white">
+                                                <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-plus"></use>
+                                            </svg>
+                                            Aggiungi Mezzo
+                                        </button>
+                                    </div>
+                                </form>
+                                
+                                <div class="form-group mt-4">
+                                    <div class="d-flex justify-content-between">
+                                        <a href="{{ url_for('richiesta.modifica_richiesta_step', step='dati_base', richiesta_id=richiesta.id) }}" class="btn btn-outline-primary">
+                                            <svg class="icon icon-xs icon-primary">
+                                                <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-arrow-left"></use>
+                                            </svg>
+                                            Indietro
+                                        </a>
+                                        <a href="{{ url_for('richiesta.modifica_richiesta_step', step='spese', richiesta_id=richiesta.id) }}" class="btn btn-primary">
+                                            Continua
+                                            <svg class="icon icon-xs icon-white">
+                                                <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-arrow-right"></use>
+                                            </svg>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Spese -->
+                <div class="tab-pane fade {% if active_step == 'spese' %}show active{% endif %}" 
+                     id="spese" 
+                     role="tabpanel" 
+                     aria-labelledby="spese-tab">
+                    <div class="card-wrapper card-space my-3">
+                        <div class="card card-bg">
+                            <div class="card-body">
+                                <h4 class="mb-3">Gestione Spese</h4>
+                                <p>Aggiungi le spese sostenute durante l'attività</p>
+                                
+                                {% if spese %}
+                                <div class="alert alert-info" role="alert">
+                                    Per gestire le spese e i relativi documenti, vai alla <a href="{{ url_for('spesa.gestione_spese', richiesta_id=richiesta.id) }}" class="alert-link">pagina di gestione spese</a>.
+                                </div>
+                                
+                                <div class="table-responsive mt-3 mb-4">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Tipo</th>
+                                                <th>Data</th>
+                                                <th>Importo</th>
+                                                <th>Documenti</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for spesa in spese %}
+                                            <tr>
+                                                <td>{{ spesa.tipo.name }}</td>
+                                                <td>{{ spesa.data_spesa.strftime('%d/%m/%Y') }}</td>
+                                                <td>€ {{ "%.2f"|format(spesa.importo_richiesto) }}</td>
+                                                <td>
+                                                    {% set num_docs = spesa.documenti|length %}
+                                                    {% if num_docs > 0 %}
+                                                    <span class="badge bg-success">{{ num_docs }} documento/i</span>
+                                                    {% else %}
+                                                    <span class="badge bg-warning">Nessun documento</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% else %}
+                                <div class="alert alert-info" role="alert">
+                                    <span>Non hai ancora aggiunto spese. Vai alla pagina di gestione spese per aggiungerne.</span>
+                                </div>
+                                {% endif %}
+                                
+                                <div class="d-flex justify-content-center mt-3">
+                                    <a href="{{ url_for('spesa.gestione_spese', richiesta_id=richiesta.id) }}" class="btn btn-primary">
+                                        <svg class="icon icon-xs icon-white">
+                                            <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-plus"></use>
+                                        </svg>
+                                        Gestisci Spese
+                                    </a>
+                                </div>
+                                
+                                <div class="form-group mt-4">
+                                    <div class="d-flex justify-content-between">
+                                        <a href="{{ url_for('richiesta.modifica_richiesta_step', step='mezzi', richiesta_id=richiesta.id) }}" class="btn btn-outline-primary">
+                                            <svg class="icon icon-xs icon-primary">
+                                                <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-arrow-left"></use>
+                                            </svg>
+                                            Indietro
+                                        </a>
+                                        <a href="{{ url_for('richiesta.modifica_richiesta_step', step='trasmissione', richiesta_id=richiesta.id) }}" class="btn btn-primary">
+                                            Continua
+                                            <svg class="icon icon-xs icon-white">
+                                                <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-arrow-right"></use>
+                                            </svg>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 4: Trasmissione -->
+                <div class="tab-pane fade {% if active_step == 'trasmissione' %}show active{% endif %}" 
+                     id="trasmissione" 
+                     role="tabpanel" 
+                     aria-labelledby="trasmissione-tab">
+                    <div class="card-wrapper card-space my-3">
+                        <div class="card card-bg">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-center gap-3 mb-4">
+                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#aggiungiImpiegoMezzoModal" {% if not richiesta_modificabile %}disabled{% endif %}>
+                                        <svg class="icon icon-sm icon-white me-2">
+                                            <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-plus-circle"></use>
+                                        </svg>
+                                        Registra Impiego Mezzi
+                                    </button>
+                                    <a href="{{ url_for('spesa.gestione_spese', richiesta_id=richiesta.id) }}" class="btn btn-warning {% if not richiesta_modificabile %}disabled{% endif %}">
+                                        <svg class="icon icon-sm icon-white me-2">
+                                            <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-plus-circle"></use>
+                                        </svg>
+                                        Aggiungi Spese
+                                    </a>
+                                    {% if richiesta.spese|length > 0 %}
+                                    <a href="{{ url_for('richiesta.inoltra_richiesta', id=richiesta.id) }}" class="btn btn-success {% if not richiesta_modificabile %}disabled{% endif %}">
+                                        <svg class="icon icon-sm icon-white me-2">
+                                            <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-arrow-right-circle"></use>
+                                        </svg>
+                                        Trasmetti
+                                    </a>
+                                    {% else %}
+                                    <button type="button" class="btn btn-success" disabled title="Aggiungi almeno una spesa prima di trasmettere la richiesta">
+                                        <svg class="icon icon-sm icon-white me-2">
+                                            <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-arrow-right-circle"></use>
+                                        </svg>
+                                        Trasmetti
+                                    </button>
+                                    {% endif %}
+                                </div>
+                                <h4 class="mb-3">Riepilogo e Trasmissione</h4>
+                                <p>Rivedi i dati inseriti e conferma la trasmissione della richiesta</p>
+                                
+                                <!-- Riepilogo dati della richiesta -->
+                                <div class="callout callout-highlight-info">
+                                    <div class="callout-title">
+                                        <svg class="icon">
+                                            <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-info-circle"></use>
+                                        </svg>
+                                        Riepilogo dati generali
+                                    </div>
+                                    <div class="row mt-3">
+                                        <div class="col-md-6">
+                                            <p><strong>Organizzazione:</strong> {{ richiesta.odv.nome }}</p>
+                                            <p><strong>Evento:</strong> {{ richiesta.evento.nome }}</p>
+                                            <p><strong>Periodo:</strong> dal {{ richiesta.data_inizio_attivita.strftime('%d/%m/%Y') }} al {{ richiesta.data_fine_attivita.strftime('%d/%m/%Y') }}</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p><strong>Volontari impiegati:</strong> {{ richiesta.volontari_impiegati }}</p>
+                                            <p><strong>Data richiesta:</strong> {{ richiesta.data_richiesta.strftime('%d/%m/%Y') }}</p>
+                                            <p><strong>Numero mezzi impiegati:</strong> {{ mezzi_impiegati|length }}</p>
+                                        </div>
+                                    </div>
+                                    <p><strong>Attività svolta:</strong> {{ richiesta.attivita_svolta }}</p>
+                                </div>
+                                
+                                <!-- Riepilogo mezzi -->
+                                <div class="callout">
+                                    <div class="callout-title">
+                                        <svg class="icon">
+                                            <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-truck"></use>
+                                        </svg>
+                                        Mezzi impiegati
+                                    </div>
+                                    
+                                    {% if mezzi_impiegati %}
+                                    <div class="table-responsive mt-3">
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Mezzo</th>
+                                                    <th>Targa</th>
+                                                    <th>Data Utilizzo</th>
+                                                    <th>Km Percorsi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for mezzo in mezzi_impiegati %}
+                                                <tr>
+                                                    <td>{{ mezzo.mezzo.nome }}</td>
+                                                    <td>{{ mezzo.mezzo.targa }}</td>
+                                                    <td>{{ mezzo.data_utilizzo.strftime('%d/%m/%Y') }}</td>
+                                                    <td>{{ mezzo.km_percorsi }}</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    {% else %}
+                                    <p class="mt-2">Nessun mezzo impiegato registrato.</p>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Riepilogo spese -->
+                                <div class="callout">
+                                    <div class="callout-title">
+                                        <svg class="icon">
+                                            <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-euro"></use>
+                                        </svg>
+                                        Spese registrate
+                                    </div>
+                                    
+                                    {% if spese %}
+                                    <div class="table-responsive mt-3">
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Tipo</th>
+                                                    <th>Data</th>
+                                                    <th>Importo</th>
+                                                    <th>Documenti</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for spesa in spese %}
+                                                <tr>
+                                                    <td>{{ spesa.tipo.name }}</td>
+                                                    <td>{{ spesa.data_spesa.strftime('%d/%m/%Y') }}</td>
+                                                    <td>€ {{ "%.2f"|format(spesa.importo_richiesto) }}</td>
+                                                    <td>
+                                                        {% set num_docs = spesa.documenti|length %}
+                                                        {% if num_docs > 0 %}
+                                                        <span class="badge bg-success">{{ num_docs }} documento/i</span>
+                                                        {% else %}
+                                                        <span class="badge bg-warning">Nessun documento</span>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                            <tfoot>
+                                                <tr class="table-active">
+                                                    <th colspan="2" class="text-end">Totale importo richiesto:</th>
+                                                    <th>€ {{ "%.2f"|format(spese|sum(attribute='importo_richiesto')) }}</th>
+                                                    <th></th>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                    {% else %}
+                                    <p class="mt-2">Nessuna spesa registrata.</p>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Form di trasmissione con dichiarazioni -->
+                                <form method="POST" action="{{ url_for('richiesta.trasmetti_richiesta', richiesta_id=richiesta.id) }}" class="mt-4">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    
+                                    <div class="alert alert-warning" role="alert">
+                                        <strong>Attenzione!</strong> Prima di trasmettere la richiesta, conferma le seguenti dichiarazioni:
+                                    </div>
+                                    
+                                    <div class="form-check mt-3">
+                                        <input class="form-check-input" type="checkbox" id="dichiarazione1" name="dichiarazioni[]" value="dichiarazione1" required>
+                                        <label class="form-check-label" for="dichiarazione1">
+                                            Dichiaro che le informazioni fornite sono veritiere e che i documenti allegati sono conformi agli originali in mio possesso.
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="form-check mt-2">
+                                        <input class="form-check-input" type="checkbox" id="dichiarazione2" name="dichiarazioni[]" value="dichiarazione2" required>
+                                        <label class="form-check-label" for="dichiarazione2">
+                                            Dichiaro che le spese indicate sono state effettivamente sostenute per le attività descritte e non sono oggetto di altre richieste di rimborso.
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="form-check mt-2">
+                                        <input class="form-check-input" type="checkbox" id="dichiarazione3" name="dichiarazioni[]" value="dichiarazione3" required>
+                                        <label class="form-check-label" for="dichiarazione3">
+                                            Sono consapevole delle responsabilità penali in caso di dichiarazioni mendaci ai sensi dell'art. 76 del D.P.R. 445/2000.
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="form-group mt-4">
+                                        <div class="d-flex justify-content-between">
+                                            <a href="{{ url_for('richiesta.modifica_richiesta_step', step='spese', richiesta_id=richiesta.id) }}" class="btn btn-outline-primary">
+                                                <svg class="icon icon-xs icon-primary">
+                                                    <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-arrow-left"></use>
+                                                </svg>
+                                                Indietro
+                                            </a>
+                                            <button type="submit" class="btn btn-success">
+                                                <svg class="icon icon-xs icon-white">
+                                                    <use href="https://cdn.jsdelivr.net/npm/bootstrap-italia@2.6.1/dist/svg/sprites.svg#it-check-circle"></use>
+                                                </svg>
+                                                COMPLETA
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Gestione cambio tab
+        const tabLinks = document.querySelectorAll('#requestTabs button');
+        
+        tabLinks.forEach(function(tab) {
+            tab.addEventListener('click', function(event) {
+                if (this.hasAttribute('disabled')) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

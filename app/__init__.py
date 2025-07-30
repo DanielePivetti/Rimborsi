@@ -40,6 +40,7 @@ def create_app(config_class=Config):
     from app.blueprints.mezzo import mezzo_bp
     from app.blueprints.impiego_mezzo import impiego_mezzo_bp
     from app.blueprints.richiesta import richiesta_bp
+    from app.blueprints.richiesta_step import richiesta_step_bp
     from app.blueprints.spesa import spesa_bp  # Aggiornato per usare il file consolidato
     
     app.register_blueprint(main_bp)
@@ -49,6 +50,7 @@ def create_app(config_class=Config):
     app.register_blueprint(mezzo_bp, url_prefix='/admin/mezzi')
     app.register_blueprint(impiego_mezzo_bp)
     app.register_blueprint(richiesta_bp, url_prefix='/richieste')
+    app.register_blueprint(richiesta_step_bp)
     app.register_blueprint(spesa_bp)
     
     # Registra i filtri Jinja2 personalizzati
@@ -58,4 +60,4 @@ def create_app(config_class=Config):
     return app
 
 # Importa i modelli per renderli disponibili a Flask-Migrate
-from app.models import user, evento, odv, mezzo, impiego_mezzo, richiesta, spesa, documento_spesa
+from app.models import user, evento, odv, mezzo, impiego_mezzo, richiesta, spesa, documento_spesa, richiesta_log
