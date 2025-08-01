@@ -4,11 +4,13 @@ import enum
 
 
 
-# Enum per gli stati della richiesta
+# Enum per gli stati della richiesta - deve corrispondere a quello in richiesta.py
 class StatoRichiesta(enum.Enum):
     IN_LAVORAZIONE = "in_lavorazione"
+    IN_ATTESA = "in_attesa"  # Stato quando la richiesta è in attesa di approvazione
     TRASMESSA = "trasmessa"
     APPROVATA = "approvata"
+    PARZIALMENTE_APPROVATA = "parzialmente_approvata"
     RIFIUTATA = "rifiutata"
 
 class RichiestaLog(db.Model):

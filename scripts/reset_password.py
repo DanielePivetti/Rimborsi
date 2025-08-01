@@ -45,5 +45,5 @@ def reset_password(username, new_password):
         return True
 
 if __name__ == "__main__":
-    # Resetta la password di Bianchi_g a "Password123!"
-    reset_password("Bianchi_g", "Password123!")
+    # Resetta la password di Verdi_g a "Password123!"
+    reset_password("Verdi_g", "Avocado")

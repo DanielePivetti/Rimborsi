@@ -4,11 +4,14 @@ from sqlalchemy.orm import relationship
 import enum
 
 
-# Stati limitati come da richiesta_log
+# Stati della richiesta
 class StatoRichiesta(enum.Enum):
     IN_LAVORAZIONE = "in_lavorazione"
+    IN_ATTESA = "in_attesa"  # Stato quando la richiesta è in attesa di approvazione
     TRASMESSA = "trasmessa"
-    ISTRUITA = "istruita"
+    APPROVATA = "approvata"
+    PARZIALMENTE_APPROVATA = "parzialmente_approvata"
+    RIFIUTATA = "rifiutata"
 
 
 class Richiesta(db.Model):
@@ -34,7 +37,6 @@ class Richiesta(db.Model):
     odv = relationship("Odv", backref="richieste")
     evento = relationship("Evento", backref="richieste")
     spese = relationship("Spesa", backref="richiesta", cascade="all, delete-orphan")
-    log_eventi = relationship("RichiestaLog", backref="richiesta", cascade="all, delete-orphan", lazy="dynamic")
     data_creazione = db.Column(db.DateTime, default=datetime.utcnow)
     data_modifica = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
