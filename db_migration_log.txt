@@ -1,3 +1,0 @@
-Connessione al database: C:\DEV_FLASK\rimborsi\instance\app.db
-Aggiornati 0 record con tipo='05' a tipo='07'
-Errore durante l'aggiornamento del database: no such column: discriminator_type
