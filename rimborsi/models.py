@@ -43,11 +43,11 @@ class MezzoAttrezzatura(db.Model):
 class Evento(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     protocollo_attivazione = db.Column(db.String(50), unique=True)
-    nome = db.Column(db.String(150), nullable=False)
+    nome = db.Column(db.String(100), nullable=False)
+    descrizione = db.Column(db.Text)
     tipologia = db.Column(db.String(1), nullable=False)
     data_inizio = db.Column(db.Date)
     data_fine = db.Column(db.Date)
-    descrizione = db.Column(db.Text)
     richieste = db.relationship('Richiesta', backref='evento', lazy=True)
 
 class Richiesta(db.Model):

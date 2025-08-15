@@ -3,7 +3,7 @@
 {% block title %}{{ titolo | default('Crea Nuovo Evento') }}{% endblock %}
 
 {% block content %}
-    <h1 class="mb-4">{{ titolo | default('Crea Nuovo Evento') }}</h1>
+    <h2 class="mb-4">{{ titolo | default('Crea Nuovo Evento') }}</h2>
 
     <div class="card shadow-sm">
         <div class="card-body">
@@ -69,7 +69,7 @@
 
                 {# Pulsanti di azione #}
                 <div class="d-flex justify-content-end">
-                    <a href="{{ url_for('main.gestione_eventi') }}" class="btn btn-secondary me-2">Annulla</a>
+                    <a href="{{ url_for('istruttoria.gestione_eventi') }}" class="btn btn-secondary me-2">Annulla</a>
                     {{ form.submit(class="btn btn-primary") }}
                 </div>
             </form>

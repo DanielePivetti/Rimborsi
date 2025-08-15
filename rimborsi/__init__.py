@@ -1,7 +1,7 @@
 import os
+from pdb import main
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-# from .models import User, db
 from flask_login import LoginManager
 
 # Inizializza il database
@@ -28,7 +28,7 @@ def create_app():
     from .models import User
 
     login_manager = LoginManager()
-    login_manager.login_view = 'main.login'
+    login_manager.login_view = 'auth.login'
     login_manager.login_message = 'Devi effettuare il login per accedere a questa pagina'
     login_manager.login_message_category = 'warning'
     login_manager.init_app(app)
@@ -38,10 +38,17 @@ def create_app():
     def load_user(user_id):
         return User.query.get(int(user_id))
    
-   
-    from .routes import main
+   # === NUOVA SEZIONE: REGISTRAZIONE DEI BLUEPRINTS ===
+    from .main.routes import main
     app.register_blueprint(main)
 
+    from .auth.routes import auth_bp
+    app.register_blueprint(auth_bp)
+
+    from .istruttoria.routes import istruttoria_bp
+    app.register_blueprint(istruttoria_bp)
+   
+       
     # Crea la cartella instance se non esiste
     try:
         os.makedirs(app.instance_path)
