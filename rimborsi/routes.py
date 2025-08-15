@@ -3,8 +3,8 @@
 from flask import Blueprint, render_template, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash
-from .forms import LoginForm
-from .models import User, db, Richiesta
+from .forms import LoginForm, EventoForm
+from .models import User,  Richiesta, Evento, db
 
 
 main = Blueprint('main', __name__)
@@ -92,15 +92,52 @@ def dashboard():
     # Passiamo i dati al template. Il template userà 'current_user' e i dati specifici.
     return render_template('dashboard.html', **template_data)
 
+# Gestione Eventi
 
-# Placeholder routes
 @main.route('/gestione_eventi')
+@login_required
 def gestione_eventi():
-    return "Pagina gestione eventi (placeholder)"
+    eventi = Evento.query.order_by(Evento.data_inizio.desc()).all()
+    return render_template('gestione_eventi.html', eventi=eventi)
 
-@main.route('/crea_evento')
+# Modifica eventi
+
+@main.route('/modifica_evento/<int:evento_id>', methods=['GET', 'POST'])
+@login_required
+def modifica_evento(evento_id):
+    evento = Evento.query.get_or_404(evento_id)
+    form = EventoForm(obj=evento)
+    if form.validate_on_submit():
+        form.populate_obj(evento)
+        db.session.commit()
+        flash('Evento modificato con successo!', 'success')
+        return redirect(url_for('main.gestione_eventi'))
+    return render_template('crea_modifica_evento.html', form=form, evento=evento)
+
+
+# Cancella evento
+
+@main.route('/cancella_evento/<int:evento_id>', methods=['POST'])
+@login_required
+def cancella_evento(evento_id):
+    evento = Evento.query.get_or_404(evento_id)
+    db.session.delete(evento)
+    db.session.commit()
+    flash('Evento cancellato con successo!', 'success')
+    return redirect(url_for('main.gestione_eventi'))
+
+@main.route('/crea_evento', methods=['GET', 'POST'])
+@login_required
 def crea_evento():
-    return "Pagina crea evento (placeholder)"
+    form = EventoForm()
+    if form.validate_on_submit():
+        evento = Evento()
+        form.populate_obj(evento)
+        db.session.add(evento)
+        db.session.commit()
+        flash('Evento creato con successo!', 'success')
+        return redirect(url_for('main.gestione_eventi'))
+    return render_template('crea_modifica_evento.html', form=form)
 
 @main.route('/crea_richiesta')
 def crea_richiesta():

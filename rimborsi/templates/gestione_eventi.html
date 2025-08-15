@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}Gestione Eventi{% endblock %}
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">Gestione Eventi</h1>
+        <a href="{{ url_for('main.crea_evento') }}" class="btn btn-primary"><i class="fas fa-plus me-1"></i> Crea Nuovo Evento</a>
+    </div>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Nome Evento</th>
+                        <th>Descrizione</th>
+                        <th>Protocollo di Attivazione</th>
+                        <th>Tipologia</th>
+                        <th>Data Inizio</th>
+                        <th>Data Fine</th>
+                        <th>Azioni</th>
+                    </tr>
+                </thead>
+                   <tbody>
+                    {% for evento in eventi %}
+                    <tr>
+                        <td>{{ evento.nome }}</td>
+                        <td>{{ evento.descrizione }}</td>
+                        <td>{{ evento.protocollo_attivazione }}</td>
+                        <td>
+                            {% if evento.tipologia == 'N' %}
+                                Nazionale
+                            {% elif evento.tipologia == 'R' %}
+                                Regionale
+                            {% elif evento.tipologia == 'P' %}
+                                Provinciale
+                            {% elif evento.tipologia == 'L' %}
+                                Locale
+                            {% else %}
+                                {{ evento.tipologia }}
+                            {% endif %}
+                        </td>
+                        <td>{{ evento.data_inizio.strftime('%d/%m/%Y') if evento.data_inizio else '' }}</td>
+                        <td>{{ evento.data_fine.strftime('%d/%m/%Y') if evento.data_fine else '' }}</td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <a href="{{ url_for('main.modifica_evento', evento_id=evento.id) }}" class="btn btn-outline-warning btn-sm" title="Modifica evento">
+                                    <i class="fas fa-pencil-alt"></i>
+                                </a>
+                                <form action="{{ url_for('main.cancella_evento', evento_id=evento.id) }}" method="POST" style="display:inline;">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Sei sicuro di voler eliminare questo evento?');" title="Elimina evento">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center">Nessun evento trovato.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

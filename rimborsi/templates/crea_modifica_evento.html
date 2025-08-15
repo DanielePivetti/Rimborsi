@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titolo | default('Crea Nuovo Evento') }}{% endblock %}
+
+{% block content %}
+    <h1 class="mb-4">{{ titolo | default('Crea Nuovo Evento') }}</h1>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="POST" action="" novalidate>
+                {# Token CSRF per la sicurezza del form #}
+                {{ form.hidden_tag() }}
+
+                {# Campo Nome Evento #}
+                <div class="mb-3">
+                    {{ form.nome.label(class="form-label fw-bold") }}
+                    {% if form.nome.flags.required %}<span class="text-danger">*</span>{% endif %}
+                    {{ form.nome(class="form-control" + (" is-invalid" if form.nome.errors else "")) }}
+                    {% for error in form.nome.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                {# Riga per Protocollo e Tipologia #}
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        {{ form.protocollo_attivazione.label(class="form-label fw-bold") }}
+                        {{ form.protocollo_attivazione(class="form-control" + (" is-invalid" if form.protocollo_attivazione.errors else "")) }}
+                        {% for error in form.protocollo_attivazione.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.tipologia.label(class="form-label fw-bold") }}
+                        {% if form.tipologia.flags.required %}<span class="text-danger">*</span>{% endif %}
+                        {{ form.tipologia(class="form-select" + (" is-invalid" if form.tipologia.errors else "")) }}
+                        {% for error in form.tipologia.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {# Riga per Data Inizio e Data Fine #}
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        {{ form.data_inizio.label(class="form-label fw-bold") }}
+                        {{ form.data_inizio(class="form-control" + (" is-invalid" if form.data_inizio.errors else "")) }}
+                        {% for error in form.data_inizio.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.data_fine.label(class="form-label fw-bold") }}
+                        {{ form.data_fine(class="form-control" + (" is-invalid" if form.data_fine.errors else "")) }}
+                        {% for error in form.data_fine.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {# Campo Descrizione #}
+                <div class="mb-4">
+                    {{ form.descrizione.label(class="form-label fw-bold") }}
+                    {{ form.descrizione(class="form-control" + (" is-invalid" if form.descrizione.errors else ""), rows=5) }}
+                    {% for error in form.descrizione.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                {# Pulsanti di azione #}
+                <div class="d-flex justify-content-end">
+                    <a href="{{ url_for('main.gestione_eventi') }}" class="btn btn-secondary me-2">Annulla</a>
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
