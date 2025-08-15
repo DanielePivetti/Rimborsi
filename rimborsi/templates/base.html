@@ -37,12 +37,14 @@
         <div class="container">
             <a class="navbar-brand" href="{{ url_for('main.index') }}">
                 <i class="fas fa-hand-holding-dollar"></i>
-                Gestione Rimborsi
+                Gestione Procedura rimborsi spese articoli 40
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
+            
             <div class="collapse navbar-collapse" id="navbarNav">
+                <!-- commento temporaneo 
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('main.dashboard', role='istruttore') }}">Dashboard Istruttore</a>
@@ -54,14 +56,26 @@
                         <a class="nav-link" href="{{ url_for('main.dashboard', role='amministratore') }}">Dashboard Amministratore</a>
                     </li>
                 </ul>
-                <div class="d-flex ms-3">
-                    <a href="{{ url_for('main.registrati') }}" class="btn btn-primary me-2">Registrati</a>
-                    <a href="{{ url_for('main.login') }}" class="btn btn-primary">Login</a>
+                -->
+
+                <div class="d-flex ms-auto">
+                    {% if current_user.is_authenticated %}
+                        <!-- Mostra info utente e logout quando autenticato -->
+                        <span class="navbar-text me-3 text-light">
+                            <i class="fas fa-user me-1"></i> {{ current_user.email }}
+                        </span>
+                        <a href="{{ url_for('main.logout') }}" class="btn btn-outline-light">
+                            <i class="fas fa-sign-out-alt me-1"></i> Logout
+                        </a>
+                    {% else %}
+                        <!-- Mostra registrazione e login quando non autenticato -->
+                        <a href="{{ url_for('main.registrati') }}" class="btn btn-outline-light me-2">Registrati</a>
+                        <a href="{{ url_for('main.login') }}" class="btn btn-outline-light">Login</a>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </nav>
-
     <!-- Area messaggi flash -->
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
