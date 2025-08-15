@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Homepage{% endblock %}
+
+{% block content %}
+<div class="row row-cols-1 row-cols-md-3 g-4 mb-4">
+    <div class="col">
+        <div class="card shadow-sm h-100" style="background-color: #e6f2ff; border: 1px solid #2e0e86;">
+            <div class="card-body text-center">
+                <h5 class="card-title" style="font-weight: bold;">Sei un compilatore</h5>
+                <p class="card-text" align="center">Se sei registrato puoi compilare 
+                    la richiesta di rimborso  per conto della tua organizzazione di volontariato. 
+                    Se non sei registrato devi procedere alla registrazione. 
+                    L'amministratore ti associerà alle organizzazioni 
+                    per cui devi effettuare la compilazione</p>
+                <a href="{{ url_for('main.login') }}" class="btn btn-primary">Accedi all'area compilatore</a>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card shadow-sm h-100" style="background-color: #e6f2ff; border: 1px solid #2e0e86;">
+            <div class="card-body text-center">
+                <h5 class="card-title" style="font-weight: bold;">Sei un istruttore</h5>
+                <p class="card-text" align="center">Puoi prendere censire gli eventi per 
+                    i quali ogni organizzazione può trasmettere inle richieste di rimborso;
+                    puoi esaminare le richieste  della tua coda di lavoro, esaminare le spese e e i documenti 
+                    allegati e registrare l'esito dell'istruttoria.</p>
+                <a href="{{ url_for('main.login') }}" class="btn btn-primary">Accedi all'area istruttore</a>
+
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card shadow-sm h-100" style="background-color: #e6f2ff; border: 1px solid #2e0e86;">
+            <div class="card-body text-center">
+                <h5 class="card-title" style="font-weight: bold;">Sei un amministratore</h5>
+                <p class="card-text">Puoi censire le organizzazioni, i mezzi e le attrezzature 
+                    delle organizzazioni, gli eventi e puoi associare gli utenti registrati alle 
+                    rispettive organizzazioni</p>
+                <a href="{{ url_for('main.login') }}" class="btn btn-primary">Accedi all'area amministratore</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

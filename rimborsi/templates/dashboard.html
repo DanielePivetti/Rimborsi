@@ -15,9 +15,14 @@
             Area di Gestione
         {% endif %}
     </h1>
-    <p class="lead mb-4">
-        Benvenuto, Utente loggato Seleziona un'attività per iniziare.
-    </p>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <p class="lead mb-0">
+            Benvenuto, {{ current_user.email }}. Seleziona un'attività per iniziare.
+        </p>
+        <a href="{{ url_for('main.logout') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-sign-out-alt me-1"></i> Logout
+        </a>
+    </div>
 
     {# ================================================================== #}
     {# SEZIONE VISIBILE SOLO ALL'UTENTE ISTRUTTORE                      #}
@@ -62,8 +67,8 @@
 
         <!-- 2. Pulsante Gestione Eventi -->
         <div class="d-grid gap-2 d-md-flex justify-content-md-end mb-3">
-             <a href="{{ url_for('gestione_eventi') }}" class="btn btn-secondary"><i class="fas fa-calendar-alt me-1"></i> Gestisci Eventi</a>
-             <a href="{{ url_for('crea_evento') }}" class="btn btn-success"><i class="fas fa-plus me-1"></i> Crea Nuovo Evento</a>
+             <a href="{{ url_for('main.gestione_eventi') }}" class="btn btn-secondary"><i class="fas fa-calendar-alt me-1"></i> Gestisci Eventi</a>
+             <a href="{{ url_for('main.crea_evento') }}" class="btn btn-success"><i class="fas fa-plus me-1"></i> Crea Nuovo Evento</a>
         </div>
 
         <!-- 3. Tabella Principale: Coda di Lavoro -->
@@ -123,7 +128,7 @@
                 <span class="badge bg-secondary fs-6">CRI Comitato di Roma</span>
                 <a href="#" class="ms-2">(Cambia)</a>
             </div>
-            <a href="{{ url_for('crea_richiesta') }}" class="btn btn-primary btn-lg"><i class="fas fa-plus me-1"></i> Crea Nuova Richiesta</a>
+            <a href="{{ url_for('main.crea_richiesta') }}" class="btn btn-primary btn-lg"><i class="fas fa-plus me-1"></i> Crea Nuova Richiesta</a>
         </div>
 
         <!-- 2. Tabella con schede -->
@@ -153,7 +158,7 @@
                             <td>Evento di Test</td>
                             <td>13/05/2025</td>
                             <td>&euro; 100.00</td>
-                            <td><a href="{{ url_for('modifica_richiesta', richiesta_id=1) }}" class="btn btn-warning btn-sm">Modifica e Invia</a></td>
+                            <td><a href="{{ url_for('main.modifica_richiesta', richiesta_id=1) }}" class="btn btn-warning btn-sm">Modifica e Invia</a></td>
                         </tr>
                     </tbody>
                 </table>
@@ -171,11 +176,11 @@
                 <div class="card shadow-sm">
                     <div class="card-header"><h5 class="mb-0">Gestione Anagrafiche</h5></div>
                     <div class="list-group list-group-flush">
-                        <a href="{{ url_for('gestione_organizzazioni') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <a href="{{ url_for('main.gestione_organizzazioni') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                             Gestisci Organizzazioni
                             <i class="fas fa-sitemap"></i>
                         </a>
-                        <a href="{{ url_for('gestione_mezzi') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <a href="{{ url_for('main.gestione_mezzi') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                             Gestisci Mezzi e Attrezzature
                             <i class="fas fa-truck"></i>
                         </a>
@@ -192,7 +197,7 @@
                              {% for utente in utenti_da_associare %}
                              <li class="list-group-item d-flex justify-content-between align-items-center">
                                 {{ utente.email }}
-                                <a href="{{ url_for('associa_utente', user_id=utente.id) }}" class="btn btn-success btn-sm">Associa</a>
+                                <a href="{{ url_for('main.associa_utente', user_id=utente.id) }}" class="btn btn-success btn-sm">Associa</a>
                             </li>
                             {% else %}
                             <li class="list-group-item">Nessun nuovo utente da associare.</li>
@@ -205,3 +210,4 @@
     {% endif %}
 
 {% endblock %}
+

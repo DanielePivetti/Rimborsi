@@ -35,7 +35,7 @@
     <!-- Barra di Navigazione -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('index') }}">
+            <a class="navbar-brand" href="{{ url_for('main.index') }}">
                 <i class="fas fa-hand-holding-dollar"></i>
                 Gestione Rimborsi
             </a>
@@ -45,18 +45,38 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('dashboard', role='istruttore') }}">Dashboard Istruttore</a>
+                        <a class="nav-link" href="{{ url_for('main.dashboard', role='istruttore') }}">Dashboard Istruttore</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('dashboard', role='compilatore') }}">Dashboard Compilatore</a>
+                        <a class="nav-link" href="{{ url_for('main.dashboard', role='compilatore') }}">Dashboard Compilatore</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('dashboard', role='amministratore') }}">Dashboard Amministratore</a>
+                        <a class="nav-link" href="{{ url_for('main.dashboard', role='amministratore') }}">Dashboard Amministratore</a>
                     </li>
                 </ul>
+                <div class="d-flex ms-3">
+                    <a href="{{ url_for('main.registrati') }}" class="btn btn-primary me-2">Registrati</a>
+                    <a href="{{ url_for('main.login') }}" class="btn btn-primary">Login</a>
+                </div>
             </div>
         </div>
     </nav>
+
+    <!-- Area messaggi flash -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="container mt-3" style="color: gray;">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category if category != 'message' else 'info' }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+
 
     <!-- Contenuto Principale della Pagina -->
     <main class="container my-4">
