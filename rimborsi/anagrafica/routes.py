@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash
+from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required
 from rimborsi.models import db, Organizzazione, MezzoAttrezzatura
 from .forms import OrganizzazioneForm, MezzoAttrezzaturaForm
@@ -137,4 +137,5 @@ def cancella_mezzo(mezzo_id):
     flash('Mezzo/Attrezzatura cancellato con successo.', 'success')
     
     # 5. Reindirizza alla lista dei mezzi della sua ex-organizzazione.
-    return redirect(url_for('anagrafica.lista_mezzi', org_id=organizzazione_id))
+   # return redirect(url_for('anagrafica.lista_mezzi', org_id=organizzazione_id))
+    return redirect(request.referrer or url_for('anagrafica.lista_tutti_mezzi'))
