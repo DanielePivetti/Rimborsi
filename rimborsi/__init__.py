@@ -48,7 +48,9 @@ def create_app():
     from .istruttoria.routes import istruttoria_bp
     app.register_blueprint(istruttoria_bp)
    
-       
+    from .anagrafica.routes import anagrafica_bp
+    app.register_blueprint(anagrafica_bp)
+
     # Crea la cartella instance se non esiste
     try:
         os.makedirs(app.instance_path)

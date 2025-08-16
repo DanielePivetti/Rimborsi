@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}Elenco Globale Mezzi{% endblock %}
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">Elenco Globale Mezzi e Attrezzature</h1>
+    </div>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Organizzazione di Appartenenza</th>
+                        <th>Targa / N. Inventario</th>
+                        <th>Tipologia</th>
+                        <th>Descrizione</th>
+                        <th class="text-center">Azioni</th>
+                    </tr>
+                </thead>
+                   <tbody>
+                    {% for mezzo in mezzi %}
+                    <tr>
+                        <td>{{ mezzo.organizzazione.nome }}</td>
+                        <td>{{ mezzo.targa_inventario }}</td>
+                        <td>
+                            {% if mezzo.tipologia == 'M' %}
+                                Autoveicolo
+                            {% elif mezzo.tipologia == 'A' %}
+                                Attrezzatura
+                            {% else %}
+                                {{ mezzo.tipologia }}
+                            {% endif %}
+                        </td>
+                        <td>{{ mezzo.descrizione }}</td>
+                        <td class="text-center">
+                             {# URL per la modifica, al momento commentato #}
+                            </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center">Nessun mezzo trovato nel sistema.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

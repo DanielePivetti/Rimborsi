@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titolo }}{% endblock %}
+
+{% block content %}
+    <h1 class="mb-4">{{ titolo }}</h1>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="POST" action="" novalidate>
+                {# Token CSRF per la sicurezza del form #}
+                {{ form.hidden_tag() }}
+
+                {# Campo Nome Organizzazione (Obbligatorio) #}
+                <div class="mb-3">
+                    {{ form.nome.label(class="form-label fw-bold") }}
+                    <span class="text-danger">*</span>
+                    {{ form.nome(class="form-control" + (" is-invalid" if form.nome.errors else "")) }}
+                    {% for error in form.nome.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                {# Riga per Acronimo e Codice Interno #}
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        {{ form.acronimo.label(class="form-label fw-bold") }}
+                        {{ form.acronimo(class="form-control" + (" is-invalid" if form.acronimo.errors else "")) }}
+                        {% for error in form.acronimo.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.codice_interno.label(class="form-label fw-bold") }}
+                        {{ form.codice_interno(class="form-control" + (" is-invalid" if form.codice_interno.errors else "")) }}
+                        {% for error in form.codice_interno.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {# Campo Indirizzo #}
+                <div class="mb-4">
+                    {{ form.indirizzo.label(class="form-label fw-bold") }}
+                    {{ form.indirizzo(class="form-control" + (" is-invalid" if form.indirizzo.errors else "")) }}
+                    {% for error in form.indirizzo.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                {# Pulsanti di azione #}
+                <div class="d-flex justify-content-end">
+                    <a href="{{ url_for('anagrafica.lista_organizzazioni') }}" class="btn btn-secondary me-2">Annulla</a>
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

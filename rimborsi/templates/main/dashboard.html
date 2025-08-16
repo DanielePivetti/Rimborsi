@@ -176,12 +176,12 @@
                 <div class="card shadow-sm">
                     <div class="card-header"><h5 class="mb-0">Gestione Anagrafiche</h5></div>
                     <div class="list-group list-group-flush">
-                        <a href="{{ url_for('main.gestione_organizzazioni') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                            Gestisci Organizzazioni
+                        <a href="{{ url_for('anagrafica.lista_organizzazioni') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            Lista Organizzazioni
                             <i class="fas fa-sitemap"></i>
                         </a>
-                        <a href="{{ url_for('main.gestione_mezzi') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                            Gestisci Mezzi e Attrezzature
+                        <a href="{{ url_for('anagrafica.lista_tutti_mezzi') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            Lista Mezzi e Attrezzature
                             <i class="fas fa-truck"></i>
                         </a>
                     </div>

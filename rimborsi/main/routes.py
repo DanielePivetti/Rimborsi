@@ -64,14 +64,6 @@ def dettaglio_richiesta(richiesta_id):
 def modifica_richiesta(richiesta_id):
     return f"Modifica richiesta {richiesta_id} (placeholder)"
 
-@main.route('/gestione_organizzazioni')
-def gestione_organizzazioni():
-    return "Gestione organizzazioni (placeholder)"
-
-@main.route('/gestione_mezzi')
-def gestione_mezzi():
-    return "Gestione mezzi (placeholder)"
-
 @main.route('/associa_utente/<int:user_id>')
 def associa_utente(user_id):
     return f"Associa utente {user_id} (placeholder)"
