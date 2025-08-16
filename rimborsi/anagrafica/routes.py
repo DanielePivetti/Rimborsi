@@ -116,3 +116,25 @@ def modifica_mezzo(mezzo_id):
         flash('Mezzo/Attrezzatura aggiornato con successo!', 'success')
         return redirect(url_for('anagrafica.lista_mezzi', org_id=mezzo.organizzazione_id))
     return render_template('anagrafica/crea_modifica_mezzo.html', form=form, organizzazione=mezzo.organizzazione, titolo="Modifica Mezzo/Attrezzatura")
+
+# Cancellazione mezzo di un'organizzazione
+
+@anagrafica_bp.route('/mezzi/cancella/<int:mezzo_id>', methods=['POST'])
+@login_required
+def cancella_mezzo(mezzo_id):
+    """Cancella un mezzo/attrezzatura."""
+    # 1. Trova il mezzo nel database o restituisci un errore 404.
+    mezzo = MezzoAttrezzatura.query.get_or_404(mezzo_id)
+    
+    # 2. Salva l'ID dell'organizzazione per sapere dove tornare dopo.
+    organizzazione_id = mezzo.organizzazione_id
+    
+    # 3. Rimuovi il mezzo e salva le modifiche.
+    db.session.delete(mezzo)
+    db.session.commit()
+    
+    # 4. Invia un messaggio di conferma.
+    flash('Mezzo/Attrezzatura cancellato con successo.', 'success')
+    
+    # 5. Reindirizza alla lista dei mezzi della sua ex-organizzazione.
+    return redirect(url_for('anagrafica.lista_mezzi', org_id=organizzazione_id))

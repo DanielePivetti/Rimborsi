@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titolo }}{% endblock %}
+
+{% block content %}
+    <div class="mb-4">
+        <h1 class="mb-0">{{ titolo }}</h1>
+        <p class="lead text-muted">Per l'organizzazione: <strong>{{ organizzazione.nome }}</strong></p>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="POST" action="" novalidate>
+                {{ form.hidden_tag() }} {# Include token CSRF e campi nascosti come organizzazione_id #}
+
+                {# Se il form è quello di modifica, mostrerà il selettore dell'organizzazione #}
+                {% if form.organizzazione %}
+                <div class="mb-3">
+                    {{ form.organizzazione.label(class="form-label fw-bold") }}
+                    <span class="text-danger">*</span>
+                    {{ form.organizzazione(class="form-select" + (" is-invalid" if form.organizzazione.errors else "")) }}
+                    {% for error in form.organizzazione.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        {{ form.tipologia.label(class="form-label fw-bold") }}
+                        <span class="text-danger">*</span>
+                        {{ form.tipologia(class="form-select" + (" is-invalid" if form.tipologia.errors else "")) }}
+                        {% for error in form.tipologia.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.targa_inventario.label(class="form-label fw-bold") }}
+                        <span class="text-danger">*</span>
+                        {{ form.targa_inventario(class="form-control" + (" is-invalid" if form.targa_inventario.errors else "")) }}
+                        {% for error in form.targa_inventario.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    {{ form.descrizione.label(class="form-label fw-bold") }}
+                    {{ form.descrizione(class="form-control" + (" is-invalid" if form.descrizione.errors else ""), rows=4) }}
+                    {% for error in form.descrizione.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="d-flex justify-content-end">
+                    {# Il link Annulla torna alla lista mezzi della specifica organizzazione #}
+                    <a href="{{ url_for('anagrafica.lista_mezzi', org_id=organizzazione.id) }}" class="btn btn-secondary me-2">Annulla</a>
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

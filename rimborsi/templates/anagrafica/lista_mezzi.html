@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}Mezzi di {{ organizzazione.nome }}{% endblock %}
+
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h1 class="mb-0">Dettaglio Organizzazione</h1>
+            <p class="lead text-muted">Stai visualizzando i mezzi e le attrezzature di: <strong>{{ organizzazione.nome }}</strong></p>
+        </div>
+        <a href="{{ url_for('anagrafica.crea_mezzo', org_id=organizzazione.id) }}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i> Aggiungi Mezzo/Attrezzatura
+        </a>
+    </div>
+
+    {# Sezione per mostrare i mezzi con le card #}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for mezzo in organizzazione.mezzi %}
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        {% if mezzo.tipologia == 'M' %}
+                            <i class="fas fa-truck me-2"></i>Autoveicolo
+                        {% else %}
+                            <i class="fas fa-tools me-2"></i>Attrezzatura
+                        {% endif %}
+                    </h5>
+                    <span class="badge bg-secondary">{{ mezzo.targa_inventario }}</span>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">{{ mezzo.descrizione or 'Nessuna descrizione fornita.' }}</p>
+                </div>
+                <div class="card-footer text-end">
+                    <a href="{{ url_for('anagrafica.modifica_mezzo', mezzo_id=mezzo.id) }}" class="btn btn-outline-warning btn-sm" title="Modifica">
+                        <i class="fas fa-pencil-alt"></i> Modifica
+                    </a>
+                    
+                    <form action="{{ url_for('anagrafica.cancella_mezzo', mezzo_id=mezzo.id) }}" method="POST" class="d-inline ms-1">
+                        <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Sei sicuro di voler eliminare questo elemento?');" title="Elimina">
+                            <i class="fas fa-trash-alt"></i> Elimina
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <div class="alert alert-info text-center" role="alert">
+                Nessun mezzo o attrezzatura trovata per questa organizzazione.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {# Pulsante per tornare indietro #}
+    <div class="mt-4">
+        <a href="{{ url_for('anagrafica.lista_organizzazioni') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Torna alla lista organizzazioni
+        </a>
+    </div>
+{% endblock %}
