@@ -30,17 +30,20 @@ def dashboard():
         }
 
     elif current_user.role == 'compilatore':
-        # Query per le richieste dell'utente loggato
-        # (da filtrare anche per organizzazione attiva in futuro)
-        in_bozza = Richiesta.query.filter_by(stato='A').count() # Esempio semplificato
-        in_attesa = Richiesta.query.filter_by(stato='B').count() # Esempio semplificato
+        # Recuperiamo l'organizzazione dell'utente
+        organizzazione_utente = current_user.organizzazioni[0] if current_user.organizzazioni else None
         
-        template_data['dati_compilatore'] = {
-            'in_bozza_count': in_bozza,
-            'in_attesa_count': in_attesa,
-            'archivio_count': 0 # Esempio
-        }
-        template_data['richieste_in_bozza'] = Richiesta.query.filter_by(stato='A').all() # Esempio
+        richieste_in_bozza = []
+        if organizzazione_utente:
+            # Query per trovare le richieste in bozza di quella organizzazione
+            richieste_in_bozza = Richiesta.query.filter_by(
+                stato='A', 
+                organizzazione_id=organizzazione_utente.id
+            ).order_by(Richiesta.data_creazione.desc()).all()
+        
+        # Passiamo la lista di richieste al template
+        template_data['richieste_in_bozza'] = richieste_in_bozza
+             
 
     elif current_user.role == 'amministratore':
         # Query per trovare utenti non associati a nessuna organizzazione

@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titolo }}{% endblock %}
+
+{% block content %}
+    <div class="mb-4">
+        <h1 class="mb-0">{{ titolo }}</h1>
+        <p class="lead text-muted">Per la richiesta ID: {{ richiesta.id }}</p>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="POST" action="" novalidate>
+                {{ form.hidden_tag() }}
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        {{ form.categoria.label(class="form-label fw-bold") }}
+                        {{ form.categoria(class="form-select") }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        {{ form.data_spesa.label(class="form-label fw-bold") }}
+                        {{ form.data_spesa(class="form-control") }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        {{ form.importo_richiesto.label(class="form-label fw-bold") }}
+                        {{ form.importo_richiesto(class="form-control") }}
+                    </div>
+                </div>
+                <div class="mb-3">
+                    {{ form.descrizione_spesa.label(class="form-label fw-bold") }}
+                    {{ form.descrizione_spesa(class="form-control", rows=3) }}
+                </div>
+
+                <div id="sezione-impiego-mezzo" class="border-top pt-3 mt-4" style="display: none;">
+                    <h5 class="text-primary">Dettagli Impiego Mezzo/Attrezzatura</h5>
+                    <div class="mb-3">
+                        {{ form.mezzo_attrezzatura.label(class="form-label fw-bold") }}
+                        {{ form.mezzo_attrezzatura(class="form-select") }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.localita_impiego.label(class="form-label fw-bold") }}
+                        {{ form.localita_impiego(class="form-control") }}
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.data_ora_inizio_impiego.label(class="form-label fw-bold") }}
+                            {{ form.data_ora_inizio_impiego(class="form-control") }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.data_ora_fine_impiego.label(class="form-label fw-bold") }}
+                            {{ form.data_ora_fine_impiego(class="form-control") }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.km_partenza.label(class="form-label fw-bold") }}
+                            {{ form.km_partenza(class="form-control") }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.km_arrivo.label(class="form-label fw-bold") }}
+                            {{ form.km_arrivo(class="form-control") }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end mt-4">
+                    <a href="{{ url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id) }}" class="btn btn-secondary me-2">Annulla</a>
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const categoriaSelect = document.getElementById('categoria');
+        const sezioneImpiego = document.getElementById('sezione-impiego-mezzo');
+        const categorieConImpiego = ['01', '02', '04'];
+
+        function toggleSezioneImpiego() {
+            if (categorieConImpiego.includes(categoriaSelect.value)) {
+                sezioneImpiego.style.display = 'block';
+            } else {
+                sezioneImpiego.style.display = 'none';
+            }
+        }
+
+        // Controlla al caricamento della pagina
+        toggleSezioneImpiego();
+
+        // Controlla ogni volta che la selezione cambia
+        categoriaSelect.addEventListener('change', toggleSezioneImpiego);
+    });
+</script>
+{% endblock %}
