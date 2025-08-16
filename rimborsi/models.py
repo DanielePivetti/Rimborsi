@@ -110,4 +110,4 @@ class ImpiegoMezzoAttrezzatura(db.Model):
         return 0
 
     mezzo_attrezzatura_id = db.Column(db.Integer, db.ForeignKey('mezzo_attrezzatura.id'), nullable=False)
-    spesa_id = db.Column(db.Integer, db.ForeignKey('spesa.id'), unique=True, nullable=False)
+    spesa_id = db.Column(db.Integer, db.ForeignKey('spesa.id'), unique=True, nullable=True)

@@ -50,7 +50,11 @@ def create_app():
    
     from .anagrafica.routes import anagrafica_bp
     app.register_blueprint(anagrafica_bp)
-
+    
+    from .richiesta.routes import richiesta_bp
+    app.register_blueprint(richiesta_bp)
+    
+        
     # Crea la cartella instance se non esiste
     try:
         os.makedirs(app.instance_path)

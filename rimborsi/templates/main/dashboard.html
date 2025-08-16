@@ -119,8 +119,28 @@
     {# SEZIONE VISIBILE SOLO ALL'UTENTE COMPILATORE                     #}
     {# ================================================================== #}
     {% elif current_user.role == 'compilatore' %}
+    
+    <div class="card shadow-sm mb-4">
+        <div class="card-body text-center p-4">
+            <h5 class="card-title">Pronto a iniziare?</h5>
+            <p class="card-text">Avvia la procedura per richiedere un rimborso per un nuovo evento.</p>
+            <a href="{{ url_for('richiesta.seleziona_evento') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-plus me-1"></i> Crea Nuova Richiesta
+            </a>
+        </div>
+    </div>
 
-        <!-- 1. Selettore Contesto e Azione Principale -->
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h5 class="mb-0">Le Tue Richieste</h5>
+        </div>
+        <div class="card-body">
+            <p class="text-muted">Qui vedrai un riepilogo delle tue richieste in bozza, in attesa e archiviate.</p>
+        </div>
+    </div>
+
+
+        <!-- 1. Selettore Contesto e Azione Principale
         <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-light rounded">
             <div>
                 <strong>Organizzazione attiva:</strong>
@@ -131,7 +151,7 @@
             <a href="{{ url_for('main.crea_richiesta') }}" class="btn btn-primary btn-lg"><i class="fas fa-plus me-1"></i> Crea Nuova Richiesta</a>
         </div>
 
-        <!-- 2. Tabella con schede -->
+         2. Tabella con schede 
         <div class="card shadow-sm">
             <div class="card-header">
                 <ul class="nav nav-tabs card-header-tabs">
@@ -163,7 +183,7 @@
                     </tbody>
                 </table>
             </div>
-        </div>
+        </div>  -->
 
 
     {# ================================================================== #}

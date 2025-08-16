@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titolo }}{% endblock %}
+
+{% block content %}
+    <div class="mb-4">
+        <h1 class="mb-0">{{ titolo }}</h1>
+        <p class="lead text-muted">Passaggio 2 di 2: Compila i dati generali della richiesta</p>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="POST" action="" novalidate>
+                {{ form.hidden_tag() }} {# Token di sicurezza CSRF #}
+
+                <div class="mb-3">
+                    {{ form.attivita_svolta.label(class="form-label fw-bold") }}
+                    <span class="text-danger">*</span>
+                    {{ form.attivita_svolta(class="form-control" + (" is-invalid" if form.attivita_svolta.errors else ""), rows=4) }}
+                    {% for error in form.attivita_svolta.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        {{ form.data_inizio_attivita.label(class="form-label fw-bold") }}
+                        <span class="text-danger">*</span>
+                        {{ form.data_inizio_attivita(class="form-control" + (" is-invalid" if form.data_inizio_attivita.errors else "")) }}
+                        {% for error in form.data_inizio_attivita.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.data_fine_attivita.label(class="form-label fw-bold") }}
+                        <span class="text-danger">*</span>
+                        {{ form.data_fine_attivita(class="form-control" + (" is-invalid" if form.data_fine_attivita.errors else "")) }}
+                        {% for error in form.data_fine_attivita.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    {{ form.numero_volontari_coinvolti.label(class="form-label fw-bold") }}
+                    {{ form.numero_volontari_coinvolti(class="form-control" + (" is-invalid" if form.numero_volontari_coinvolti.errors else "")) }}
+                    {% for error in form.numero_volontari_coinvolti.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="d-flex justify-content-end">
+                    <a href="{{ url_for('richiesta.seleziona_evento') }}" class="btn btn-secondary me-2">Annulla</a>
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
