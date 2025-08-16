@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Dettaglio Richiesta{% endblock %}
+
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-0">Dettaglio Richiesta</h1>
+            <p class="lead text-muted">Stato: <span class="badge bg-warning text-dark">In Bozza</span></p>
+        </div>
+        <div>
+            {# Questo pulsante sarà l'azione finale #}
+            <a href="#" class="btn btn-success btn-lg disabled" title="Funzionalità in sviluppo">
+                <i class="fas fa-paper-plane me-1"></i> Trasmetti Richiesta
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Riepilogo Dati Generali</h5>
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">Evento di Riferimento</dt>
+                <dd class="col-sm-9">{{ richiesta.evento.nome }}</dd>
+
+                <dt class="col-sm-3">Attività Svolta</dt>
+                <dd class="col-sm-9">{{ richiesta.attivita_svolta }}</dd>
+
+                <dt class="col-sm-3">Periodo Attività</dt>
+                <dd class="col-sm-9">{{ richiesta.data_inizio_attivita.strftime('%d/%m/%Y') }} - {{ richiesta.data_fine_attivita.strftime('%d/%m/%Y') }}</dd>
+                
+                <dt class="col-sm-3">Volontari Coinvolti</dt>
+                <dd class="col-sm-9">{{ richiesta.numero_volontari_coinvolti or 'Non specificato' }}</dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Impiego Mezzi e Attrezzature</h5>
+                    <p class="card-text text-muted">Aggiungi i mezzi utilizzati durante le attività.</p>
+                    <a href="#" class="btn btn-primary disabled" title="Funzionalità in sviluppo">
+                        <i class="fas fa-truck me-1"></i> Aggiungi Impiego Mezzo
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card card-body">
+                <h5 class="card-title">Voci di Spesa</h5>
+                <p class="card-text text-muted">Aggiungi le singole spese sostenute e i relativi documenti.</p>
+                <a href="#" class="btn btn-primary disabled" title="Funzionalità in sviluppo">
+                    <i class="fas fa-euro-sign me-1"></i> Aggiungi Spesa
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Torna alla Dashboard
+        </a>
+    </div>
+{% endblock %}
