@@ -1,6 +1,6 @@
 from operator import length_hint
 from flask_wtf import FlaskForm
-from wtforms import SelectField, StringField, TextAreaField, IntegerField, SubmitField
+from wtforms import SelectField, StringField, TextAreaField, IntegerField, SubmitField, ValidationError
 from wtforms.fields import DateField
 from wtforms.validators import DataRequired, Optional, NumberRange, Length
 from wtforms_sqlalchemy.fields import QuerySelectField
@@ -78,4 +78,17 @@ class SpesaForm(FlaskForm):
     def __init__(self, organizzazione_id, *args, **kwargs):
         super(SpesaForm, self).__init__(*args, **kwargs)
         self.mezzo_attrezzatura.query = MezzoAttrezzatura.query.filter_by(organizzazione_id=organizzazione_id).order_by(MezzoAttrezzatura.targa_inventario)
-    
+
+    # Validazione personalizzata
+    def validate_mezzo_attrezzatura(self, field):
+        """
+        Questo validatore rende il campo 'mezzo_attrezzatura' obbligatorio
+        solo se la categoria di spesa lo richiede.
+        """
+        categorie_con_impiego = ['01', '02', '04']
+        # Se la categoria scelta è una di quelle che richiede il mezzo...
+        if self.categoria.data in categorie_con_impiego:
+            # ... e il campo del mezzo è vuoto (non è stato selezionato nulla)...
+            if not field.data:
+                # ... allora solleva un errore di validazione.
+                raise ValidationError('Per questa categoria di spesa è obbligatorio selezionare un mezzo/attrezzatura.')

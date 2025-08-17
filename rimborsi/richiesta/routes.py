@@ -83,15 +83,15 @@ def crea_spesa(richiesta_id):
         if form.categoria.data in categorie_con_impiego:
             
             # --- CONTROLLO DI SICUREZZA AGGIUNTO QUI ---
-            mezzo_selezionato = form.mezzo_attrezzatura.data
-            if not mezzo_selezionato:
+          #  mezzo_selezionato = form.mezzo_attrezzatura.data
+           #- if not mezzo_selezionato:
                 # Se la categoria richiede un mezzo ma non è stato selezionato, mostra un errore.
-                flash('Per questa categoria di spesa è obbligatorio selezionare un mezzo/attrezzatura.', 'danger')
-                return render_template('richiesta/crea_spesa.html',
-                                       form=form,
-                                       richiesta=richiesta,
-                                       titolo="Aggiungi Nuova Spesa")
-            
+             #   flash('Per questa categoria di spesa è obbligatorio selezionare un mezzo/attrezzatura.', 'danger')
+             #   return render_template('richiesta/crea_spesa.html',
+              #                         form=form,
+              #                         richiesta=richiesta,
+              #                         titolo="Aggiungi Nuova Spesa") -->
+           # 
             # Se il controllo passa, procedi a creare l'impiego
             nuovo_impiego = ImpiegoMezzoAttrezzatura(
                 mezzo_attrezzatura_id=mezzo_selezionato.id,
