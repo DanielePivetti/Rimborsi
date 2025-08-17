@@ -32,35 +32,15 @@
                     {{ form.descrizione_spesa(class="form-control", rows=3) }}
                 </div>
 
-                <div id="sezione-impiego-mezzo" class="border-top pt-3 mt-4" style="display: none;">
-                    <h5 class="text-primary">Dettagli Impiego Mezzo/Attrezzatura</h5>
-                    <div class="mb-3">
-                        {{ form.mezzo_attrezzatura.label(class="form-label fw-bold") }}
-                        {{ form.mezzo_attrezzatura(class="form-select") }}
-                    </div>
-                    <div class="mb-3">
-                        {{ form.localita_impiego.label(class="form-label fw-bold") }}
-                        {{ form.localita_impiego(class="form-control") }}
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            {{ form.data_ora_inizio_impiego.label(class="form-label fw-bold") }}
-                            {{ form.data_ora_inizio_impiego(class="form-control") }}
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            {{ form.data_ora_fine_impiego.label(class="form-label fw-bold") }}
-                            {{ form.data_ora_fine_impiego(class="form-control") }}
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            {{ form.km_partenza.label(class="form-label fw-bold") }}
-                            {{ form.km_partenza(class="form-control") }}
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            {{ form.km_arrivo.label(class="form-label fw-bold") }}
-                            {{ form.km_arrivo(class="form-control") }}
-                        </div>
+                <div id="sezione-collega-impiego" class="mt-4" style="display: none;">
+                    <div class="alert alert-info">
+                        <h5 class="alert-heading">Collega a Impiego Mezzo</h5>
+                        <p class="mb-2">Per questa categoria di spesa, seleziona il viaggio o l'impiego corrispondente dalla lista di quelli già creati per questa richiesta.</p>
+                        {{ form.impiego.label(class="form-label fw-bold") }}
+                        {{ form.impiego(class="form-select" + (" is-invalid" if form.impiego.errors else "")) }}
+                        {% for error in form.impiego.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
                     </div>
                 </div>
 
@@ -76,23 +56,23 @@
 {% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Seleziona gli elementi del DOM
         const categoriaSelect = document.getElementById('categoria');
-        const sezioneImpiego = document.getElementById('sezione-impiego-mezzo');
+        // MODIFICA: Puntiamo al nuovo div
+        const sezioneImpiego = document.getElementById('sezione-collega-impiego'); 
         const categorieConImpiego = ['01', '02', '04'];
 
         function toggleSezioneImpiego() {
+            // La logica rimane la stessa
             if (categorieConImpiego.includes(categoriaSelect.value)) {
                 sezioneImpiego.style.display = 'block';
             } else {
                 sezioneImpiego.style.display = 'none';
             }
         }
-
-        // Controlla al caricamento della pagina
-        toggleSezioneImpiego();
-
-        // Controlla ogni volta che la selezione cambia
-        categoriaSelect.addEventListener('change', toggleSezioneImpiego);
+        
+        toggleSezioneImpiego(); // Esegui al caricamento
+        categoriaSelect.addEventListener('change', toggleSezioneImpiego); // Esegui al cambio
     });
 </script>
 {% endblock %}

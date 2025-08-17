@@ -1,0 +1,60 @@
+Connessione al database: C:\DEV_FLASK\rimborsi\instance\app.db
+
+Struttura della tabella 'spese':
+-----------------------------
+Colonna: id, Tipo: INTEGER, NotNull: 1, Default: None, PK: 1
+Colonna: richiesta_id, Tipo: INTEGER, NotNull: 1, Default: None, PK: 0
+Colonna: tipo, Tipo: VARCHAR(10), NotNull: 1, Default: None, PK: 0
+Colonna: data_spesa, Tipo: DATE, NotNull: 1, Default: None, PK: 0
+Colonna: importo_richiesto, Tipo: FLOAT, NotNull: 1, Default: None, PK: 0
+Colonna: importo_approvato, Tipo: FLOAT, NotNull: 0, Default: None, PK: 0
+Colonna: note, Tipo: TEXT, NotNull: 0, Default: None, PK: 0
+Colonna: data_creazione, Tipo: DATETIME, NotNull: 0, Default: None, PK: 0
+Colonna: data_modifica, Tipo: DATETIME, NotNull: 0, Default: None, PK: 0
+Colonna: nota_istruttoria, Tipo: TEXT, NotNull: 0, Default: None, PK: 0
+
+Colonna 'type' per polimorfismo: Assente
+
+Esempio di record nella tabella 'spese':
+-------------------------------------
+Record 1:
+  id: 1
+  richiesta_id: 3
+  tipo: CARBURANTE
+  data_spesa: 2025-02-13
+  importo_richiesto: 58.0
+  importo_approvato: None
+  note: aaa
+  data_creazione: 2025-07-27 12:25:16.194819
+  data_modifica: 2025-07-27 12:25:16.194822
+  nota_istruttoria: None
+
+Record 2:
+  id: 2
+  richiesta_id: 3
+  tipo: CARBURANTE
+  data_spesa: 2025-02-13
+  importo_richiesto: 58.0
+  importo_approvato: None
+  note: aaa
+  data_creazione: 2025-07-27 12:29:12.266357
+  data_modifica: 2025-07-27 12:29:12.266363
+  nota_istruttoria: None
+
+Record 3:
+  id: 3
+  richiesta_id: 5
+  tipo: CARBURANTE
+  data_spesa: 2025-03-11
+  importo_richiesto: 50.0
+  importo_approvato: None
+  note: aaa
+  data_creazione: 2025-07-27 12:38:42.544333
+  data_modifica: 2025-07-27 12:38:42.544340
+  nota_istruttoria: None
+
+
+Ricerca di colonne relative al tipo di spesa:
+-----------------------------------------
+Possibile colonna per il tipo di spesa: tipo
+Valori distinti per tipo: [('CARBURANTE',)]

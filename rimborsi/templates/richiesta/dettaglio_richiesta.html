@@ -41,10 +41,10 @@
         <div class="col-md-6">
             <div class="card shadow-sm">
                 <div class="card-body">
-                    <h5 class="card-title">Voci di spesa</h5>
-                    <p class="card-text text-muted">Aggiungi le voci di spesa sostenute durante le attività.</p>
-                    <a href="{{ url_for('richiesta.crea_spesa', richiesta_id=richiesta.id) }}" class="btn btn-primary w-100">
-                        <i class="fas fa-euro-sign me-1"></i> Aggiungi Spesa
+                    <h5 class="card-title">Impiego mezzi attrezzatura</h5>
+                    <p class="card-text text-muted">Aggiungi i mezzi utilizzati durante le attività.</p>
+                    <a href="{{ url_for('richiesta.crea_impiego', richiesta_id=richiesta.id) }}" class="btn btn-primary w-100">
+                        <i class="fas fa-truck-moving me-1"></i> Aggiungi Impiego Mezzo
                     </a>
                 </div>
             </div>
@@ -52,10 +52,10 @@
         <div class="col-md-6">
             <div class="card shadow-sm">
                 <div class="card-body">
-                    <h5 class="card-title">Impiego mezzi</h5>
-                    <p class="card-text text-muted">Aggiungi i mezzi utilizzati durante le attività.</p>
-                    <a href="#" class="btn btn-primary w-100 disabled" title="Funzionalità in sviluppo">
-                        <i class="fas fa-truck-moving me-1"></i> Aggiungi Impiego Mezzo
+                    <h5 class="card-title">Voci di spesa</h5>
+                    <p class="card-text text-muted">Aggiungi le voci di spesa sostenute durante le attività.</p>
+                    <a href="{{ url_for('richiesta.crea_spesa', richiesta_id=richiesta.id) }}" class="btn btn-primary w-100">
+                        <i class="fas fa-euro-sign me-1"></i> Aggiungi Spesa
                     </a>
                 </div>
             </div>

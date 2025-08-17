@@ -4,8 +4,12 @@ from wtforms import SelectField, StringField, TextAreaField, IntegerField, Submi
 from wtforms.fields import DateField
 from wtforms.validators import DataRequired, Optional, NumberRange, Length
 from wtforms_sqlalchemy.fields import QuerySelectField
-from rimborsi.models import Evento, Spesa, MezzoAttrezzatura
+from rimborsi.models import Evento, Spesa, MezzoAttrezzatura,ImpiegoMezzoAttrezzatura
 from wtforms import FloatField, DateTimeField
+
+# ... (altri form) ...
+
+
 
 # Funzione helper che dice al campo come ottenere gli eventi
 def evento_query():
@@ -39,56 +43,70 @@ class RichiestaForm(FlaskForm):
     submit = SubmitField('Salva e Continua')
     
 
-# (la funzione mezzi_query che abbiamo già scritto va bene)
+# Form Spesa
+
+# Aggiungi il modello ImpiegoMezzoAttrezzatura agli import
+
+# Funzione helper per la query degli impieghi non ancora associati
+def impieghi_disponibili_query(richiesta_id):
+    return ImpiegoMezzoAttrezzatura.query.filter_by(
+        richiesta_id=richiesta_id, 
+        spesa_id=None # Mostra solo gli impieghi non ancora collegati a una spesa
+    ).all()
 
 class SpesaForm(FlaskForm):
     """
-    Form unificato per creare/modificare una Spesa e il suo eventuale Impiego.
+    Form per creare/modificare una Spesa e collegarla a un eventuale Impiego.
     """
-    # --- Campi della SPESA ---
     categoria = SelectField('Categoria di Spesa', choices=[
-        ('01', 'Carburante'),
-        ('02', 'Pedaggi autostradali'),
-        ('03', 'Pasti'),
-        ('04', 'Ripristino danni mezzi'),
-        ('05', 'Viaggio'),
-        ('06', 'Altro')
+        ('01', 'Carburante'), ('02', 'Pedaggi autostradali'), ('03', 'Pasti'),
+        ('04', 'Ripristino danni mezzi'), ('05', 'Viaggio'), ('06', 'Altro')
     ], validators=[DataRequired()])
     
     data_spesa = DateField('Data della Spesa', format='%Y-%m-%d', validators=[DataRequired()])
     descrizione_spesa = TextAreaField('Descrizione Dettagliata', validators=[DataRequired(), Length(max=250)])
     importo_richiesto = FloatField('Importo Richiesto (€)', validators=[DataRequired()])
     
-    # --- Campi dell'IMPIEGO MEZZO (Facoltativi) ---
-    # Questi campi verranno mostrati/nascosti nel template con JavaScript
-    mezzo_attrezzatura = QuerySelectField('Mezzo/Attrezzatura Utilizzato',
-                                          query_factory=lambda: MezzoAttrezzatura.query.all(), # Query temporanea
-                                          get_label='targa_inventario',
-                                          allow_blank=True) # Permettiamo che sia vuoto
-    
-    localita_impiego = StringField('Località di Impiego', validators=[Optional(), Length(max=200)])
-    data_ora_inizio_impiego = DateTimeField('Data/Ora Inizio', format='%Y-%m-%dT%H:%M', validators=[Optional()])
-    data_ora_fine_impiego = DateTimeField('Data/Ora Fine', format='%Y-%m-%dT%H:%M', validators=[Optional()])
-    km_partenza = FloatField('Km Partenza', validators=[Optional()])
-    km_arrivo = FloatField('Km Arrivo', validators=[Optional()])
+    # Campo unico per selezionare un impiego esistente
+    impiego = QuerySelectField('Collega a un Impiego Mezzo (se necessario)',
+                               get_label=lambda i: f"{i.mezzo_attrezzatura.targa_inventario} del {i.data_ora_inizio_impiego.strftime('%d/%m')}",
+                               allow_blank=True) # Il campo è facoltativo di base
 
     submit = SubmitField('Salva Spesa')
 
-    # Costruttore per filtrare i mezzi per organizzazione
-    def __init__(self, organizzazione_id, *args, **kwargs):
+    def __init__(self, richiesta_id, *args, **kwargs):
         super(SpesaForm, self).__init__(*args, **kwargs)
-        self.mezzo_attrezzatura.query = MezzoAttrezzatura.query.filter_by(organizzazione_id=organizzazione_id).order_by(MezzoAttrezzatura.targa_inventario)
+        # Passiamo l'ID della richiesta per filtrare gli impieghi disponibili
+        self.impiego.query = impieghi_disponibili_query(richiesta_id)
 
-    # Validazione personalizzata
-    def validate_mezzo_attrezzatura(self, field):
-        """
-        Questo validatore rende il campo 'mezzo_attrezzatura' obbligatorio
-        solo se la categoria di spesa lo richiede.
-        """
+    # Validatore personalizzato per rendere l'impiego obbligatorio per alcune categorie
+    def validate_impiego(self, field):
         categorie_con_impiego = ['01', '02', '04']
-        # Se la categoria scelta è una di quelle che richiede il mezzo...
-        if self.categoria.data in categorie_con_impiego:
-            # ... e il campo del mezzo è vuoto (non è stato selezionato nulla)...
-            if not field.data:
-                # ... allora solleva un errore di validazione.
-                raise ValidationError('Per questa categoria di spesa è obbligatorio selezionare un mezzo/attrezzatura.')
+        if self.categoria.data in categorie_con_impiego and not field.data:
+            raise ValidationError('Per questa categoria di spesa è obbligatorio selezionare un impiego.')
+
+            
+# In rimborsi/richieste/forms.py
+
+class ImpiegoMezzoForm(FlaskForm):
+    """
+    Form per creare/modificare un Impiego di Mezzo/Attrezzatura.
+    """
+    mezzo_attrezzatura = QuerySelectField('Mezzo/Attrezzatura Utilizzato',
+                                          get_label='targa_inventario',
+                                          allow_blank=False,
+                                          validators=[DataRequired("È obbligatorio selezionare un mezzo.")])
+    
+    localita_impiego = StringField('Località di Impiego', validators=[Optional(), Length(max=200)])
+    data_ora_inizio_impiego = DateTimeField('Data e Ora Inizio Impiego', format='%Y-%m-%dT%H:%M', validators=[DataRequired()])
+    data_ora_fine_impiego = DateTimeField('Data e Ora Fine Impiego', format='%Y-%m-%dT%H:%M', validators=[DataRequired()])
+    km_partenza = FloatField('Km Partenza', validators=[Optional()])
+    km_arrivo = FloatField('Km Arrivo', validators=[Optional()])
+    submit = SubmitField('Salva Impiego')
+
+    def __init__(self, organizzazione_id, *args, **kwargs):
+        super(ImpiegoMezzoForm, self).__init__(*args, **kwargs)
+        # Filtra la query per mostrare solo i mezzi dell'organizzazione corrente
+        self.mezzo_attrezzatura.query = MezzoAttrezzatura.query.filter_by(
+            organizzazione_id=organizzazione_id
+        ).order_by(MezzoAttrezzatura.targa_inventario)            

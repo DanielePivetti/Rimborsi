@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Gestione Mezzi e Attrezzature{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">Gestione Mezzi e Attrezzature</h1>
+        {% if current_user.role == 'amministratore' %}
+            <a href="{{ url_for('anagrafica.lista_tutti_mezzi') }}" class="btn btn-primary">
+                <i class="fas fa-list-alt me-1"></i> Visualizza Tutti i Mezzi
+            </a>
+        {% endif %}
+    </div>
+
+    {% if organizzazioni %}
+        <div class="row">
+            {% for org in organizzazioni %}
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">{{ org.nome }}</h5>
+                            {% if org.acronimo %}<span class="badge bg-secondary">{{ org.acronimo }}</span>{% endif %}
+                        </div>
+                        <div class="card-body">
+                            {% if org.indirizzo %}
+                                <p class="text-muted small mb-3">{{ org.indirizzo }}</p>
+                            {% endif %}
+                            
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>
+                                    <strong>{{ org.mezzi|length }}</strong> mezzi/attrezzature
+                                </span>
+                                <a href="{{ url_for('anagrafica.lista_mezzi', organizzazione_id=org.id) }}" class="btn btn-primary">
+                                    <i class="fas fa-list me-1"></i> Visualizza
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i> Non ci sono organizzazioni nel sistema. 
+            <a href="{{ url_for('anagrafica.crea_organizzazione') }}" class="alert-link">Aggiungi un'organizzazione</a> prima di aggiungere mezzi o attrezzature.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

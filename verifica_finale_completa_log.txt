@@ -1,0 +1,83 @@
+Verifica finale completa del database dopo la migrazione
+================================================
+
+1. Verifica delle tabelle relative alle spese:
+- spese
+- spese_altro
+- spese_carburante
+- spese_pedaggi
+- spese_ripristino
+- spese_vitto
+- spese_viaggi
+
+2. Verifica della struttura delle tabelle:
+
+Tabella: spese
+  - id (INTEGER)
+  - richiesta_id (INTEGER)
+  - tipo (VARCHAR(10))
+  - data_spesa (DATE)
+  - importo_richiesto (FLOAT)
+  - importo_approvato (FLOAT)
+  - note (TEXT)
+  - data_creazione (DATETIME)
+  - data_modifica (DATETIME)
+  - nota_istruttoria (TEXT)
+  Numero di record: 3
+
+Tabella: spese_altro
+  - id (INTEGER)
+  - descrizione_dettagliata (TEXT)
+  Numero di record: 0
+
+Tabella: spese_carburante
+  - id (INTEGER)
+  - impiego_mezzo_id (INTEGER)
+  - tipo_carburante (VARCHAR(50))
+  - litri (FLOAT)
+  Numero di record: 3
+
+Tabella: spese_pedaggi
+  - id (INTEGER)
+  - impiego_mezzo_id (INTEGER)
+  - tratta (VARCHAR(255))
+  Numero di record: 0
+
+Tabella: spese_ripristino
+  - id (INTEGER)
+  - impiego_mezzo_id (INTEGER)
+  - descrizione_intervento (TEXT)
+  Numero di record: 0
+
+Tabella: spese_vitto
+  - id (INTEGER)
+  - numero_pasti (INTEGER)
+  Numero di record: 0
+
+Tabella: spese_viaggi
+  - id (INTEGER)
+  - viaggio (INTEGER)
+  Numero di record: 0
+
+3. Verifica dei tipi di spesa presenti nel database:
+- CARBURANTE
+  Numero di record: 3
+
+4. Verifica dell'integrità referenziale:
+- spese_carburante: 0 record orfani (dovrebbe essere 0)
+- spese_vitto: 0 record orfani (dovrebbe essere 0)
+- spese_pedaggi: 0 record orfani (dovrebbe essere 0)
+- spese_ripristino: 0 record orfani (dovrebbe essere 0)
+- spese_viaggi: 0 record orfani (dovrebbe essere 0)
+- spese_altro: 0 record orfani (dovrebbe essere 0)
+
+5. Verifica dell'assenza della tabella spese_parcheggio:
+OK: La tabella 'spese_parcheggio' è stata eliminata correttamente.
+
+6. Verifica dell'assenza di riferimenti a 'PARCHEGGIO' nel database:
+- Spese con tipo='PARCHEGGIO': 0 (dovrebbe essere 0)
+
+7. Verifica della presenza di spese di tipo VIAGGI:
+- Spese con tipo='VIAGGI': 0
+
+Verifica completata.

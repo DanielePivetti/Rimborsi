@@ -1,8 +1,8 @@
 import os
-from pdb import main
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
+from flask_migrate import Migrate 
 
 # Inizializza il database
 
@@ -10,7 +10,6 @@ db = SQLAlchemy()
 
 
 def create_app():
-    
     app = Flask(__name__)
     
     basedir = os.path.abspath(os.path.dirname(__file__))
@@ -21,10 +20,10 @@ def create_app():
     # Inizializza il database
     
     db.init_app(app)
+    Migrate(app, db)
+
+        # Importa User dopo aver inizializzato db
     
-    # Configura Flask Login
-    
-    # Importa User dopo aver inizializzato db
     from .models import User
 
     login_manager = LoginManager()

@@ -1,0 +1,38 @@
+# Ambiente virtuale
+venv/
+env/
+ENV/
+.env
+
+# File di cache Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# File di database SQLite
+*.sqlite
+*.db
+
+# File di log
+*.log
+
+# File locali e di configurazione
+instance/
+.webassets-cache
+.env
+.flaskenv
+
+# Cartella di distribuzione
+dist/
+build/
+*.egg-info/
+
+# File temporanei di IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# File di sessione
+flask_session/

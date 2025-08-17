@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash
 from flask_login import login_required, current_user
-from rimborsi.models import db, Evento, Richiesta, Organizzazione, Spesa, ImpiegoMezzoAttrezzatura
-from .forms import RichiestaForm, SpesaForm
+from rimborsi.models import db, Evento, Richiesta, Organizzazione, Spesa, MezzoAttrezzatura, ImpiegoMezzoAttrezzatura
+from .forms import RichiestaForm, SpesaForm, ImpiegoMezzoForm
 
 richiesta_bp = Blueprint('richiesta', __name__, 
                          template_folder='templates',
@@ -61,14 +61,43 @@ def dettaglio_richiesta(richiesta_id):
     # Corretto: renderizziamo un template invece di reindirizzare alla stessa route
     return render_template('richiesta/dettaglio_richiesta.html', richiesta=richiesta)
 
+# Rotta per Impiego Mezzo
+
+@richiesta_bp.route('/<int:richiesta_id>/impieghi/crea', methods=['GET', 'POST'])
+@login_required
+def crea_impiego(richiesta_id):
+    richiesta = Richiesta.query.get_or_404(richiesta_id)
+    form = ImpiegoMezzoForm(organizzazione_id=richiesta.organizzazione_id)
+    
+    if form.validate_on_submit():
+        # Creazione istanza vuota
+        nuovo_impiego = ImpiegoMezzoAttrezzatura()
+        nuovo_impiego.richiesta_id = richiesta.id
+        nuovo_impiego.mezzo_attrezzatura_id = form.mezzo_attrezzatura.data.id
+        nuovo_impiego.localita_impiego = form.localita_impiego.data
+        nuovo_impiego.data_ora_inizio_impiego = form.data_ora_inizio_impiego.data
+        nuovo_impiego.data_ora_fine_impiego = form.data_ora_fine_impiego.data
+        nuovo_impiego.km_partenza = form.km_partenza.data
+        nuovo_impiego.km_arrivo = form.km_arrivo.data
+        db.session.add(nuovo_impiego)
+        db.session.commit()
+        flash('Impiego mezzo salvato con successo.', 'success')
+        return redirect(url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id))
+
+    return render_template('richiesta/crea_modifica_impiego.html',
+                           form=form, richiesta=richiesta, titolo="Aggiungi Impiego")
+
+# Aggiungeremo 'modifica_impiego' e 'cancella_impiego' quando serviranno
+ 
+
+
 # Rotte per le spese
 
 @richiesta_bp.route('/<int:richiesta_id>/spese/crea', methods=['GET', 'POST'])
 @login_required
 def crea_spesa(richiesta_id):
-    """Crea una nuova spesa per la richiesta data."""
     richiesta = Richiesta.query.get_or_404(richiesta_id)
-    form = SpesaForm(organizzazione_id=richiesta.organizzazione_id)
+    form = SpesaForm(richiesta_id=richiesta_id)
 
     if form.validate_on_submit():
         nuova_spesa = Spesa(
@@ -78,38 +107,22 @@ def crea_spesa(richiesta_id):
             descrizione_spesa=form.descrizione_spesa.data,
             importo_richiesto=form.importo_richiesto.data
         )
-        
-        categorie_con_impiego = ['01', '02', '04']
-        if form.categoria.data in categorie_con_impiego:
-            
-            # --- CONTROLLO DI SICUREZZA AGGIUNTO QUI ---
-          #  mezzo_selezionato = form.mezzo_attrezzatura.data
-           #- if not mezzo_selezionato:
-                # Se la categoria richiede un mezzo ma non è stato selezionato, mostra un errore.
-             #   flash('Per questa categoria di spesa è obbligatorio selezionare un mezzo/attrezzatura.', 'danger')
-             #   return render_template('richiesta/crea_spesa.html',
-              #                         form=form,
-              #                         richiesta=richiesta,
-              #                         titolo="Aggiungi Nuova Spesa") -->
-           # 
-            # Se il controllo passa, procedi a creare l'impiego
-            nuovo_impiego = ImpiegoMezzoAttrezzatura(
-                mezzo_attrezzatura_id=mezzo_selezionato.id,
-                localita_impiego=form.localita_impiego.data,
-                data_ora_inizio_impiego=form.data_ora_inizio_impiego.data,
-                data_ora_fine_impiego=form.data_ora_fine_impiego.data,
-                km_partenza=form.km_partenza.data,
-                km_arrivo=form.km_arrivo.data
-            )
-            nuova_spesa.impiego = nuovo_impiego
-        
         db.session.add(nuova_spesa)
-        db.session.commit()
+        db.session.commit() # Salviamo prima la spesa per ottenere un ID
+
+        # Se è stato selezionato un impiego, lo colleghiamo alla spesa appena creata
+        impiego_selezionato = form.impiego.data
+        if impiego_selezionato:
+            impiego_selezionato.spesa_id = nuova_spesa.id
+            db.session.commit() # Salviamo l'aggiornamento dell'impiego
         
         flash('Spesa aggiunta con successo!', 'success')
         return redirect(url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id))
 
-    return render_template('richiesta/crea_spesa.html',
-                           form=form,
-                           richiesta=richiesta,
-                           titolo="Aggiungi Nuova Spesa")
+    return render_template('richiesta/crea_modifica_spesa.html',
+                           form=form, richiesta=richiesta, titolo="Aggiungi Nuova Spesa")
+
+# Aggiungeremo 'modifica_spesa' e 'cancella_spesa' quando serviranno
+
+
+
