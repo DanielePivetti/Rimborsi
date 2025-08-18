@@ -161,9 +161,9 @@
                                 <td>{{ richiesta.data_creazione.strftime('%d/%m/%Y') }}</td>
                                 <td>{{ richiesta.evento.nome }}</td>
                                 <td class="text-end">
-                                    <a href="{{ url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id) }}" class="btn btn-warning btn-sm">
-                                        Continua Compilazione <i class="fas fa-arrow-right ms-1"></i>
-                                    </a>
+                                 <a href="{{ url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id) }}" class="btn btn-warning btn-sm" title="Continua Compilazione">
+                                 <i class="fas fa-pencil-alt me-1"></i> Continua
+                                </a>
                                 </td>
                             </tr>
                             {% else %}
@@ -181,6 +181,7 @@
                                 <th>Data Invio</th>
                                 <th>Evento</th>
                                 <th class="text-end">Importo Richiesto</th>
+                                <th class="text-center">Azione</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -190,6 +191,11 @@
                                 <td>{{ richiesta.data_invio.strftime('%d/%m/%Y') }}</td>
                                 <td>{{ richiesta.evento.nome }}</td>
                                 <td class="text-end">&euro; {{ "%.2f"|format(richiesta.spese|sum(attribute='importo_richiesto')) }}</td>
+                                <td class="text-center">
+                                 <a href="{{ url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id) }}" class="btn btn-outline-info btn-sm" title="Visualizza Dettaglio">
+                                 <i class="fas fa-eye"></i>
+                                 </a>
+                                </td>
                             </tr>
                             {% else %}
                             <tr><td colspan="4" class="text-center">Nessuna richiesta in istruttoria.</td></tr>
