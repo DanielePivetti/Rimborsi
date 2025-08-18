@@ -5,19 +5,15 @@
 {% block content %}
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="mb-0">Istruttoria Richiesta</h2>
-            <div class="card shadow-sm mt-2">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">Riepilogo dati richiesta: {{ richiesta.organizzazione.nome }}</h5>
-                </div>
-                <div class="card-body">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item"><strong>Evento:</strong> {{ richiesta.evento.nome }}</li>
-                        <li class="list-group-item"><strong>Trasmessa il:</strong> {{ richiesta.data_invio.strftime('%d/%m/%Y') }}</li>
-                        <li class="list-group-item"><strong>Protocollo:</strong> {{ richiesta.protocollo_invio }}</li>
-                    </ul>
-                </div>
-            </div>
+            <h3 class="mb-0">Istruttoria Richiesta</h3>
+           <div class="card shadow-sm mt-2 p-2">
+        <div class="d-flex align-items-center">
+            <h6 class="mb-0 me-3"><i class="fas fa-building me-1 text-secondary"></i> {{ richiesta.organizzazione.nome }}</h6>
+            <span class="badge bg-light text-dark me-2" title="Evento"><i class="fas fa-building me-1 text-secondary"></i> {{ richiesta.evento.nome }}</span>
+            <span class="badge bg-light text-dark me-2" title="Data invio"><i class="fas fa-paper-plane me-1"></i> {{ richiesta.data_invio.strftime('%d/%m/%Y') }}</span>
+            <span class="badge bg-light text-dark" title="Protocollo"><i class="fas fa-hashtag me-1"></i> {{ richiesta.protocollo_invio }}</span>
+        </div>
+    </div>
         </div>
         <div>
             <a href="{{ url_for('istruttoria.controlla_istruttoria', richiesta_id=richiesta.id) }}" class="btn btn-success btn-lg">
@@ -27,43 +23,29 @@
     </div>
 
     <div class="card shadow-sm mb-4">
-        <div class="card-header"><h5 class="mb-0">Azioni Rapide</h5></div>
         <div class="card-body text-center">
-            {% set tutti_importi_approvati = richiesta.spese and (richiesta.spese|selectattr('importo_approvato')|list|length == richiesta.spese|length) and (richiesta.spese|sum(attribute='importo_richiesto') == richiesta.spese|sum(attribute='importo_approvato')) %}
-            
-            {% if tutti_importi_approvati %}
-                <p>Tutti gli importi sono stati approvati con il valore richiesto.</p>
-                <form action="{{ url_for('istruttoria.reset_importi_approvati', richiesta_id=richiesta.id) }}" method="POST" class="d-inline">
-                    <button type="submit" class="btn btn-outline-secondary">
-                        <i class="fas fa-undo me-1"></i> Annulla Approvazione Massiva
-                    </button>
-                </form>
-            {% else %}
-                <p>Risparmia tempo approvando tutti gli importi richiesti in un solo click.</p>
-                <form action="{{ url_for('istruttoria.approva_tutti_importi', richiesta_id=richiesta.id) }}" method="POST" class="d-inline">
-                    <button type="submit" class="btn btn-success">
-                        <i class="fas fa-check-double me-1"></i> Approva Tutti gli Importi
-                    </button>
-                </form>
-            {% endif %}
+        {% set tutti_importi_approvati = richiesta.spese and (richiesta.spese|selectattr('importo_approvato')|list|length == richiesta.spese|length) and (richiesta.spese|sum(attribute='importo_richiesto') == richiesta.spese|sum(attribute='importo_approvato')) %}
+            <form action="{{ url_for('istruttoria.reset_importi_approvati', richiesta_id=richiesta.id) }}" method="POST" class="d-inline {{ '' if tutti_importi_approvati else 'd-none' }}">
+            <button type="submit" class="btn btn-outline-secondary">
+            <i class="fas fa-undo me-1"></i> Annulla Approvazione Massiva
+            </button>
+        </form>
+            <form action="{{ url_for('istruttoria.approva_tutti_importi', richiesta_id=richiesta.id) }}" method="POST" class="d-inline {{ 'd-none' if tutti_importi_approvati else '' }}">
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-check-double me-1"></i> Approva Tutti gli Importi
+            </button>
+        </form>
         </div>
     </div>
 
+    
+
+    
     <form action="{{ url_for('istruttoria.salva_istruttoria', richiesta_id=richiesta.id) }}" method="POST">
         <div class="card shadow-sm">
             <div class="card-header"><h5 class="mb-0">Tabella di Lavoro: Spese</h5></div>
             <div class="card-body">
                 <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Data</th>
-                            <th>Descrizione Spesa</th>
-                            <th class="text-end">Importo Richiesto</th>
-                            <th style="width: 15%;">Importo Approvato</th>
-                            <th style="width: 25%;">Note Istruttoria (Spesa)</th>
-                            <th class="text-center">Documenti</th>
-                        </tr>
-                    </thead>
                     <tbody>
                         {% for spesa in richiesta.spese %}
                         <tr>
@@ -91,47 +73,12 @@
 
         <div class="text-end mt-4">
             <button type="submit" class="btn btn-primary btn-lg">
-                <i class="fas fa-save me-1"></i> Salva Progressi Istruttoria
+                <i class="fas fa-save me-1"></i> Salva Istruttoria
             </button>
         </div>
 
         {% for spesa in richiesta.spese %}
-        <div class="modal fade" id="documentiModal_{{ spesa.id }}" tabindex="-1" aria-labelledby="modalLabel_{{ spesa.id }}" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="modalLabel_{{ spesa.id }}">Documenti per Spesa #{{ spesa.id }}</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <ul class="list-group">
-                            {% for doc in spesa.documenti %}
-                            <li class="list-group-item">
-                                <div class="row align-items-center">
-                                    <div class="col-md-6">
-                                        <strong>{{ doc.get_tipo_documento_display() }}</strong> del {{ doc.data_documento.strftime('%d/%m/%Y') }}
-                                        <small class="text-muted">(&euro; {{ "%.2f"|format(doc.importo_documento) }})</small>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="verificato_{{ doc.id }}" id="verificato_{{ doc.id }}" {% if doc.verificato %}checked{% endif %}>
-                                            <label class="form-check-label" for="verificato_{{ doc.id }}">Verificato</label>
-                                        </div>
-                                        <textarea name="note_documento_{{ doc.id }}" class="form-control form-control-sm mt-1" rows="1" placeholder="Note...">{{ doc.note_istruttore or '' }}</textarea>
-                                    </div>
-                                </div>
-                            </li>
-                            {% else %}
-                            <li class="list-group-item">Nessun documento per questa spesa.</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+            {% include 'istruttoria/_modal_documenti.html' %}
         {% endfor %}
     </form>
 {% endblock %}

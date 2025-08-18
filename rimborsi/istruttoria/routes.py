@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
-from rimborsi.models import Evento, db, Richiesta, UserMixin 
+from rimborsi.models import Evento, db, Richiesta, UserMixin, Spesa, DocumentoSpesa 
 from datetime import datetime
 from .forms import EventoForm             # Importa il form dalla cartella corrente
 
@@ -183,3 +183,31 @@ def reset_importi_approvati(richiesta_id):
     db.session.commit()
     flash('L\'approvazione massiva degli importi è stata annullata.', 'info')
     return redirect(url_for('istruttoria.dettaglio_istruttoria', richiesta_id=richiesta.id))
+
+# in rimborsi/istruttoria/routes.py
+
+# Reset per documenti spesa
+
+@istruttoria_bp.route('/spese/<int:spesa_id>/verifica_documenti', methods=['POST'])
+@login_required
+def verifica_tutti_documenti(spesa_id):
+    """Imposta 'verificato = True' per tutti i documenti di una spesa."""
+    spesa = Spesa.query.get_or_404(spesa_id)
+    for doc in spesa.documenti:
+        doc.verificato = True
+    db.session.commit()
+    flash(f"Tutti i documenti per la spesa #{spesa.id} sono stati contrassegnati come verificati.", 'success')
+    return redirect(url_for('istruttoria.dettaglio_istruttoria', richiesta_id=spesa.richiesta_id))
+
+# Annullo reset per documenti spesa
+
+@istruttoria_bp.route('/spese/<int:spesa_id>/reset_verifica', methods=['POST'])
+@login_required
+def reset_verifica_documenti(spesa_id):
+    """Imposta 'verificato = False' per tutti i documenti di una spesa."""
+    spesa = Spesa.query.get_or_404(spesa_id)
+    for doc in spesa.documenti:
+        doc.verificato = False
+    db.session.commit()
+    flash(f"La verifica per i documenti della spesa #{spesa.id} è stata annullata.", 'info')
+    return redirect(url_for('istruttoria.dettaglio_istruttoria', richiesta_id=spesa.richiesta_id))

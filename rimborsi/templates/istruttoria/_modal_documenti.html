@@ -1,0 +1,53 @@
+<div class="modal fade" id="documentiModal_{{ spesa.id }}" tabindex="-1" aria-labelledby="modalLabel_{{ spesa.id }}" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel_{{ spesa.id }}">Controllo Documenti per Spesa #{{ spesa.id }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                
+                {% if spesa.documenti %}
+                    {% set tutti_verificati = spesa.documenti|selectattr('verificato')|list|length == spesa.documenti|length %}
+                    <div class="text-center mb-3 p-2 bg-light rounded">
+                        {% if tutti_verificati %}
+                            <form action="{{ url_for('istruttoria.reset_verifica_documenti', spesa_id=spesa.id) }}" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-secondary"><i class="fas fa-undo me-1"></i> Annulla Verifica Massiva</button>
+                            </form>
+                        {% else %}
+                            <form action="{{ url_for('istruttoria.verifica_tutti_documenti', spesa_id=spesa.id) }}" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-success"><i class="fas fa-check me-1"></i> Verifica Tutti i Documenti</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                {% endif %}
+
+                <ul class="list-group">
+                    {% for doc in spesa.documenti %}
+                    <li class="list-group-item">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <strong>{{ doc.get_tipo_documento_display() }}</strong> del {{ doc.data_documento.strftime('%d/%m/%Y') }}
+                                <br>
+                                <small class="text-muted">{{ doc.fornitore or 'N/D' }} - &euro; {{ "%.2f"|format(doc.importo_documento) }}</small>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="verificato_{{ doc.id }}" id="verificato_{{ doc.id }}" {% if doc.verificato %}checked{% endif %}>
+                                    <label class="form-check-label" for="verificato_{{ doc.id }}">Verificato</label>
+                                </div>
+                                <textarea name="note_documento_{{ doc.id }}" class="form-control form-control-sm mt-1" rows="1" placeholder="Note su questo documento...">{{ doc.note_istruttore or '' }}</textarea>
+                            </div>
+                        </div>
+                    </li>
+                    {% else %}
+                    <li class="list-group-item text-center text-muted">Nessun documento per questa spesa.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
+            </div>
+        </div>
+    </div>
+</div>
