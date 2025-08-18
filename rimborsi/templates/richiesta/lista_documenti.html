@@ -35,6 +35,12 @@
                             {{ form.allegato.label(class="form-label fw-bold") }}
                             {{ form.allegato(class="form-control") }}
                         </div>
+                        <div class="mb-3 text-center">
+                            <span class="text-muted">oppure</span><br>
+                            <button type="button" class="btn btn-outline-secondary mt-2" data-bs-toggle="modal" data-bs-target="#cameraModal">
+                                 <i class="fas fa-camera me-1"></i> Scatta una Foto
+                            </button>
+                        </div>
                         {{ form.submit(class="btn btn-primary w-100") }}
                     </form>
                 </div>
@@ -71,4 +77,27 @@
             <i class="fas fa-arrow-left me-1"></i> Torna al Dettaglio Richiesta
         </a>
     </div>
+
+    <div class="modal fade" id="cameraModal" tabindex="-1" aria-labelledby="cameraModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cameraModalLabel">Scatta Foto Documento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <video id="camera-feed" width="100%" autoplay playsinline></video>
+                    <canvas id="camera-canvas" style="display:none;"></canvas>
+                </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                <button type="button" id="capture-btn" class="btn btn-primary">Scatta e Allega</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/camera.js') }}"></script>
 {% endblock %}
