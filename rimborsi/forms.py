@@ -1,8 +1,13 @@
 # rimborsi/forms.py
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, TextAreaField, SelectField, PasswordField, BooleanField
-from wtforms.fields import DateField
+from wtforms.fields import DateField,FileField
 from wtforms.validators import DataRequired, Length, Optional, Email
+from flask_wtf.file import FileAllowed
+from wtforms import SelectField, DateField, FloatField
+from wtforms.validators import DataRequired, Optional, Length
+
+
 
 class LoginForm(FlaskForm):
     """
@@ -39,3 +44,23 @@ class EventoForm(FlaskForm):
     data_fine = DateField('Data Fine', format='%Y-%m-%d', validators=[Optional()])
     # submit: pulsante per inviare il modulo
     submit = SubmitField('Salva Evento')
+
+
+# ... (le altre tue classi di form) ...
+
+class DocumentoSpesaForm(FlaskForm):
+    """Form per inserire i dati di un documento di spesa."""
+    tipo_documento = SelectField('Tipo Documento', choices=[
+        ('A', 'Scontrino'),
+        ('B', 'Fattura'),
+        ('C', 'Autorizzazione'),
+        ('D', 'Attestazione Danno')
+    ], validators=[DataRequired()])
+    
+    data_documento = DateField('Data del Documento', format='%Y-%m-%d', validators=[DataRequired()])
+    fornitore = StringField('Fornitore', validators=[Optional(), Length(max=150)])
+    importo_documento = FloatField('Importo del Documento (€)', validators=[DataRequired()])
+    allegato = FileField('Allega Documento (PDF, PNG, JPG)', validators=[
+        FileAllowed(['pdf', 'png', 'jpg', 'jpeg'], 'Sono ammessi solo file PDF, PNG e JPG!')
+    ])
+    submit = SubmitField('Aggiungi Documento')

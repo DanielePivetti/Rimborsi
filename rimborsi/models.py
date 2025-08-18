@@ -117,6 +117,22 @@ class DocumentoSpesa(db.Model):
     # --- CHIAVE ESTERNA CORRETTA ---
     # Questa è la colonna che collega fisicamente questa tabella alla tabella 'spesa'.
     spesa_id = db.Column(db.Integer, db.ForeignKey('spesa.id'), nullable=False)
+    nome_file = db.Column(db.String(255), nullable=True) # Campo per il nome del file salvato
+
+
+    # Metodo per visualizzare il tipo di documento
+    def get_tipo_documento_display(self):
+        """
+        Restituisce il nome completo del tipo di documento.
+        """
+        tipo = {
+            'A': 'Scontrino',
+            'B': 'Fattura',
+            'C': 'Autorizzazione',
+            'D': 'Attestazione Danno'
+        }
+        # Restituisce il valore corrispondente alla chiave, o il codice stesso se non trovato
+        return tipo.get(self.tipo_documento, self.tipo_documento)
 
 class ImpiegoMezzoAttrezzatura(db.Model):
     id = db.Column(db.Integer, primary_key=True)

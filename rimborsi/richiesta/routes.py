@@ -141,24 +141,45 @@ def lista_documenti(spesa_id):
     return render_template('richiesta/lista_documenti.html', spesa=spesa, form=form)
 
 # Rotta per salvare un nuovo documento (chiamata dal form)
+# in rimborsi/richieste/routes.py
+import os
+from werkzeug.utils import secure_filename
+from flask import current_app # Importa current_app per accedere alla configurazione
+
+# ... (le altre rotte) ...
+
 @richiesta_bp.route('/spese/<int:spesa_id>/documenti/crea', methods=['POST'])
 @login_required
 def crea_documento(spesa_id):
     spesa = Spesa.query.get_or_404(spesa_id)
     form = DocumentoSpesaForm()
+    
     if form.validate_on_submit():
+        nome_file_salvato = None
+        # Controlla se un file è stato caricato
+        if form.allegato.data:
+            file = form.allegato.data
+            # Rendi il nome del file sicuro
+            nome_file_sicuro = secure_filename(file.filename)
+            # Crea un percorso unico per evitare sovrascritture
+            percorso_salvataggio = os.path.join(current_app.instance_path, 'uploads', nome_file_sicuro)
+            file.save(percorso_salvataggio)
+            nome_file_salvato = nome_file_sicuro
+
         nuovo_doc = DocumentoSpesa(
             spesa_id=spesa.id,
             tipo_documento=form.tipo_documento.data,
             data_documento=form.data_documento.data,
             fornitore=form.fornitore.data,
-            importo_documento=form.importo_documento.data
+            importo_documento=form.importo_documento.data,
+            nome_file=nome_file_salvato # Salva il nome del file nel DB
         )
         db.session.add(nuovo_doc)
         db.session.commit()
         flash('Documento aggiunto con successo.', 'success')
     else:
         flash('Errore nella compilazione del form.', 'danger')
+        
     return redirect(url_for('richiesta.lista_documenti', spesa_id=spesa_id))
 
 # Rotta per cancellare un documento
