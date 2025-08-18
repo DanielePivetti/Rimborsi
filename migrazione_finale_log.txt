@@ -1,8 +1,0 @@
-Migrazione finale da Parcheggio a Viaggi
-====================================
-
-La tabella 'spese_viaggi' esiste già.
-
-La tabella 'spese_parcheggio' non esiste.
-
-Migrazione completata con successo.

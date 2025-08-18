@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %}Gestione Documenti{% endblock %}
+
+{% block content %}
+    <div class="mb-4">
+        <h1 class="mb-0">Gestione Documenti</h1>
+        <p class="lead text-muted">Per la spesa: "{{ spesa.descrizione_spesa }}" di € {{ "%.2f"|format(spesa.importo_richiesto) }}</p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-5">
+            <div class="card shadow-sm">
+                <div class="card-header"><h5 class="mb-0">Aggiungi Nuovo Documento</h5></div>
+                <div class="card-body">
+                    <form action="{{ url_for('richiesta.crea_documento', spesa_id=spesa.id) }}" method="POST" novalidate>
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            {{ form.tipo_documento.label(class="form-label fw-bold") }}
+                            {{ form.tipo_documento(class="form-select") }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.data_documento.label(class="form-label fw-bold") }}
+                            {{ form.data_documento(class="form-control", type="date") }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.fornitore.label(class="form-label fw-bold") }}
+                            {{ form.fornitore(class="form-control") }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.importo_documento.label(class="form-label fw-bold") }}
+                            {{ form.importo_documento(class="form-control") }}
+                        </div>
+                        
+                        {{ form.submit(class="btn btn-primary w-100") }}
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <div class="card shadow-sm">
+                <div class="card-header"><h5 class="mb-0">Documenti Caricati</h5></div>
+                <div class="card-body">
+                    <ul class="list-group">
+                        {% for doc in spesa.documenti %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ doc.get_tipo_documento_display() }}</strong> del {{ doc.data_documento.strftime('%d/%m/%Y') }}
+                                <br>
+                                <small class="text-muted">{{ doc.fornitore or 'N/D' }} - &euro; {{ "%.2f"|format(doc.importo_documento) }}</small>
+                            </div>
+                            <form action="{{ url_for('richiesta.cancella_documento', documento_id=doc.id) }}" method="POST">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Sei sicuro?');">&times;</button>
+                            </form>
+                        </li>
+                        {% else %}
+                        <li class="list-group-item text-center text-muted">Nessun documento inserito per questa spesa.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <a href="{{ url_for('richiesta.dettaglio_richiesta', richiesta_id=spesa.richiesta_id) }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Torna al Dettaglio Richiesta
+        </a>
+    </div>
+{% endblock %}

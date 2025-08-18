@@ -4,11 +4,10 @@ from wtforms import SelectField, StringField, TextAreaField, IntegerField, Submi
 from wtforms.fields import DateField
 from wtforms.validators import DataRequired, Optional, NumberRange, Length
 from wtforms_sqlalchemy.fields import QuerySelectField
-from rimborsi.models import Evento, Spesa, MezzoAttrezzatura,ImpiegoMezzoAttrezzatura
+from rimborsi.models import Richiesta, Evento, Spesa, MezzoAttrezzatura,ImpiegoMezzoAttrezzatura, DocumentoSpesa
 from wtforms import FloatField, DateTimeField
 
-# ... (altri form) ...
-
+# ... (altre classi di form) ...
 
 
 # Funzione helper che dice al campo come ottenere gli eventi
@@ -42,51 +41,8 @@ class RichiestaForm(FlaskForm):
     
     submit = SubmitField('Salva e Continua')
     
-
-# Form Spesa
-
-# Aggiungi il modello ImpiegoMezzoAttrezzatura agli import
-
-# Funzione helper per la query degli impieghi non ancora associati
-def impieghi_disponibili_query(richiesta_id):
-    return ImpiegoMezzoAttrezzatura.query.filter_by(
-        richiesta_id=richiesta_id, 
-        spesa_id=None # Mostra solo gli impieghi non ancora collegati a una spesa
-    ).all()
-
-class SpesaForm(FlaskForm):
-    """
-    Form per creare/modificare una Spesa e collegarla a un eventuale Impiego.
-    """
-    categoria = SelectField('Categoria di Spesa', choices=[
-        ('01', 'Carburante'), ('02', 'Pedaggi autostradali'), ('03', 'Pasti'),
-        ('04', 'Ripristino danni mezzi'), ('05', 'Viaggio'), ('06', 'Altro')
-    ], validators=[DataRequired()])
-    
-    data_spesa = DateField('Data della Spesa', format='%Y-%m-%d', validators=[DataRequired()])
-    descrizione_spesa = TextAreaField('Descrizione Dettagliata', validators=[DataRequired(), Length(max=250)])
-    importo_richiesto = FloatField('Importo Richiesto (€)', validators=[DataRequired()])
-    
-    # Campo unico per selezionare un impiego esistente
-    impiego = QuerySelectField('Collega a un Impiego Mezzo (se necessario)',
-                               get_label=lambda i: f"{i.mezzo_attrezzatura.targa_inventario} del {i.data_ora_inizio_impiego.strftime('%d/%m')}",
-                               allow_blank=True) # Il campo è facoltativo di base
-
-    submit = SubmitField('Salva Spesa')
-
-    def __init__(self, richiesta_id, *args, **kwargs):
-        super(SpesaForm, self).__init__(*args, **kwargs)
-        # Passiamo l'ID della richiesta per filtrare gli impieghi disponibili
-        self.impiego.query = impieghi_disponibili_query(richiesta_id)
-
-    # Validatore personalizzato per rendere l'impiego obbligatorio per alcune categorie
-    def validate_impiego(self, field):
-        categorie_con_impiego = ['01', '02', '04']
-        if self.categoria.data in categorie_con_impiego and not field.data:
-            raise ValidationError('Per questa categoria di spesa è obbligatorio selezionare un impiego.')
-
-            
 # In rimborsi/richieste/forms.py
+
 
 class ImpiegoMezzoForm(FlaskForm):
     """
@@ -106,7 +62,60 @@ class ImpiegoMezzoForm(FlaskForm):
 
     def __init__(self, organizzazione_id, *args, **kwargs):
         super(ImpiegoMezzoForm, self).__init__(*args, **kwargs)
-        # Filtra la query per mostrare solo i mezzi dell'organizzazione corrente
+        # Filtra i mezzi per mostrare solo quelli dell'organizzazione corrente
         self.mezzo_attrezzatura.query = MezzoAttrezzatura.query.filter_by(
             organizzazione_id=organizzazione_id
-        ).order_by(MezzoAttrezzatura.targa_inventario)            
+        ).order_by(MezzoAttrezzatura.targa_inventario)
+        
+# In rimborsi/richieste/forms.py
+
+# Assicurati di avere tutti gli import necessari
+
+# Funzione helper per la query degli impieghi non ancora associati a una spesa
+def impieghi_disponibili_query(richiesta_id):
+    return ImpiegoMezzoAttrezzatura.query.filter_by(richiesta_id=richiesta_id).all()
+
+class SpesaForm(FlaskForm):
+    """
+    Form per creare/modificare una Spesa e collegarla a un eventuale Impiego.
+    """
+    categoria = SelectField('Categoria di Spesa', choices=[
+        ('01', 'Carburante'), ('02', 'Pedaggi autostradali'), ('03', 'Pasti'),
+        ('04', 'Ripristino danni mezzi'), ('05', 'Viaggio'), ('06', 'Altro')
+    ], validators=[DataRequired()])
+    
+    data_spesa = DateField('Data della Spesa', format='%Y-%m-%d', validators=[DataRequired()])
+    descrizione_spesa = TextAreaField('Descrizione Dettagliata', validators=[DataRequired(), Length(max=250)])
+    importo_richiesto = FloatField('Importo Richiesto (€)', validators=[DataRequired()])
+    
+    # Campo per selezionare un impiego esistente
+    impiego = QuerySelectField('Collega a un Impiego Mezzo (se necessario)',
+                               get_label=lambda i: f"{i.mezzo_attrezzatura.targa_inventario} del {i.data_ora_inizio_impiego.strftime('%d/%m')}",
+                               allow_blank=True)
+
+    submit = SubmitField('Salva Spesa')
+
+    def __init__(self, richiesta_id, *args, **kwargs):
+        super(SpesaForm, self).__init__(*args, **kwargs)
+        # Filtra gli impieghi per mostrare solo quelli disponibili per questa richiesta
+        self.impiego.query = impieghi_disponibili_query(richiesta_id)
+
+    def validate_impiego(self, field):
+        categorie_con_impiego = ['01', '02', '04']
+        if self.categoria.data in categorie_con_impiego and not field.data:
+            raise ValidationError('Per questa categoria di spesa è obbligatorio selezionare un impiego.')
+
+            
+class DocumentoSpesaForm(FlaskForm):
+    """Form per inserire i dati di un documento di spesa."""
+    tipo_documento = SelectField('Tipo Documento', choices=[
+        ('A', 'Scontrino'),
+        ('B', 'Fattura'),
+        ('C', 'Autorizzazione'),
+        ('D', 'Attestazione Danno')
+    ], validators=[DataRequired()])
+    
+    data_documento = DateField('Data del Documento', format='%Y-%m-%d', validators=[DataRequired()])
+    fornitore = StringField('Fornitore', validators=[Optional(), Length(max=150)])
+    importo_documento = FloatField('Importo del Documento (€)', validators=[DataRequired()])
+    submit = SubmitField('Aggiungi Documento')

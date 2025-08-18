@@ -49,14 +49,19 @@ class MezzoAttrezzatura(db.Model):
     descrizione = db.Column(db.String(200))
     organizzazione_id = db.Column(db.Integer, db.ForeignKey('organizzazione.id'), nullable=False)
     
+    impieghi = db.relationship('ImpiegoMezzoAttrezzatura', backref='mezzo_attrezzatura', lazy=True)
+    
     __table_args__ = (db.UniqueConstraint('targa_inventario', name='uq_mezzoattrezzatura_targa_inventario'),)
 
 
 class Evento(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    protocollo_attivazione = db.Column(db.String(50)) # Rimosso unique=True
+    protocollo_attivazione = db.Column(db.String(50), unique=True)
     nome = db.Column(db.String(100), nullable=False)
-    # ... (altri campi) ...
+    descrizione = db.Column(db.Text)
+    tipologia = db.Column(db.String(1), nullable=False)
+    data_inizio = db.Column(db.Date)
+    data_fine = db.Column(db.Date)
     richieste = db.relationship('Richiesta', backref='evento', lazy=True)
 
     __table_args__ = (db.UniqueConstraint('protocollo_attivazione', name='uq_evento_protocollo_attivazione'),)
@@ -73,7 +78,6 @@ class Richiesta(db.Model):
     protocollo_invio = db.Column(db.String(50), nullable=True)
     data_fine_istruttoria = db.Column(db.DateTime)
     protocollo_istruttoria = db.Column(db.String(50), nullable=True)
-
     
     evento_id = db.Column(db.Integer, db.ForeignKey('evento.id'), nullable=False)
     organizzazione_id = db.Column(db.Integer, db.ForeignKey('organizzazione.id'), nullable=False)

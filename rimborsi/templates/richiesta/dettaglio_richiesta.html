@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Dettaglio Richiesta{% endblock %}
+{% block title %}Dettaglio Richiesta ID: {{ richiesta.id }}{% endblock %}
 
 {% block content %}
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -9,7 +9,6 @@
             <p class="lead text-muted">Stato: <span class="badge bg-warning text-dark">In Bozza</span></p>
         </div>
         <div>
-            {# Questo pulsante sarà l'azione finale #}
             <a href="#" class="btn btn-success btn-lg disabled" title="Funzionalità in sviluppo">
                 <i class="fas fa-paper-plane me-1"></i> Trasmetti Richiesta
             </a>
@@ -17,46 +16,90 @@
     </div>
 
     <div class="card shadow-sm mb-4">
-        <div class="card-header">
-            <h5 class="mb-0">Riepilogo Dati Generali</h5>
-        </div>
+        <div class="card-header"><h5 class="mb-0">Riepilogo Dati Generali</h5></div>
         <div class="card-body">
             <dl class="row">
-                <dt class="col-sm-3">Evento di Riferimento</dt>
+                <dt class="col-sm-3">Evento</dt>
                 <dd class="col-sm-9">{{ richiesta.evento.nome }}</dd>
-
                 <dt class="col-sm-3">Attività Svolta</dt>
                 <dd class="col-sm-9">{{ richiesta.attivita_svolta }}</dd>
-
-                <dt class="col-sm-3">Periodo Attività</dt>
-                <dd class="col-sm-9">{{ richiesta.data_inizio_attivita.strftime('%d/%m/%Y') }} - {{ richiesta.data_fine_attivita.strftime('%d/%m/%Y') }}</dd>
-                
-                <dt class="col-sm-3">Volontari Coinvolti</dt>
-                <dd class="col-sm-9">{{ richiesta.numero_volontari_coinvolti or 'Non specificato' }}</dd>
             </dl>
         </div>
     </div>
 
-    <div class="row g-4">
-        <div class="col-md-6">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Impiego mezzi attrezzatura</h5>
-                    <p class="card-text text-muted">Aggiungi i mezzi utilizzati durante le attività.</p>
-                    <a href="{{ url_for('richiesta.crea_impiego', richiesta_id=richiesta.id) }}" class="btn btn-primary w-100">
-                        <i class="fas fa-truck-moving me-1"></i> Aggiungi Impiego Mezzo
-                    </a>
-                </div>
-            </div>
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs">
+                <li class="nav-item">
+                    <a class="nav-link active" data-bs-toggle="tab" href="#tab-spese">Riepilogo Spese</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#tab-impieghi">Riepilogo Impiego Mezzi</a>
+                </li>
+            </ul>
         </div>
-        <div class="col-md-6">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Voci di spesa</h5>
-                    <p class="card-text text-muted">Aggiungi le voci di spesa sostenute durante le attività.</p>
-                    <a href="{{ url_for('richiesta.crea_spesa', richiesta_id=richiesta.id) }}" class="btn btn-primary w-100">
+        <div class="card-body">
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="tab-spese">
+                    <a href="{{ url_for('richiesta.crea_spesa', richiesta_id=richiesta.id) }}" class="btn btn-primary mb-3">
                         <i class="fas fa-euro-sign me-1"></i> Aggiungi Spesa
                     </a>
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Categoria</th>
+                                <th>Descrizione</th>
+                                <th class="text-end">Importo</th>
+                                <th class="text-center">Azioni</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for spesa in richiesta.spese %}
+                            <tr>
+                                <td>{{ spesa.categoria }}</td>
+                                <td>{{ spesa.descrizione_spesa }}</td>
+                                <td class="text-end">&euro; {{ "%.2f"|format(spesa.importo_richiesto) }}</td>
+                                <td class="text-center">
+                                    <a href="{{ url_for('richiesta.lista_documenti', spesa_id=spesa.id) }}" class="btn btn-info btn-sm">
+                                        <i class="fas fa-file-alt"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="4" class="text-center text-muted">Nessuna spesa inserita.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="tab-pane fade" id="tab-impieghi">
+                    <a href="{{ url_for('richiesta.crea_impiego', richiesta_id=richiesta.id) }}" class="btn btn-primary mb-3">
+                        <i class="fas fa-truck me-1"></i> Aggiungi Impiego Mezzo
+                    </a>
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Mezzo</th>
+                                <th>Località</th>
+                                <th>Periodo</th>
+                                <th class="text-end">Km Totali</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for impiego in richiesta.impieghi %}
+                            <tr>
+                                <td>{{ impiego.mezzo_attrezzatura.targa_inventario }}</td>
+                                <td>{{ impiego.localita_impiego }}</td>
+                                <td>{{ impiego.data_ora_inizio_impiego.strftime('%d/%m %H:%M') }}</td>
+                                <td class="text-end">
+                                    {{ "%.2f"|format(impiego.km_totali) if impiego.km_totali else 'N/A' }} km
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="3" class="text-center text-muted">Nessun impiego registrato.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -67,4 +110,5 @@
             <i class="fas fa-arrow-left me-1"></i> Torna alla Dashboard
         </a>
     </div>
+
 {% endblock %}

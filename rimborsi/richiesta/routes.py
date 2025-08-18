@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash
 from flask_login import login_required, current_user
-from rimborsi.models import db, Evento, Richiesta, Organizzazione, Spesa, MezzoAttrezzatura, ImpiegoMezzoAttrezzatura
-from .forms import RichiestaForm, SpesaForm, ImpiegoMezzoForm
+from rimborsi.models import db, Evento, Richiesta, Organizzazione, Spesa, MezzoAttrezzatura, ImpiegoMezzoAttrezzatura, DocumentoSpesa
+from .forms import RichiestaForm, SpesaForm, ImpiegoMezzoForm, DocumentoSpesaForm
 
 richiesta_bp = Blueprint('richiesta', __name__, 
                          template_folder='templates',
@@ -124,5 +124,51 @@ def crea_spesa(richiesta_id):
 
 # Aggiungeremo 'modifica_spesa' e 'cancella_spesa' quando serviranno
 
+# In rimborsi/richieste/routes.py
 
+# Assicurati di importare i modelli e form necessari
+from rimborsi.models import Spesa, DocumentoSpesa
+from .forms import DocumentoSpesaForm
+
+# ... (le altre tue rotte) ...
+
+# Rotta per la pagina di gestione dei documenti di una spesa
+@richiesta_bp.route('/spese/<int:spesa_id>/documenti', methods=['GET'])
+@login_required
+def lista_documenti(spesa_id):
+    spesa = Spesa.query.get_or_404(spesa_id)
+    form = DocumentoSpesaForm() # Form per aggiungere nuovi documenti
+    return render_template('richiesta/lista_documenti.html', spesa=spesa, form=form)
+
+# Rotta per salvare un nuovo documento (chiamata dal form)
+@richiesta_bp.route('/spese/<int:spesa_id>/documenti/crea', methods=['POST'])
+@login_required
+def crea_documento(spesa_id):
+    spesa = Spesa.query.get_or_404(spesa_id)
+    form = DocumentoSpesaForm()
+    if form.validate_on_submit():
+        nuovo_doc = DocumentoSpesa(
+            spesa_id=spesa.id,
+            tipo_documento=form.tipo_documento.data,
+            data_documento=form.data_documento.data,
+            fornitore=form.fornitore.data,
+            importo_documento=form.importo_documento.data
+        )
+        db.session.add(nuovo_doc)
+        db.session.commit()
+        flash('Documento aggiunto con successo.', 'success')
+    else:
+        flash('Errore nella compilazione del form.', 'danger')
+    return redirect(url_for('richiesta.lista_documenti', spesa_id=spesa_id))
+
+# Rotta per cancellare un documento
+@richiesta_bp.route('/documenti/cancella/<int:documento_id>', methods=['POST'])
+@login_required
+def cancella_documento(documento_id):
+    documento = DocumentoSpesa.query.get_or_404(documento_id)
+    spesa_id = documento.spesa_id # Salvo l'ID per il redirect
+    db.session.delete(documento)
+    db.session.commit()
+    flash('Documento cancellato con successo.', 'info')
+    return redirect(url_for('richiesta.lista_documenti', spesa_id=spesa_id))
 
