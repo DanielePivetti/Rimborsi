@@ -28,92 +28,114 @@
     {# SEZIONE VISIBILE SOLO ALL'UTENTE ISTRUTTORE                      #}
     {# ================================================================== #}
     {% if current_user.role == 'istruttore' %}
-
-        <!-- 1. Card di Riepilogo (KPI) -->
-        <div class="row row-cols-1 row-cols-md-4 g-4 mb-4">
-            <div class="col">
-                <div class="card text-white bg-primary shadow-sm h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">Richieste da Istruire</h5>
-                        <p class="card-text fs-2 fw-bold">10 richiesta da istruire</p> {# Esempio di dato dinamico #}
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card text-white bg-success shadow-sm h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">Lavorate (Mese)</h5>
-                        <p class="card-text fs-2 fw-bold">5 lavorate</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card text-dark bg-light shadow-sm h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">Importo Approvato (Mese)</h5>
-                        <p class="card-text fs-2 fw-bold">&euro; 1000.00</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card text-white bg-info shadow-sm h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">Eventi Attivi</h5>
-                        <p class="card-text fs-2 fw-bold">3 eventi attivi</p>
-                    </div>
+    
+    <div class="row row-cols-1 row-cols-md-3 g-4 mb-4">
+        <div class="col">
+            <div class="card text-white bg-primary shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Da Istruire</h5>
+                    <p class="card-text fs-2 fw-bold">{{ conteggio_da_istruire }}</p>
                 </div>
             </div>
         </div>
-
-        <!-- 2. Pulsante Gestione Eventi -->
-        <div class="d-grid gap-2 d-md-flex justify-content-md-end mb-3">
-             <a href="{{ url_for('istruttoria.gestione_eventi') }}" class="btn btn-secondary"><i class="fas fa-calendar-alt me-1"></i> Gestisci Eventi</a>
-             <a href="{{ url_for('istruttoria.crea_evento') }}" class="btn btn-success"><i class="fas fa-plus me-1"></i> Crea Nuovo Evento</a>
-        </div>
-
-        <!-- 3. Tabella Principale: Coda di Lavoro -->
-        <div class="card shadow-sm">
-            <div class="card-header">
-            <h5 class="mb-0">Coda di Lavoro: Richieste Trasmesse da Istruire</h5>
-            </div>
-            <div class="card-body">
-            <table class="table table-hover">
-                <thead>
-                <tr>
-                    <th>Data Trasmissione</th>
-                    <th>Organizzazione</th>
-                    <th>Evento di Riferimento</th>
-                    <th>Importo Richiesto</th>
-                    <th>Azione</th>
-                </tr>
-                </thead>
-                <tbody>
-                <!-- Dati statici di esempio -->
-                <tr>
-                    <td>13/05/2025</td>
-                    <td>CRI Comitato di Roma</td>
-                    <td>Emergenza Sanitaria 2025</td>
-                    <td>&euro; 1.250,00</td>
-                    <td><a href="#" class="btn btn-primary btn-sm">Avvia Istruttoria</a></td>
-                </tr>
-                <tr>
-                    <td>10/05/2025</td>
-                    <td>Protezione Civile Roma</td>
-                    <td>Alluvione Centro Italia</td>
-                    <td>&euro; 3.780,50</td>
-                    <td><a href="#" class="btn btn-primary btn-sm">Avvia Istruttoria</a></td>
-                </tr>
-                <tr>
-                    <td>05/05/2025</td>
-                    <td>CRI Comitato di Milano</td>
-                    <td>Assistenza Gara Podistica</td>
-                    <td>&euro; 890,75</td>
-                    <td><a href="#" class="btn btn-primary btn-sm">Avvia Istruttoria</a></td>
-                </tr>
-                </tbody>
-            </table>
+        <div class="col">
+            <div class="card text-white bg-success shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Istruite</h5>
+                    <p class="card-text fs-2 fw-bold">{{ conteggio_istruite }}</p>
+                </div>
             </div>
         </div>
+        <div class="col">
+            <div class="card shadow-sm h-100">
+                <div class="card-body d-flex flex-column justify-content-center">
+                     <a href="{{ url_for('istruttoria.gestione_eventi') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-calendar-alt me-1"></i> Gestisci Eventi
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs">
+                <li class="nav-item">
+                    <a class="nav-link active" data-bs-toggle="tab" href="#tab-da-istruire">
+                        Da Istruire <span class="badge bg-primary">{{ conteggio_da_istruire }}</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#tab-istruite">
+                        Istruite <span class="badge bg-success">{{ conteggio_istruite }}</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="tab-da-istruire">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Data Invio</th>
+                                <th>Protocollo</th>
+                                <th>Organizzazione</th>
+                                <th class="text-end">Importo Richiesto</th>
+                                <th class="text-center">Azione</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for richiesta in richieste_da_istruire %}
+                            <tr>
+                                <td>{{ richiesta.data_invio.strftime('%d/%m/%Y') }}</td>
+                                <td>{{ richiesta.protocollo_invio }}</td>
+                                <td>{{ richiesta.organizzazione.nome }}</td>
+                                <td class="text-end">&euro; {{ "%.2f"|format(richiesta.spese|sum(attribute='importo_richiesto')) }}</td>
+                                <td class="text-center">
+                                    <a href="{{ url_for('istruttoria.dettaglio_istruttoria', richiesta_id=richiesta.id) }}" class="btn btn-warning btn-sm" title="Avvia Istruttoria">
+                                        <i class="fas fa-pencil-alt"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="5" class="text-center text-muted">Nessuna richiesta da istruire.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="tab-pane fade" id="tab-istruite">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Data Fine Istruttoria</th>
+                                <th>Protocollo</th>
+                                <th>Organizzazione</th>
+                                <th class="text-end">Importo Approvato</th>
+                                <th class="text-center">Esito</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for richiesta in richieste_istruite %}
+                            <tr>
+                                <td>{{ richiesta.data_fine_istruttoria.strftime('%d/%m/%Y') }}</td>
+                                <td>{{ richiesta.protocollo_istruttoria }}</td>
+                                <td>{{ richiesta.organizzazione.nome }}</td>
+                                <td class="text-end">&euro; 0.00</td> {# Placeholder #}
+                                <td class="text-center"><span class="badge bg-secondary">{{ richiesta.esito }}</span></td> {# Placeholder #}
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="5" class="text-center text-muted">Nessuna richiesta già istruita.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+   
 
     {# ================================================================== #}
     {# SEZIONE VISIBILE SOLO ALL'UTENTE COMPILATORE                     #}

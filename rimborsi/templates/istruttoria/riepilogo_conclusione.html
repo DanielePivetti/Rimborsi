@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Conclusione Istruttoria{% endblock %}
+
+{% block content %}
+    <div class="text-center mb-4">
+        <h1 class="mb-0">Conclusione Istruttoria</h1>
+        <p class="lead text-muted">Riepilogo finale e registrazione dell'esito per la richiesta <strong>{{ richiesta.protocollo_invio }}</strong>.</p>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">Riepilogo Economico</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col">
+                            <div class="stat-box p-2">
+                                <span class="fs-4 fw-bold text-danger">&euro; {{ "%.2f"|format(totale_richiesto) }}</span>
+                                <br><span class="text-muted">Importo Totale Richiesto</span>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="stat-box p-2">
+                                <span class="fs-4 fw-bold text-success">&euro; {{ "%.2f"|format(totale_approvato) }}</span>
+                                <br><span class="text-muted">Importo Totale Approvato</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-0">
+
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Registrazione Esito Finale</h5>
+                    <form action="{{ url_for('istruttoria.concludi_istruttoria', richiesta_id=richiesta.id) }}" method="POST">
+                        
+                        <div class="mb-3">
+                            <label for="esito" class="form-label fw-bold">Esito Istruttoria</label>
+                            <select name="esito" id="esito" class="form-select" required>
+                                <option value="" disabled selected>-- Seleziona un esito --</option>
+                                {% if totale_richiesto == totale_approvato %}
+                                    <option value="A">APPROVATA</option>
+                                {% endif %}
+                                <option value="B">APPROVATA PARZIALMENTE</option>
+                                <option value="C">RESPINTA</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="note_istruttoria" class="form-label fw-bold">Note Conclusive (Obbligatorie se l'esito non è 'APPROVATA')</label>
+                            <textarea name="note_istruttoria" id="note_istruttoria" class="form-control" rows="4">{{ richiesta.note_istruttoria or '' }}</textarea>
+                        </div>
+
+                        <div class="text-end">
+                            <a href="{{ url_for('istruttoria.dettaglio_istruttoria', richiesta_id=richiesta.id) }}" class="btn btn-secondary">Annulla</a>
+                            <button type="submit" class="btn btn-success btn-lg" onclick="return confirm('Sei sicuro di voler concludere e protocollare l\'istruttoria? L\'azione è irreversibile.');">
+                                <i class="fas fa-check-circle me-1"></i> Conferma Esito e Protocolla
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

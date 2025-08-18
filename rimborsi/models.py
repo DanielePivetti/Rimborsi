@@ -76,6 +76,7 @@ class Richiesta(db.Model):
     data_creazione = db.Column(db.DateTime, default=datetime.utcnow)
     data_invio = db.Column(db.DateTime)
     protocollo_invio = db.Column(db.String(50), nullable=True)
+    note_istruttoria = db.Column(db.Text, nullable=True)
     data_fine_istruttoria = db.Column(db.DateTime)
     protocollo_istruttoria = db.Column(db.String(50), nullable=True)
     
@@ -113,7 +114,9 @@ class DocumentoSpesa(db.Model):
     fornitore = db.Column(db.String(150))
     importo_documento = db.Column(db.Float, nullable=False)
     tipo_documento = db.Column(db.String(50))
-    
+    verificato = db.Column(db.Boolean, default=False)
+    note_istruttoria = db.Column(db.Text, nullable=True)
+
     # --- CHIAVE ESTERNA CORRETTA ---
     # Questa è la colonna che collega fisicamente questa tabella alla tabella 'spesa'.
     spesa_id = db.Column(db.Integer, db.ForeignKey('spesa.id'), nullable=False)

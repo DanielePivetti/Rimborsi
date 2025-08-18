@@ -19,16 +19,15 @@ def dashboard():
     if current_user.role == 'istruttore':
         # Esempio di query reale: conta le richieste trasmesse
         richieste_da_istruire = Richiesta.query.filter_by(stato='B').all()
-        template_data['richieste_da_istruire'] = richieste_da_istruire
-        
-        # Dati per le card (da implementare con query più complesse)
-        template_data['dati_istruttore'] = {
-            'da_istruire': len(richieste_da_istruire),
-            'lavorate_mese': 0, # Esempio
-            'importo_approvato_mese': '0.00', # Esempio
-            'eventi_attivi': 0 # Esempio
-        }
+        richieste_istruite = Richiesta.query.filter_by(stato='C').all()
 
+        
+        template_data['richieste_da_istruire'] = richieste_da_istruire
+        template_data['richieste_istruite'] = richieste_istruite
+        template_data['conteggio_da_istruire'] = len(richieste_da_istruire)
+        template_data['conteggio_istruite'] = len(richieste_istruite)
+
+       
     elif current_user.role == 'compilatore':
         # Recuperiamo l'organizzazione dell'utente
         organizzazione_utente = current_user.organizzazioni[0] if current_user.organizzazioni else None

@@ -1,7 +1,7 @@
 # rimborsi/forms.py
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, TextAreaField, SelectField, PasswordField, BooleanField
-from wtforms.fields import DateField
+from wtforms.fields import DateField, datetime
 from wtforms.validators import DataRequired, Length, Optional, Email
 
 class EventoForm(FlaskForm):
