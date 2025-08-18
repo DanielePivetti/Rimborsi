@@ -1,32 +1,49 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Seleziona il pulsante "Approva Tutti"
-    const approvaTuttiBtn = document.getElementById('approva-tutti-btn');
     
-    // Se il pulsante esiste nella pagina...
+    // --- BLOCCO 1: LOGICA PER "APPROVA TUTTI GLI IMPORTI" ---
+    
+    const approvaTuttiBtn = document.getElementById('approva-tutti-btn');
     if (approvaTuttiBtn) {
-        approvaTuttiBtn.addEventListener('click', function() {
-            // Chiedi conferma all'utente
+        approvaTuttiBtn.addEventListener('click', function(event) {
+            // Impedisce al form di partire subito se il type fosse 'submit'
+            event.preventDefault(); 
+            
             if (confirm('Sei sicuro di voler approvare tutti gli importi richiesti?')) {
-                // Trova tutte le righe della tabella delle spese
                 const righeSpesa = document.querySelectorAll('.riga-spesa');
                 
                 righeSpesa.forEach(riga => {
-                    // Per ogni riga, trova il valore richiesto e il campo approvato
                     const importoRichiestoText = riga.querySelector('.importo-richiesto').innerText;
                     const importoApprovatoInput = riga.querySelector('.importo-approvato');
                     
-                    // Pulisci il testo e convertilo in numero
                     const valoreRichiesto = parseFloat(importoRichiestoText.replace('€', '').replace(/\./g, '').replace(',', '.').trim());
                     
-                    // Aggiorna il valore del campo input
                     if (!isNaN(valoreRichiesto)) {
                         importoApprovatoInput.value = valoreRichiesto.toFixed(2);
                     }
                 });
-                
-                // Ora sottometti il form per salvare i dati nel database
-                document.getElementById('form-approva-tutti').submit();
+
+                // Dopo l'aggiornamento visivo, salva i progressi inviando il form principale
+                document.getElementById('form-istruttoria-principale').submit();
             }
         });
     }
+
+    // --- BLOCCO 2: LOGICA PER "VERIFICA TUTTI I DOCUMENTI" ---
+
+    const verificaTuttiButtons = document.querySelectorAll('.verifica-tutti-btn');
+    verificaTuttiButtons.forEach(button => {
+        button.addEventListener('click', function(event) {
+            event.preventDefault(); 
+            
+            const modal = button.closest('.modal');
+            const checkboxes = modal.querySelectorAll('.doc-verificato-check');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = true;
+            });
+            
+            // Invia il form specifico di questa azione
+            button.closest('form').submit();
+        });
+    });
 });

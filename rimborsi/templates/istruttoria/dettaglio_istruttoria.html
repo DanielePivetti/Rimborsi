@@ -36,11 +36,8 @@
             </button>
         </form>
         </div>
-    </div>
+    </div> 
 
-    
-
-    
     <form action="{{ url_for('istruttoria.salva_istruttoria', richiesta_id=richiesta.id) }}" method="POST">
         <div class="card shadow-sm">
             <div class="card-header"><h5 class="mb-0">Tabella di Lavoro: Spese</h5></div>
@@ -81,4 +78,8 @@
             {% include 'istruttoria/_modal_documenti.html' %}
         {% endfor %}
     </form>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/approva_all.js') }}"></script>
 {% endblock %}
