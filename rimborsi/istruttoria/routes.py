@@ -157,3 +157,29 @@ def concludi_istruttoria(richiesta_id):
     
     flash(f"Istruttoria conclusa con successo! Protocollo: {richiesta.protocollo_istruttoria}", 'success')
     return redirect(url_for('main.dashboard'))
+
+# Salvataggio di tutti gli importi
+
+# in rimborsi/istruttoria/routes.py
+
+@istruttoria_bp.route('/<int:richiesta_id>/approva_tutti_importi', methods=['POST'])
+@login_required
+def approva_tutti_importi(richiesta_id):
+    """Imposta importo_approvato = importo_richiesto per tutte le spese."""
+    richiesta = Richiesta.query.get_or_404(richiesta_id)
+    for spesa in richiesta.spese:
+        spesa.importo_approvato = spesa.importo_richiesto
+    db.session.commit()
+    flash('Tutti gli importi delle spese sono stati approvati massivamente.', 'success')
+    return redirect(url_for('istruttoria.dettaglio_istruttoria', richiesta_id=richiesta.id))
+
+@istruttoria_bp.route('/<int:richiesta_id>/reset_importi', methods=['POST'])
+@login_required
+def reset_importi_approvati(richiesta_id):
+    """Resetta importo_approvato a None per tutte le spese."""
+    richiesta = Richiesta.query.get_or_404(richiesta_id)
+    for spesa in richiesta.spese:
+        spesa.importo_approvato = None
+    db.session.commit()
+    flash('L\'approvazione massiva degli importi è stata annullata.', 'info')
+    return redirect(url_for('istruttoria.dettaglio_istruttoria', richiesta_id=richiesta.id))

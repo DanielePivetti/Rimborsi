@@ -3,33 +3,53 @@
 {% block title %}Istruttoria Richiesta ID: {{ richiesta.id }}{% endblock %}
 
 {% block content %}
-    <form action="{{ url_for('istruttoria.salva_istruttoria', richiesta_id=richiesta.id) }}" method="POST">
-    
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h2 class="mb-0">Istruttoria Richiesta</h2>
-                <div class="card shadow-sm mt-2">
-                    <div class="card-header bg-light">
-                        <h5 class="mb-0">Riepilogo dati richiesta: {{ richiesta.organizzazione }}</h5>
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-group list-group-flush">
-                            <li class="list-group-item"><strong>Evento:</strong> {{ richiesta.evento.nome }}</li>
-                            <li class="list-group-item">
-                                <strong>Trasmessa il:</strong> {{ richiesta.data_invio.strftime('%d/%m/%Y') }}
-                            </li>
-                            <li class="list-group-item"><strong>Protocollo:</strong> {{ richiesta.protocollo_invio }}</li>
-                        </ul>
-                    </div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0">Istruttoria Richiesta</h2>
+            <div class="card shadow-sm mt-2">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Riepilogo dati richiesta: {{ richiesta.organizzazione.nome }}</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><strong>Evento:</strong> {{ richiesta.evento.nome }}</li>
+                        <li class="list-group-item"><strong>Trasmessa il:</strong> {{ richiesta.data_invio.strftime('%d/%m/%Y') }}</li>
+                        <li class="list-group-item"><strong>Protocollo:</strong> {{ richiesta.protocollo_invio }}</li>
+                    </ul>
                 </div>
             </div>
-            <div>
-                <a href="{{ url_for('istruttoria.controlla_istruttoria', richiesta_id=richiesta.id) }}" class="btn btn-success btn-lg">
-                    <i class="fas fa-flag-checkered me-1"></i> Concludi Istruttoria
-                </a>
-            </div>
         </div>
+        <div>
+            <a href="{{ url_for('istruttoria.controlla_istruttoria', richiesta_id=richiesta.id) }}" class="btn btn-success btn-lg">
+                <i class="fas fa-flag-checkered me-1"></i> Concludi Istruttoria
+            </a>
+        </div>
+    </div>
 
+    <div class="card shadow-sm mb-4">
+        <div class="card-header"><h5 class="mb-0">Azioni Rapide</h5></div>
+        <div class="card-body text-center">
+            {% set tutti_importi_approvati = richiesta.spese and (richiesta.spese|selectattr('importo_approvato')|list|length == richiesta.spese|length) and (richiesta.spese|sum(attribute='importo_richiesto') == richiesta.spese|sum(attribute='importo_approvato')) %}
+            
+            {% if tutti_importi_approvati %}
+                <p>Tutti gli importi sono stati approvati con il valore richiesto.</p>
+                <form action="{{ url_for('istruttoria.reset_importi_approvati', richiesta_id=richiesta.id) }}" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-outline-secondary">
+                        <i class="fas fa-undo me-1"></i> Annulla Approvazione Massiva
+                    </button>
+                </form>
+            {% else %}
+                <p>Risparmia tempo approvando tutti gli importi richiesti in un solo click.</p>
+                <form action="{{ url_for('istruttoria.approva_tutti_importi', richiesta_id=richiesta.id) }}" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check-double me-1"></i> Approva Tutti gli Importi
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <form action="{{ url_for('istruttoria.salva_istruttoria', richiesta_id=richiesta.id) }}" method="POST">
         <div class="card shadow-sm">
             <div class="card-header"><h5 class="mb-0">Tabella di Lavoro: Spese</h5></div>
             <div class="card-body">
@@ -71,7 +91,7 @@
 
         <div class="text-end mt-4">
             <button type="submit" class="btn btn-primary btn-lg">
-                <i class="fas fa-save me-1"></i> Salva Istruttoria
+                <i class="fas fa-save me-1"></i> Salva Progressi Istruttoria
             </button>
         </div>
 
