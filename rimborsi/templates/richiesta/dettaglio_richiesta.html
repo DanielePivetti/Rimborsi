@@ -9,8 +9,8 @@
             <p class="lead text-muted">Stato: <span class="badge bg-warning text-dark">In Bozza</span></p>
         </div>
         <div>
-            <a href="#" class="btn btn-success btn-lg disabled" title="Funzionalità in sviluppo">
-                <i class="fas fa-paper-plane me-1"></i> Trasmetti Richiesta
+            <a href="{{ url_for('richiesta.controlla_richiesta', richiesta_id=richiesta.id) }}" class="btn btn-success btn-lg" title="Vai alla pagina di controllo finale">
+            <i class="fas fa-check-double me-1"></i> Controlla e Trasmetti
             </a>
         </div>
     </div>

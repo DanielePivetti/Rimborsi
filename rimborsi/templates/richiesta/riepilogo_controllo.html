@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}Riepilogo e Conferma Trasmissione{% endblock %}
+
+{% block content %}
+    <div class="text-center mb-4">
+        <h1 class="mb-0">Riepilogo Richiesta</h1>
+        <p class="lead text-muted">Controlla attentamente tutti i dati prima di confermare la trasmissione.</p>
+    </div>
+
+    <div class="alert alert-success" role="alert">
+        <i class="fas fa-check-circle me-1"></i> Tutti i controlli preliminari sono stati superati con successo. La richiesta è pronta per l'invio.
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h5 class="mb-0">Dati Principali della Richiesta</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <dl>
+                        <dt>Evento di Riferimento</dt>
+                        <dd>{{ richiesta.evento.nome }}</dd>
+                        <dt>Organizzazione</dt>
+                        <dd>{{ richiesta.organizzazione.nome }}</dd>
+                    </dl>
+                </div>
+                <div class="col-md-6">
+                    <dl>
+                        <dt>Periodo Attività</dt>
+                        <dd>{{ richiesta.data_inizio_attivita.strftime('%d/%m/%Y') }} - {{ richiesta.data_fine_attivita.strftime('%d/%m/%Y') }}</dd>
+                        <dt>Volontari Coinvolti</dt>
+                        <dd>{{ richiesta.numero_volontari_coinvolti or 'N/D' }}</dd>
+                    </dl>
+                </div>
+            </div>
+            <hr>
+            <h5>Riepilogo Economico</h5>
+            <div class="row text-center mt-3">
+                <div class="col">
+                    <div class="stat-box border rounded p-2">
+                    <span class="fs-4 fw-bold">{{ richiesta.spese|length }}</span>
+                    <br>
+                    <span class="text-muted">Voci di Spesa</span>
+                </div>
+            </div>
+            <div class="col">
+                <div class="stat-box border rounded p-2">
+                {# --- CORREZIONE QUI --- #}
+                {# 1. Dichiariamo una variabile a zero #}
+                {% set totale_documenti = namespace(valore=0) %}
+                {# 2. Cicliamo attraverso le spese per contare i documenti #}
+                {% for spesa in richiesta.spese %}
+                {% set totale_documenti.valore = totale_documenti.valore + spesa.documenti|length %}
+                {% endfor %}
+                {# 3. Visualizziamo il totale calcolato #}
+                <span class="fs-4 fw-bold">{{ totale_documenti.valore }}</span>
+                <br>
+                <span class="text-muted">Documenti Caricati</span>
+            </div>
+        </div>
+    <div class="col">
+        <div class="stat-box border rounded p-2 bg-light">
+            <span class="fs-4 fw-bold">&euro; {{ "%.2f"|format(richiesta.spese|sum(attribute='importo_richiesto')) }}</span>
+            <br>
+            <span class="text-muted">Importo Totale Richiesto</span>
+        </div>
+    </div>
+</div>
+    </div>
+        <div class="card-footer text-center">
+            <p class="mb-2">Cliccando su "Conferma e Trasmetti", la richiesta verrà inviata all'istruttore e non potrà più essere modificata.</p>
+            <form action="{{ url_for('richiesta.trasmetti_richiesta', richiesta_id=richiesta.id) }}" method="POST">
+                <a href="{{ url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id) }}" class="btn btn-secondary">Annulla</a>
+                <button type="submit" class="btn btn-success btn-lg">
+                    <i class="fas fa-paper-plane me-1"></i> Conferma e Trasmetti
+                </button>
+            </form>
+        </div>
+    </div>
+{% endblock %}

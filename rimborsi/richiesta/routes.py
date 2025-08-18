@@ -193,3 +193,54 @@ def cancella_documento(documento_id):
     flash('Documento cancellato con successo.', 'info')
     return redirect(url_for('richiesta.lista_documenti', spesa_id=spesa_id))
 
+# Rotta per il controllo finale
+
+# In rimborsi/richieste/routes.py
+
+@richiesta_bp.route('/<int:richiesta_id>/controllo')
+@login_required
+def controlla_richiesta(richiesta_id):
+    """
+    Esegue i controlli finali prima della trasmissione e mostra la pagina di riepilogo.
+    """
+    richiesta = Richiesta.query.get_or_404(richiesta_id)
+
+    # Controllo 1: La richiesta deve avere almeno una spesa.
+    if not richiesta.spese:
+        flash('Errore: Impossibile trasmettere una richiesta senza spese.', 'danger')
+        return redirect(url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id))
+
+    # Controllo 2: Ogni spesa deve avere almeno uno scontrino ('A') o una fattura ('B').
+    for spesa in richiesta.spese:
+        ha_giustificativo = any(doc.tipo_documento in ['A', 'B'] for doc in spesa.documenti)
+        if not ha_giustificativo:
+            flash(f"Errore: La spesa '{spesa.descrizione_spesa}' non ha uno scontrino o una fattura.", 'danger')
+            return redirect(url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id))
+
+    # Se tutti i controlli sono superati, mostra la pagina di riepilogo.
+    return render_template('richiesta/riepilogo_controllo.html', richiesta=richiesta)
+
+# In rimborsi/richieste/routes.py
+from datetime import datetime
+
+# Rotta per la trasmissione della richiesta
+
+@richiesta_bp.route('/<int:richiesta_id>/trasmetti', methods=['POST'])
+@login_required
+def trasmetti_richiesta(richiesta_id):
+    """
+    Finalizza la trasmissione della richiesta.
+    """
+    richiesta = Richiesta.query.get_or_404(richiesta_id)
+
+    # Aggiorna i campi della richiesta
+    richiesta.stato = 'B'  # Stato: In Istruttoria
+    richiesta.data_invio = datetime.utcnow()
+    
+    # Genera un numero di protocollo univoco (es. ANNO-MESE-GIORNO-ID)
+    richiesta.protocollo_invio = f"{datetime.utcnow().strftime('%Y%m%d')}-{richiesta.id}"
+    
+    db.session.commit()
+    
+    flash(f"Richiesta trasmessa con successo! Numero di protocollo: {richiesta.protocollo_invio}", 'success')
+    return redirect(url_for('main.dashboard'))
