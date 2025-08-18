@@ -119,11 +119,8 @@
     {# SEZIONE VISIBILE SOLO ALL'UTENTE COMPILATORE                     #}
     {# ================================================================== #}
     {% elif current_user.role == 'compilatore' %}
-    
-    <div class="card shadow-sm mb-4">
+       <div class="card shadow-sm mb-4">
         <div class="card-body text-center p-4">
-            <h5 class="card-title">Pronto a iniziare?</h5>
-            <p class="card-text">Avvia la procedura per richiedere un rimborso per un nuovo evento.</p>
             <a href="{{ url_for('richiesta.crea_richiesta') }}" class="btn btn-primary btn-lg">
                 <i class="fas fa-plus me-1"></i> Crea Nuova Richiesta
             </a>
@@ -132,52 +129,86 @@
 
     <div class="card shadow-sm">
         <div class="card-header">
-            <h5 class="mb-0">Richieste in Bozza</h5>
+            <ul class="nav nav-tabs card-header-tabs">
+                <li class="nav-item">
+                    <a class="nav-link active" data-bs-toggle="tab" href="#tab-bozza">
+                        In Bozza <span class="badge bg-secondary">{{ richieste_in_bozza|length }}</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#tab-istruttoria">
+                        In Istruttoria <span class="badge bg-info">{{ richieste_in_istruttoria|length }}</span>
+                    </a>
+                </li>
+            </ul>
         </div>
         <div class="card-body">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>ID Richiesta</th>
-                        <th>Data Creazione</th>
-                        <th>Evento</th>
-                        <th>Attività Svolta</th>
-                        <th>Periodo Attività</th>
-                        <th class="text-end">Azione</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for richiesta in richieste_in_bozza %}
-                    <tr>
-                        <td>{{ richiesta.id }}</td>
-                        <td>{{ richiesta.data_creazione.strftime('%d/%m/%Y') }}</td>
-                        <td>{{ richiesta.evento.nome }}</td>
-                        <td>{{ richiesta.attivita_svolta | truncate(50) }}</td>
-                        <td>{{ richiesta.data_inizio_attivita.strftime('%d/%m/%Y') }} - {{ richiesta.data_fine_attivita.strftime('%d/%m/%Y') }}</td>
-                        <td class="text-end">
-                            <a href="{{ url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id) }}" class="btn btn-warning btn-sm">
-                                Continua Compilazione <i class="fas fa-arrow-right ms-1"></i>
-                            </a>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="6" class="text-center">Nessuna richiesta in bozza trovata.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="tab-bozza">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Data Creazione</th>
+                                <th>Evento</th>
+                                <th class="text-end">Azione</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for richiesta in richieste_in_bozza %}
+                            <tr>
+                                <td>{{ richiesta.id }}</td>
+                                <td>{{ richiesta.data_creazione.strftime('%d/%m/%Y') }}</td>
+                                <td>{{ richiesta.evento.nome }}</td>
+                                <td class="text-end">
+                                    <a href="{{ url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id) }}" class="btn btn-warning btn-sm">
+                                        Continua Compilazione <i class="fas fa-arrow-right ms-1"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="4" class="text-center">Nessuna richiesta in bozza.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="tab-pane fade" id="tab-istruttoria">
+                    <table class="table table-hover">
+                         <thead>
+                            <tr>
+                                <th>Protocollo</th>
+                                <th>Data Invio</th>
+                                <th>Evento</th>
+                                <th class="text-end">Importo Richiesto</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for richiesta in richieste_in_istruttoria %}
+                            <tr>
+                                <td>{{ richiesta.protocollo_invio }}</td>
+                                <td>{{ richiesta.data_invio.strftime('%d/%m/%Y') }}</td>
+                                <td>{{ richiesta.evento.nome }}</td>
+                                <td class="text-end">&euro; {{ "%.2f"|format(richiesta.spese|sum(attribute='importo_richiesto')) }}</td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="4" class="text-center">Nessuna richiesta in istruttoria.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
+ 
+    {% elif current_user.role == 'amministratore' %}
 
-{% elif current_user.role == 'amministratore' %}
-
-        <!-- 1. Selettore Contesto e Azione Principale
-        <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-light rounded">
-            <div>
-                <strong>Organizzazione attiva:</strong>
-                {# Qui dovrai inserire la logica per mostrare e cambiare l'organizzazione #}
-                <span class="badge bg-secondary fs-6">CRI Comitato di Roma</span>
+    <!-- 1. Selettore Contesto e Azione Principale -->
+    <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-light rounded">
+        <div>
+            <strong>Organizzazione attiva:</strong>
+            {# Qui dovrai inserire la logica per mostrare e cambiare l'organizzazione #}
+            <span class="badge bg-secondary fs-6">CRI Comitato di Roma</span>
                 <a href="#" class="ms-2">(Cambia)</a>
             </div>
             <a href="{{ url_for('main.crea_richiesta') }}" class="btn btn-primary btn-lg"><i class="fas fa-plus me-1"></i> Crea Nuova Richiesta</a>

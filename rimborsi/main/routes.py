@@ -40,10 +40,15 @@ def dashboard():
                 stato='A', 
                 organizzazione_id=organizzazione_utente.id
             ).order_by(Richiesta.data_creazione.desc()).all()
-        
-        # Passiamo la lista di richieste al template
+           # Query per le richieste in istruttoria (stato 'B')
+            richieste_in_istruttoria = Richiesta.query.filter_by(
+                stato='B',
+                organizzazione_id=organizzazione_utente.id
+            ).order_by(Richiesta.data_invio.desc()).all()
+
+        # Passiamo le liste di richieste al template
         template_data['richieste_in_bozza'] = richieste_in_bozza
-             
+        template_data['richieste_in_istruttoria'] = richieste_in_istruttoria
 
     elif current_user.role == 'amministratore':
         # Query per trovare utenti non associati a nessuna organizzazione
