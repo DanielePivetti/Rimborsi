@@ -229,55 +229,7 @@
         </div>
     </div>
  
-    {% elif current_user.role == 'amministratore' %}
-
-    <!-- 1. Selettore Contesto e Azione Principale -->
-    <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-light rounded">
-        <div>
-            <strong>Organizzazione attiva:</strong>
-            {# Qui dovrai inserire la logica per mostrare e cambiare l'organizzazione #}
-            <span class="badge bg-secondary fs-6">CRI Comitato di Roma</span>
-                <a href="#" class="ms-2">(Cambia)</a>
-            </div>
-            <a href="{{ url_for('main.crea_richiesta') }}" class="btn btn-primary btn-lg"><i class="fas fa-plus me-1"></i> Crea Nuova Richiesta</a>
-        </div>
-
-         2. Tabella con schede 
-        <div class="card shadow-sm">
-            <div class="card-header">
-                <ul class="nav nav-tabs card-header-tabs">
-                    <li class="nav-item"><a class="nav-link active" href="#">In Bozza 20 </a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">In Attesa 5</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Archivio 10</a></li>
-                </ul>
-            </div>
-            <div class="card-body">
-                <h5 class="card-title mb-3">Richieste in Bozza</h5>
-                <table class="table table-hover">
-                     <thead>
-                        <tr>
-                            <th>ID Richiesta</th>
-                            <th>Evento di Riferimento</th>
-                            <th>Data Creazione</th>
-                            <th>Importo Parziale</th>
-                            <th>Azione</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>2025asdsc</td>
-                            <td>Evento di Test</td>
-                            <td>13/05/2025</td>
-                            <td>&euro; 100.00</td>
-                            <td><a href="{{ url_for('main.modifica_richiesta', richiesta_id=1) }}" class="btn btn-warning btn-sm">Modifica e Invia</a></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>  -->
-
-
-    {# ================================================================== #}
+       {# ================================================================== #}
     {# SEZIONE VISIBILE SOLO ALL'UTENTE AMMINISTRATORE                  #}
     {# ================================================================== #}
     {% elif current_user.role == 'amministratore' %}
@@ -301,17 +253,26 @@
             <!-- Gestione Utenti -->
             <div class="col-md-5">
                 <div class="card shadow-sm">
-                    <div class="card-header"><h5 class="mb-0">Gestione Utenti</h5></div>
+                    <div class="card-header"><h5 class="mb-0">Gestione Utenti Compilatori</h5></div>
                     <div class="card-body">
-                        <h6 class="card-subtitle mb-2 text-muted">Utenti da Associare</h6>
+                        <h6 class="card-subtitle mb-2 text-muted">Compilatori da Associare ad Organizzazioni</h6>
                         <ul class="list-group">
                              {% for utente in utenti_da_associare %}
                              <li class="list-group-item d-flex justify-content-between align-items-center">
-                                {{ utente.email }}
-                                <a href="{{ url_for('main.associa_utente', user_id=utente.id) }}" class="btn btn-success btn-sm">Associa</a>
+                                <div>
+                                    <i class="fas fa-user-edit me-2 text-secondary"></i>
+                                    <strong>{{ utente.username }}</strong><br>
+                                    <small class="text-muted">{{ utente.email }}</small>
+                                </div>
+                                <a href="{{ url_for('main.associa_utente', user_id=utente.id) }}" class="btn btn-success btn-sm">
+                                    <i class="fas fa-link me-1"></i> Associa
+                                </a>
                             </li>
                             {% else %}
-                            <li class="list-group-item">Nessun nuovo utente da associare.</li>
+                            <li class="list-group-item text-center">
+                                <i class="fas fa-info-circle me-1 text-info"></i>
+                                Nessun compilatore da associare.
+                            </li>
                             {% endfor %}
                         </ul>
                     </div>

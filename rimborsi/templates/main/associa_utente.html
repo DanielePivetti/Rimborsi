@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Associa Utente a Organizzazioni{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">Associa Utente a Organizzazioni</h1>
+    
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h5 class="mb-0">Dettagli Utente</h5>
+        </div>
+        <div class="card-body">
+            <p><strong>Email:</strong> {{ utente.email }}</p>
+            <p><strong>Username:</strong> {{ utente.username }}</p>
+            <p><strong>Ruolo:</strong> Compilatore</p>
+        </div>
+    </div>
+    
+    <form method="POST" class="mt-4">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h5 class="mb-0">Seleziona Organizzazioni</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Seleziona una o più organizzazioni a cui associare questo utente:</p>
+                
+                <div class="form-group">
+                    {% for org in organizzazioni %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="organizzazioni" id="org{{ org.id }}" value="{{ org.id }}" 
+                               {% if org in utente.organizzazioni %}checked{% endif %}>
+                        <label class="form-check-label" for="org{{ org.id }}">
+                            {{ org.nome }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="d-flex justify-content-between mt-4">
+            <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Torna alla Dashboard
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save me-1"></i> Salva Associazioni
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
