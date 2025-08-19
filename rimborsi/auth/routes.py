@@ -2,11 +2,11 @@
 
 from flask import Blueprint, render_template, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required, current_user
-from werkzeug.security import check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 
 # Importa solo i modelli e i form necessari per queste rotte
 from rimborsi.models import User, db
-from .forms import LoginForm
+from .forms import LoginForm, RegistrationForm
 
 # 1. Crea il nuovo Blueprint 'auth'
 auth_bp = Blueprint('auth', __name__, template_folder='templates')
@@ -17,9 +17,44 @@ auth_bp = Blueprint('auth', __name__, template_folder='templates')
 def index():
     return render_template('auth/index.html')
 
-@auth_bp.route('/registrati')
+@auth_bp.route('/registrati', methods=['GET', 'POST'])
 def registrati():
-    return "Pagina di registrazione (placeholder)"
+    """
+    Registrazione per nuovi utenti compilatori.
+    L'associazione alle organizzazioni avverrà successivamente tramite l'amministratore.
+    """
+    if current_user.is_authenticated:
+        return redirect(url_for('main.dashboard'))
+    
+    form = RegistrationForm()
+    
+    if form.validate_on_submit():
+        # Crea il nuovo utente con ruolo 'compilatore'
+        nuovo_utente = User(
+            username=form.username.data,
+            email=form.email.data.lower(),  # Salva in minuscolo per consistenza
+            password_hash=generate_password_hash(form.password.data),
+            role='compilatore'  # Tutti i nuovi utenti sono compilatori
+        )
+        
+        try:
+            db.session.add(nuovo_utente)
+            db.session.commit()
+            
+            flash(
+                'Registrazione completata con successo! '
+                'Un amministratore dovrà associarti a un\'organizzazione prima che tu possa iniziare a compilare richieste.',
+                'success'
+            )
+            
+            # Reindirizza alla pagina di login
+            return redirect(url_for('auth.login'))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash('Errore durante la registrazione. Riprova più tardi.', 'danger')
+    
+    return render_template('auth/registrati.html', form=form)
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():

@@ -32,18 +32,32 @@ def dashboard():
         # Recuperiamo l'organizzazione dell'utente
         organizzazione_utente = current_user.organizzazioni[0] if current_user.organizzazioni else None
         
+        # Inizializziamo le liste vuote
         richieste_in_bozza = []
-        if organizzazione_utente:
+        richieste_in_istruttoria = []
+        
+        # CONTROLLO: Se il compilatore non ha organizzazioni associate
+        if not organizzazione_utente:
+            flash(
+                'Non sei compilatore di nessuna organizzazione. '
+                'Contatta l\'amministratore per farti associare ad un\'organizzazione.',
+                'warning'
+            )
+            template_data['compilatore_senza_organizzazione'] = True
+        else:
             # Query per trovare le richieste in bozza di quella organizzazione
             richieste_in_bozza = Richiesta.query.filter_by(
                 stato='A', 
                 organizzazione_id=organizzazione_utente.id
             ).order_by(Richiesta.data_creazione.desc()).all()
-           # Query per le richieste in istruttoria (stato 'B')
+            
+            # Query per le richieste in istruttoria (stato 'B')
             richieste_in_istruttoria = Richiesta.query.filter_by(
                 stato='B',
                 organizzazione_id=organizzazione_utente.id
             ).order_by(Richiesta.data_invio.desc()).all()
+            
+            template_data['compilatore_senza_organizzazione'] = False
 
         # Passiamo le liste di richieste al template
         template_data['richieste_in_bozza'] = richieste_in_bozza
