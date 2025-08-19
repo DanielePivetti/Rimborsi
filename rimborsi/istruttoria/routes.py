@@ -188,7 +188,7 @@ def reset_importi_approvati(richiesta_id):
 
 # Reset per documenti spesa
 
-@istruttoria_bp.route('/spese/<int:spesa_id>/verifica_documenti', methods=['POST'])
+@istruttoria_bp.route('/spese/<int:spesa_id>/verifica_tutti_documenti', methods=['POST'])
 @login_required
 def verifica_tutti_documenti(spesa_id):
     """Imposta 'verificato = True' per tutti i documenti di una spesa."""
@@ -201,7 +201,7 @@ def verifica_tutti_documenti(spesa_id):
 
 # Annullo reset per documenti spesa
 
-@istruttoria_bp.route('/spese/<int:spesa_id>/reset_verifica', methods=['POST'])
+@istruttoria_bp.route('/spese/<int:spesa_id>/reset_verifica_documenti', methods=['POST'])
 @login_required
 def reset_verifica_documenti(spesa_id):
     """Imposta 'verificato = False' per tutti i documenti di una spesa."""
