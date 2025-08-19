@@ -253,9 +253,18 @@
             <!-- Gestione Utenti -->
             <div class="col-md-5">
                 <div class="card shadow-sm">
-                    <div class="card-header"><h5 class="mb-0">Gestione Utenti Compilatori</h5></div>
+                    <div class="card-header">
+                        <h5 class="mb-0">Gestione Utenti Compilatori</h5>
+                        {% if totale_compilatori is defined %}
+                        <small class="text-muted">
+                            Totale: {{ totale_compilatori }} | 
+                            Associati: {{ compilatori_associati }} | 
+                            Da Associare: {{ utenti_da_associare|length }}
+                        </small>
+                        {% endif %}
+                    </div>
                     <div class="card-body">
-                        <h6 class="card-subtitle mb-2 text-muted">Compilatori da Associare ad Organizzazioni</h6>
+                        <h6 class="card-subtitle mb-2 text-muted">Compilatori Senza Organizzazione</h6>
                         <ul class="list-group">
                              {% for utente in utenti_da_associare %}
                              <li class="list-group-item d-flex justify-content-between align-items-center">
@@ -270,8 +279,8 @@
                             </li>
                             {% else %}
                             <li class="list-group-item text-center">
-                                <i class="fas fa-info-circle me-1 text-info"></i>
-                                Nessun compilatore da associare.
+                                <i class="fas fa-check-circle me-1 text-success"></i>
+                                Tutti i compilatori sono già associati ad organizzazioni.
                             </li>
                             {% endfor %}
                         </ul>

@@ -4,49 +4,199 @@
 
 {% block content %}
 <div class="container py-4">
-    <h1 class="mb-4">Associa Utente a Organizzazioni</h1>
-    
-    <div class="card shadow-sm">
-        <div class="card-header">
-            <h5 class="mb-0">Dettagli Utente</h5>
-        </div>
-        <div class="card-body">
-            <p><strong>Email:</strong> {{ utente.email }}</p>
-            <p><strong>Username:</strong> {{ utente.username }}</p>
-            <p><strong>Ruolo:</strong> Compilatore</p>
-        </div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">
+            <i class="fas fa-link me-2 text-primary"></i>
+            Associa Utente a Organizzazioni
+        </h1>
+        <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Dashboard
+        </a>
     </div>
     
-    <form method="POST" class="mt-4">
-        <div class="card shadow-sm">
-            <div class="card-header">
-                <h5 class="mb-0">Seleziona Organizzazioni</h5>
-            </div>
-            <div class="card-body">
-                <p class="text-muted">Seleziona una o più organizzazioni a cui associare questo utente:</p>
-                
-                <div class="form-group">
-                    {% for org in organizzazioni %}
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="organizzazioni" id="org{{ org.id }}" value="{{ org.id }}" 
-                               {% if org in utente.organizzazioni %}checked{% endif %}>
-                        <label class="form-check-label" for="org{{ org.id }}">
-                            {{ org.nome }}
-                        </label>
+    <form method="POST">
+        <div class="row g-4">
+            <!-- COLONNA SINISTRA: Dettagli Utente -->
+            <div class="col-md-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-user me-2"></i>
+                            Dettagli Utente
+                        </h5>
                     </div>
-                    {% endfor %}
+                    <div class="card-body">
+                        <!-- Avatar placeholder -->
+                        <div class="text-center mb-3">
+                            <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center" 
+                                 style="width: 80px; height: 80px;">
+                                <i class="fas fa-user fa-2x text-muted"></i>
+                            </div>
+                        </div>
+                        
+                        <!-- Informazioni utente -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-muted small">USERNAME</label>
+                            <p class="mb-0 fs-5 fw-semibold">{{ utente.username }}</p>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-muted small">EMAIL</label>
+                            <p class="mb-0">
+                                <i class="fas fa-envelope me-1 text-muted"></i>
+                                {{ utente.email }}
+                            </p>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-muted small">RUOLO</label>
+                            <p class="mb-0">
+                                <span class="badge bg-info">
+                                    <i class="fas fa-user-edit me-1"></i>
+                                    Compilatore
+                                </span>
+                            </p>
+                        </div>
+                        
+                        <!-- Stato associazioni attuali -->
+                        <div class="mb-0">
+                            <label class="form-label fw-bold text-muted small">ORGANIZZAZIONI ATTUALI</label>
+                            {% if utente.organizzazioni %}
+                                {% for org in utente.organizzazioni %}
+                                <span class="badge bg-success me-1 mb-1">
+                                    <i class="fas fa-building me-1"></i>
+                                    {{ org.nome }}
+                                </span>
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-muted mb-0">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                    Nessuna organizzazione associata
+                                </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- COLONNA DESTRA: Selezione Organizzazioni -->
+            <div class="col-md-8">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-building me-2"></i>
+                            Seleziona Organizzazioni
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted mb-4">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Seleziona una o più organizzazioni a cui associare questo utente compilatore.
+                        </p>
+                        
+                        {% if organizzazioni %}
+                        <div class="row">
+                            {% for org in organizzazioni %}
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" 
+                                           name="organizzazioni" 
+                                           id="org{{ org.id }}" 
+                                           value="{{ org.id }}" 
+                                           {% if org in utente.organizzazioni %}checked{% endif %}>
+                                    <label class="form-check-label w-100" for="org{{ org.id }}">
+                                        <div class="border rounded p-3 h-100 checkbox-card"
+                                             style="cursor: pointer; transition: all 0.2s ease;">
+                                            <div class="d-flex align-items-start">
+                                                <div class="flex-grow-1">
+                                                    <h6 class="mb-1 fw-bold">{{ org.nome }}</h6>
+                                                    {% if org.acronimo %}
+                                                    <p class="mb-1 text-muted small">
+                                                        <i class="fas fa-tag me-1"></i>
+                                                        {{ org.acronimo }}
+                                                    </p>
+                                                    {% endif %}
+                                                    {% if org.codice_interno %}
+                                                    <p class="mb-1 text-muted small">
+                                                        <i class="fas fa-code me-1"></i>
+                                                        Codice: {{ org.codice_interno }}
+                                                    </p>
+                                                    {% endif %}
+                                                    {% if org.indirizzo %}
+                                                    <p class="mb-0 text-muted small">
+                                                        <i class="fas fa-map-marker-alt me-1"></i>
+                                                        {{ org.indirizzo[:50] }}{% if org.indirizzo|length > 50 %}...{% endif %}
+                                                    </p>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="ms-2">
+                                                    <i class="fas fa-check-circle text-success" 
+                                                       style="display: none;"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-building fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">Nessuna organizzazione disponibile</h5>
+                            <p class="text-muted">Crea prima delle organizzazioni per poter associare gli utenti.</p>
+                            <a href="{{ url_for('anagrafica.lista_organizzazioni') }}" class="btn btn-primary">
+                                <i class="fas fa-plus me-1"></i> Gestisci Organizzazioni
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
         
+        <!-- Pulsanti azione -->
+        {% if organizzazioni %}
         <div class="d-flex justify-content-between mt-4">
-            <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left me-1"></i> Torna alla Dashboard
+            <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary btn-lg">
+                <i class="fas fa-times me-1"></i> Annulla
             </a>
-            <button type="submit" class="btn btn-primary">
+            <button type="submit" class="btn btn-success btn-lg">
                 <i class="fas fa-save me-1"></i> Salva Associazioni
             </button>
         </div>
+        {% endif %}
     </form>
 </div>
+
+<!-- CSS personalizzato per le card selezionabili -->
+<style>
+.checkbox-card {
+    transition: all 0.2s ease;
+}
+
+.checkbox-card:hover {
+    background-color: #f8f9fa;
+    border-color: #007bff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.form-check-input:checked + .form-check-label .checkbox-card {
+    background-color: #e7f3ff;
+    border-color: #007bff !important;
+    box-shadow: 0 2px 4px rgba(0,123,255,0.2);
+}
+
+.form-check-input:checked + .form-check-label .fas.fa-check-circle {
+    display: inline !important;
+}
+
+/* Nasconde il checkbox standard per un look più pulito */
+.form-check-input {
+    position: absolute;
+    opacity: 0;
+}
+</style>
+
 {% endblock %}

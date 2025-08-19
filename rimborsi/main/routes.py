@@ -2,7 +2,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_user, login_required, current_user, logout_user
 from werkzeug.security import check_password_hash
-from rimborsi.models import User, Richiesta, Evento, db
+from rimborsi.models import User, Richiesta, Evento, db, Organizzazione
 
 main = Blueprint('main', __name__, template_folder='templates')
 
@@ -50,27 +50,70 @@ def dashboard():
         template_data['richieste_in_istruttoria'] = richieste_in_istruttoria
 
     elif current_user.role == 'amministratore':
-        # Query per trovare utenti non associati a nessuna organizzazione
-        utenti_da_associare = User.query.filter(User.organizzazioni == None).all()
+        # Query per trovare utenti COMPILATORI non associati a nessuna organizzazione
+        utenti_da_associare = User.query.filter(
+            User.role == 'compilatore',
+            ~User.organizzazioni.any()
+        ).all()
+        
+        # Statistiche aggiuntive per l'amministratore
+        totale_compilatori = User.query.filter(User.role == 'compilatore').count()
+        compilatori_associati = User.query.filter(
+            User.role == 'compilatore',
+            User.organizzazioni.any()
+        ).count()
+        
         template_data['utenti_da_associare'] = utenti_da_associare
+        template_data['totale_compilatori'] = totale_compilatori
+        template_data['compilatori_associati'] = compilatori_associati
     
     # Passiamo i dati al template. Il template userà 'current_user' e i dati specifici.
     return render_template('main/dashboard.html', **template_data)
 
-# Gestione Eventi
+# ================================================================
+# GESTIONE ASSOCIAZIONE UTENTI - SOLO PER AMMINISTRATORI
+# ================================================================
 
-@main.route('/crea_richiesta')
-def crea_richiesta():
-    return "Pagina crea richiesta (placeholder)"
-
-@main.route('/dettaglio_richiesta/<int:richiesta_id>')
-def dettaglio_richiesta(richiesta_id):
-    return f"Dettaglio richiesta {richiesta_id} (placeholder)"
-
-@main.route('/modifica_richiesta/<int:richiesta_id>')
-def modifica_richiesta(richiesta_id):
-    return f"Modifica richiesta {richiesta_id} (placeholder)"
-
-@main.route('/associa_utente/<int:user_id>')
+@main.route('/associa_utente/<int:user_id>', methods=['GET', 'POST'])
+@login_required
 def associa_utente(user_id):
-    return f"Associa utente {user_id} (placeholder)"
+    """Gestisce l'associazione di un utente a una o più organizzazioni."""
+    # Verifica che l'utente corrente sia un amministratore
+    if current_user.role != 'amministratore':
+        flash('Solo gli amministratori possono associare utenti alle organizzazioni.', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
+    # Trova l'utente da associare
+    utente = User.query.get_or_404(user_id)
+    
+    # Verifica che l'utente sia un compilatore
+    if utente.role != 'compilatore':
+        flash('Solo gli utenti con ruolo "compilatore" possono essere associati alle organizzazioni.', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
+    # Carica tutte le organizzazioni disponibili
+    organizzazioni = Organizzazione.query.all()
+    
+    # Gestisci il form di associazione
+    if request.method == 'POST':
+        # Prendi gli ID delle organizzazioni selezionate dal form
+        org_ids = request.form.getlist('organizzazioni')
+        
+        if not org_ids:
+            flash('Seleziona almeno un\'organizzazione.', 'warning')
+            return render_template('main/associa_utente.html', utente=utente, organizzazioni=organizzazioni)
+        
+        # Trova le organizzazioni selezionate
+        orgs_selezionate = Organizzazione.query.filter(Organizzazione.id.in_(org_ids)).all()
+        
+        # Associa l'utente alle organizzazioni
+        utente.organizzazioni = orgs_selezionate
+        
+        # Salva le modifiche
+        db.session.commit()
+        
+        flash(f'Utente {utente.email} associato a {len(orgs_selezionate)} organizzazioni.', 'success')
+        return redirect(url_for('main.dashboard'))
+    
+    # Mostra il form di associazione
+    return render_template('main/associa_utente.html', utente=utente, organizzazioni=organizzazioni)
