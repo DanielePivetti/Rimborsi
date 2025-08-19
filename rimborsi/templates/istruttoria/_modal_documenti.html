@@ -21,7 +21,8 @@
                 </div>
                 {% endif %}
 
-             <ul class="list-group">
+                <form action="{{ url_for('istruttoria.salva_documenti', spesa_id=spesa.id, richiesta_id=spesa.richiesta_id) }}" method="POST" id="documentiForm_{{ spesa.id }}">
+                    <ul class="list-group mb-3">
                     {% for doc in spesa.documenti %}
                     <li class="list-group-item">
                         <div class="row align-items-center">
@@ -43,6 +44,12 @@
                     <li class="list-group-item text-center text-muted">Nessun documento per questa spesa.</li>
                     {% endfor %}
                 </ul>
+                <div class="text-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i> Salva Verifiche
+                    </button>
+                </div>
+                </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>

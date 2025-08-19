@@ -101,13 +101,8 @@ def salva_istruttoria(richiesta_id):
         # Recupera le note per la spesa dal form
         spesa.note_istruttoria = request.form.get(f"note_spesa_{spesa.id}")
 
-        # 2. Per ogni spesa, itera attraverso i suoi documenti
-        for doc in spesa.documenti:
-            # La checkbox, se spuntata, sarà presente in request.form
-            doc.verificato = f"verificato_{doc.id}" in request.form
-            
-            # Recupera le note per il documento
-            doc.note_istruttore = request.form.get(f"note_documento_{doc.id}")
+        # Non gestiamo più i documenti qui, sono gestiti separatamente
+        # nella rotta salva_documenti
 
     # 3. Salva tutte le modifiche nel database in un'unica operazione
     try:
@@ -212,3 +207,25 @@ def reset_verifica_documenti(spesa_id):
     db.session.commit()
     flash(f"La verifica per i documenti della spesa #{spesa.id} è stata annullata.", 'info')
     return redirect(url_for('istruttoria.dettaglio_istruttoria', richiesta_id=spesa.richiesta_id))
+
+# Nuovo endpoint per salvare le verifiche dei documenti separatamente
+@istruttoria_bp.route('/spese/<int:spesa_id>/documenti/salva', methods=['POST'])
+@login_required
+def salva_documenti(spesa_id):
+    """Salva solo le verifiche e le note dei documenti di una spesa."""
+    spesa = Spesa.query.get_or_404(spesa_id)
+    richiesta_id = request.args.get('richiesta_id', spesa.richiesta_id)
+    
+    # Elabora ogni documento della spesa
+    for doc in spesa.documenti:
+        # La checkbox, se spuntata, sarà presente in request.form
+        doc.verificato = f"verificato_{doc.id}" in request.form
+        
+        # Recupera le note per il documento
+        doc.note_istruttore = request.form.get(f"note_documento_{doc.id}")
+    
+    db.session.commit()
+    flash(f"Verifiche documenti per la spesa #{spesa.id} salvate con successo.", 'success')
+    
+    # Redirect alla pagina di dettaglio dell'istruttoria
+    return redirect(url_for('istruttoria.dettaglio_istruttoria', richiesta_id=richiesta_id))
