@@ -2,7 +2,8 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from rimborsi.models import Evento, db, Richiesta, UserMixin, Spesa, DocumentoSpesa 
 from datetime import datetime
-from .forms import EventoForm             # Importa il form dalla cartella corrente
+from .forms import EventoForm 
+from werkzeug.utils import secure_filename # Importa il form dalla cartella corrente
 
 
 # 1. Crea il nuovo Blueprint 'istruttoria'

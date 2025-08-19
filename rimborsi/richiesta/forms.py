@@ -1,12 +1,12 @@
 from operator import length_hint
 from flask_wtf import FlaskForm
-from wtforms import SelectField, StringField, FileField, TextAreaField, IntegerField, SubmitField, ValidationError
+from wtforms import SelectField, StringField, TextAreaField, IntegerField, SubmitField, ValidationError
 from wtforms.fields import DateField
 from wtforms.validators import DataRequired, Optional, NumberRange, Length
 from wtforms_sqlalchemy.fields import QuerySelectField
 from rimborsi.models import Richiesta, Evento, Spesa, MezzoAttrezzatura,ImpiegoMezzoAttrezzatura, DocumentoSpesa
 from wtforms import FloatField, DateTimeField
-from flask_wtf.file import FileAllowed
+from flask_wtf.file import FileField, FileAllowed
 
 # ... (altre classi di form) ...
 

@@ -137,8 +137,9 @@ from .forms import DocumentoSpesaForm
 @login_required
 def lista_documenti(spesa_id):
     spesa = Spesa.query.get_or_404(spesa_id)
+    richiesta = spesa.richiesta  # Accedi alla richiesta associata a questa spesa
     form = DocumentoSpesaForm() # Form per aggiungere nuovi documenti
-    return render_template('richiesta/lista_documenti.html', spesa=spesa, form=form)
+    return render_template('richiesta/lista_documenti.html', spesa=spesa, form=form, richiesta=richiesta)
 
 # Rotta per salvare un nuovo documento (chiamata dal form)
 # in rimborsi/richieste/routes.py
@@ -244,3 +245,30 @@ def trasmetti_richiesta(richiesta_id):
     
     flash(f"Richiesta trasmessa con successo! Numero di protocollo: {richiesta.protocollo_invio}", 'success')
     return redirect(url_for('main.dashboard'))
+
+# Rotta per il download dei documenti
+@richiesta_bp.route('/documenti/<int:documento_id>/download')
+@login_required
+def download_documento(documento_id):
+    """Permette il download sicuro dei documenti."""
+    from flask import send_from_directory, abort
+    
+    documento = DocumentoSpesa.query.get_or_404(documento_id)
+    
+    # Verifica che l'utente abbia accesso a questo documento
+    spesa = documento.spesa
+    richiesta = spesa.richiesta
+    
+    # Solo gli utenti autorizzati possono accedere
+    if current_user.role not in ['admin', 'istruttore'] and richiesta.organizzazione.id != current_user.organizzazione_id:
+        abort(403)  # Forbidden
+    
+    if not documento.nome_file:
+        flash("Nessun file disponibile per questo documento.", "warning")
+        return redirect(url_for('richiesta.lista_documenti', spesa_id=spesa.id))
+    
+    # Il percorso della directory uploads nell'instance folder
+    uploads_dir = os.path.join(current_app.instance_path, 'uploads')
+    
+    # Invia il file al client
+    return send_from_directory(uploads_dir, documento.nome_file, as_attachment=True)
