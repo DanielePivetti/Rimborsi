@@ -106,7 +106,11 @@ class SpesaForm(FlaskForm):
         if self.categoria.data in categorie_con_impiego and not field.data:
             raise ValidationError('Per questa categoria di spesa è obbligatorio selezionare un impiego.')
 
-            
+
+# Definiamo i tipi di documento che NON richiedono un importo.
+# Usare una costante rende il codice più leggibile e manutenibile.
+
+TIPI_SENZA_IMPORTO = ['C', 'D']            
 class DocumentoSpesaForm(FlaskForm):
     """Form per inserire i dati di un documento di spesa."""
     tipo_documento = SelectField('Tipo Documento', choices=[
@@ -118,9 +122,29 @@ class DocumentoSpesaForm(FlaskForm):
     
     data_documento = DateField('Data del Documento', format='%Y-%m-%d', validators=[DataRequired()])
     fornitore = StringField('Fornitore', validators=[Optional(), Length(max=150)])
-    importo_documento = FloatField('Importo del Documento (€)', validators=[DataRequired()])
+    # Rimuoviamo DataRequired() e aggiungiamo Optional() perché l'importo
+    # non sarà sempre obbligatorio. La logica vera è nel validatore sotto.
+    importo_documento = FloatField('Importo del Documento (€)', validators=[Optional()])
     allegato = FileField('Allega Documento (PDF, PNG, JPG)', validators=[
         FileAllowed(['pdf', 'png', 'jpg', 'jpeg'], 'Sono ammessi solo file PDF, PNG e JPG!')
     ])
-    
     submit = SubmitField('Aggiungi Documento')
+    
+     # --- NUOVO VALIDATORE PERSONALIZZATO ---
+    # Questa funzione funge da "rete di sicurezza" lato server
+    
+    def validate_importo_documento(self, field):
+        """
+        Controlla che l'importo sia presente solo se il tipo di documento lo richiede.
+        """
+        tipo_selezionato = self.tipo_documento.data
+        
+        # Se il tipo di documento NON è tra quelli speciali E l'importo non è stato inserito...
+        if tipo_selezionato not in TIPI_SENZA_IMPORTO and not field.data:
+            # ...allora solleva un errore di validazione.
+            raise ValidationError('L\'importo è obbligatorio per Scontrini e Fatture.')
+        
+        # Se il tipo di documento È tra quelli speciali...
+        if tipo_selezionato in TIPI_SENZA_IMPORTO:
+            # ...svuotiamo il campo per sicurezza, anche se l'utente provasse a inviare un valore.
+            field.data = None

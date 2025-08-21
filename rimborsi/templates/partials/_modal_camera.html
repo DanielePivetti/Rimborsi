@@ -1,0 +1,18 @@
+<div class="modal fade" id="cameraModal" tabindex="-1" aria-labelledby="cameraModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cameraModalLabel">Scatta Foto Documento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <video id="camera-feed" width="100%" autoplay playsinline></video>
+                <canvas id="camera-canvas" style="display:none;"></canvas>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                <button type="button" id="capture-btn" class="btn btn-primary">Scatta e Allega</button>
+            </div>
+        </div>
+    </div>
+</div>

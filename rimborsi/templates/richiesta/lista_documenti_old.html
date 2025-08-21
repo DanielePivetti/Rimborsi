@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% block title %}Gestione Documenti{% endblock %}
+
+{% block content %}
+    <div class="mb-4">
+        <h1 class="mb-0">Gestione Documenti</h1>
+        <p class="lead text-muted">Per la spesa: "{{ spesa.descrizione_spesa }}" di € {{ "%.2f"|format(spesa.importo_richiesto) }}</p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-5">
+            <div class="card shadow-sm">
+                <div class="card-header"><h5 class="mb-0">Aggiungi Nuovo Documento</h5></div>
+                <div class="card-body">
+                    <form action="{{ url_for('richiesta.crea_documento', spesa_id=spesa.id) }}" method="POST" novalidate>
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            {{ form.tipo_documento.label(class="form-label fw-bold") }}
+                            {{ form.tipo_documento(class="form-select") }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.data_documento.label(class="form-label fw-bold") }}
+                            {{ form.data_documento(class="form-control", type="date") }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.fornitore.label(class="form-label fw-bold") }}
+                            {{ form.fornitore(class="form-control") }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.importo_documento.label(class="form-label fw-bold") }}
+                            {{ form.importo_documento(class="form-control") }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.allegato.label(class="form-label fw-bold") }}
+                            {{ form.allegato(class="form-control") }}
+                        </div>
+                        <div class="mb-3 text-center">
+                            <span class="text-muted">oppure</span><br>
+                            <button type="button" class="btn btn-outline-secondary mt-2" data-bs-toggle="modal" data-bs-target="#cameraModal" {% if richiesta.stato != '01' %}disabled{% endif %}>
+                                 <i class="fas fa-camera me-1"></i> Scatta una Foto
+                            </button>
+                        </div>
+                        {% if richiesta.stato == '01' %}
+                            {{ form.submit(class="btn btn-primary w-100") }}
+                        {% else %}
+                            <button type="button" class="btn btn-primary w-100" disabled>Aggiungi Documento</button>
+                            <small class="text-danger d-block text-center mt-2">La richiesta non è in stato di bozza. Non è possibile aggiungere documenti.</small>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <div class="card shadow-sm">
+                <div class="card-header"><h5 class="mb-0">Documenti Caricati</h5></div>
+                <div class="card-body">
+                    <ul class="list-group">
+                        {% for doc in spesa.documenti %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ doc.get_tipo_documento_display() }}</strong> del {{ doc.data_documento.strftime('%d/%m/%Y') }}
+                                <br>
+                                <small class="text-muted">{{ doc.fornitore or 'N/D' }} - &euro; {{ "%.2f"|format(doc.importo_documento) }}</small>
+                                {% if doc.nome_file %}
+                                <br>
+                                <small>
+                                    <a href="{{ url_for('richiesta.download_documento', documento_id=doc.id) }}" class="text-primary">
+                                        <i class="fas fa-file-download me-1"></i>Scarica documento
+                                    </a>
+                                </small>
+                                {% endif %}
+                            </div>
+                            <div>
+                                {% if doc.nome_file %}
+                                <a href="{{ url_for('richiesta.download_documento', documento_id=doc.id) }}" class="btn btn-sm btn-outline-primary me-1">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                                {% endif %}
+                                <form action="{{ url_for('richiesta.cancella_documento', documento_id=doc.id) }}" method="POST" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                            onclick="return confirm('Sei sicuro?');" 
+                                            {% if richiesta.stato != '01' %}disabled title="Non puoi cancellare documenti quando la richiesta non è in bozza"{% endif %}>&times;</button>
+                                </form>
+                            </div>
+                        </li>
+                        {% else %}
+                        <li class="list-group-item text-center text-muted">Nessun documento inserito per questa spesa.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <a href="{{ url_for('richiesta.dettaglio_richiesta', richiesta_id=spesa.richiesta_id) }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Torna al Dettaglio Richiesta
+        </a>
+    </div>
+
+    <div class="modal fade" id="cameraModal" tabindex="-1" aria-labelledby="cameraModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cameraModalLabel">Scatta Foto Documento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <video id="camera-feed" width="100%" autoplay playsinline></video>
+                    <canvas id="camera-canvas" style="display:none;"></canvas>
+                </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                <button type="button" id="capture-btn" class="btn btn-primary">Scatta e Allega</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/camera.js') }}"></script>
+{% endblock %}

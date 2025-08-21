@@ -154,7 +154,7 @@ from flask import current_app # Importa current_app per accedere alla configuraz
 def crea_documento(spesa_id):
     spesa = Spesa.query.get_or_404(spesa_id)
     form = DocumentoSpesaForm()
-    
+    TIPI_SENZA_IMPORTO = ['C', 'D']
     if form.validate_on_submit():
         nome_file_salvato = None
         # Controlla se un file è stato caricato
@@ -167,12 +167,17 @@ def crea_documento(spesa_id):
             file.save(percorso_salvataggio)
             nome_file_salvato = nome_file_sicuro
 
+        # --- Fallback lato backend per importo_documento ---
+        tipo_doc = form.tipo_documento.data
+        importo = form.importo_documento.data
+        if tipo_doc in TIPI_SENZA_IMPORTO:
+            importo = 0.00
         nuovo_doc = DocumentoSpesa(
             spesa_id=spesa.id,
-            tipo_documento=form.tipo_documento.data,
+            tipo_documento=tipo_doc,
             data_documento=form.data_documento.data,
             fornitore=form.fornitore.data,
-            importo_documento=form.importo_documento.data,
+            importo_documento=importo,
             nome_file=nome_file_salvato # Salva il nome del file nel DB
         )
         db.session.add(nuovo_doc)

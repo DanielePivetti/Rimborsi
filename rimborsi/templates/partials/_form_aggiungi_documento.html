@@ -1,0 +1,43 @@
+<div class="col-md-5">
+    <div class="card shadow-sm">
+        <div class="card-header"><h5 class="mb-0">Aggiungi Nuovo Documento</h5></div>
+        <div class="card-body">
+            <form action="{{ url_for('richiesta.crea_documento', spesa_id=spesa.id) }}" method="POST" novalidate enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                
+                <div class="mb-3">
+                    {{ form.tipo_documento.label(class="form-label fw-bold") }}
+                    {{ form.tipo_documento(class="form-select") }}
+                </div>
+                <div class="mb-3">
+                    {{ form.data_documento.label(class="form-label fw-bold") }}
+                    {{ form.data_documento(class="form-control", type="date") }}
+                </div>
+                <div class="mb-3">
+                    {{ form.fornitore.label(class="form-label fw-bold") }}
+                    {{ form.fornitore(class="form-control") }}
+                </div>
+                <div class="mb-3" id="importo-container">
+                    {{ form.importo_documento.label(class="form-label fw-bold") }}
+                    {{ form.importo_documento(class="form-control") }}
+                </div>
+                <div class="mb-3">
+                    {{ form.allegato.label(class="form-label fw-bold") }}
+                    {{ form.allegato(class="form-control") }}
+                </div>
+                <div class="mb-3 text-center">
+                    <span class="text-muted">oppure</span><br>
+                    <button type="button" class="btn btn-outline-secondary mt-2" data-bs-toggle="modal" data-bs-target="#cameraModal" {% if richiesta.stato != 'A' %}disabled{% endif %}>
+                         <i class="fas fa-camera me-1"></i> Scatta una Foto
+                    </button>
+                </div>
+                {% if richiesta.stato == 'A' %}
+                    {{ form.submit(class="btn btn-primary w-100") }}
+                {% else %}
+                    <button type="button" class="btn btn-primary w-100" disabled>Aggiungi Documento</button>
+                    <small class="text-danger d-block text-center mt-2">La richiesta non è in stato di bozza. Non è possibile aggiungere documenti.</small>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</div>
