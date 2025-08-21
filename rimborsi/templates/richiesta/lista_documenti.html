@@ -5,7 +5,7 @@
     <div class="mb-4">
         <h1 class="mb-0">Gestione Documenti</h1>
         <p class="lead text-muted">Per la spesa: "{{ spesa.descrizione_spesa }}" di € {{ "%.2f"|format(spesa.importo_richiesto) }}</p>
-        <div class="alert alert-info">DEBUG: richiesta.stato = {{ richiesta.stato }}</div>
+    {#    <div class="alert alert-info">DEBUG: richiesta.stato = {{ richiesta.stato }}</div> #}
     </div>
 
     <div class="row g-4">
@@ -17,7 +17,12 @@
     </div>
     
     {# Link per tornare alla pagina di dettaglio #}
-    {% include 'partials/_link_torna_dettaglio.html' %}
+    
+    <div class="mt-4">
+    <a href="{{ url_for('richiesta.dettaglio_richiesta', richiesta_id=spesa.richiesta_id) }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-1"></i> Torna al Dettaglio Richiesta
+    </a>
+    </div>
 
     {# Modale per la fotocamera #}
     {% include 'partials/_modal_camera.html' %}

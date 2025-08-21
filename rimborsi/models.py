@@ -154,4 +154,4 @@ class ImpiegoMezzoAttrezzatura(db.Model):
     richiesta_id = db.Column(db.Integer, db.ForeignKey('richiesta.id'), nullable=False)
     mezzo_attrezzatura_id = db.Column(db.Integer, db.ForeignKey('mezzo_attrezzatura.id'), nullable=False)
    # spesa_id = db.Column(db.Integer, db.ForeignKey('spesa.id'), unique=True, nullable=True)
-    spese = db.relationship('Spesa', backref='impiego', lazy=True)
+    spese = db.relationship('Spesa', backref='impiego', lazy='dynamic')

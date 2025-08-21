@@ -2,6 +2,8 @@ from flask import Blueprint, render_template, redirect, url_for, flash
 from flask_login import login_required, current_user
 from rimborsi.models import db, Evento, Richiesta, Organizzazione, Spesa, MezzoAttrezzatura, ImpiegoMezzoAttrezzatura, DocumentoSpesa
 from .forms import RichiestaForm, SpesaForm, ImpiegoMezzoForm, DocumentoSpesaForm
+import os
+from flask import send_from_directory, abort # import sicuro per i file
 
 richiesta_bp = Blueprint('richiesta', __name__, 
                          template_folder='templates',
@@ -87,11 +89,62 @@ def crea_impiego(richiesta_id):
     return render_template('richiesta/crea_modifica_impiego.html',
                            form=form, richiesta=richiesta, titolo="Aggiungi Impiego")
 
-# Aggiungeremo 'modifica_impiego' e 'cancella_impiego' quando serviranno
+#   Rotta 'modifica_impiego' 
+
+@richiesta_bp.route('/<int:richiesta_id>/impieghi/<int:impiego_id>/modifica', methods=['GET', 'POST'])
+@login_required
+def modifica_impiego(richiesta_id, impiego_id):
+    # Recupera l'impiego specifico da modificare o restituisce un errore 404
+    impiego = ImpiegoMezzoAttrezzatura.query.get_or_404(impiego_id)
+    richiesta = Richiesta.query.get_or_404(richiesta_id)
+    
+    # Popola il form con i dati dell'oggetto 'impiego' esistente
+    form = ImpiegoMezzoForm(obj=impiego, organizzazione_id=richiesta.organizzazione_id)
+    
+    if form.validate_on_submit():
+        # Invece di creare una nuova istanza, aggiorniamo l'oggetto 'impiego'
+        # recuperato all'inizio con i nuovi dati validati del form.
+        impiego.mezzo_attrezzatura_id = form.mezzo_attrezzatura.data.id
+        impiego.localita_impiego = form.localita_impiego.data
+        impiego.data_ora_inizio_impiego = form.data_ora_inizio_impiego.data
+        impiego.data_ora_fine_impiego = form.data_ora_fine_impiego.data
+        impiego.km_partenza = form.km_partenza.data
+        impiego.km_arrivo = form.km_arrivo.data
+        
+        # Non serve fare db.session.add(), perché l'oggetto è già tracciato da SQLAlchemy
+        db.session.commit()
+        
+        flash('Impiego mezzo modificato con successo.', 'success')
+        return redirect(url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id))
+
+    # Per la richiesta GET, il form sarà già popolato con i dati esistenti
+    return render_template('richiesta/crea_modifica_impiego.html',
+                           form=form,
+                           richiesta=richiesta,
+                           titolo="Modifica Impiego",
+                           impiego=impiego) # Passiamo anche l'impiego al template
  
+# 
+# Rotta cancella_impiego
 
+@richiesta_bp.route('/<int:richiesta_id>/impieghi/<int:impiego_id>/cancella', methods=['POST'])
+@login_required
+def cancella_impiego(richiesta_id, impiego_id):
+    impiego = ImpiegoMezzoAttrezzatura.query.get_or_404(impiego_id)
 
-# Rotte per le spese
+    # Il controllo ora funziona perché 'impiego.spese' esiste grazie alla relazione.
+    # .count() è disponibile grazie a lazy='dynamic'.
+    if impiego.spese.count() > 0:
+        flash('Non puoi cancellare questo impiego perché è associato a una o più spese.', 'danger')
+        return redirect(url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta_id))
+
+    db.session.delete(impiego)
+    db.session.commit()
+    
+    flash('Impiego mezzo cancellato con successo.', 'success')
+    return redirect(url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta_id))# Rotte per le spese
+
+# Rotta per spesa
 
 @richiesta_bp.route('/<int:richiesta_id>/spese/crea', methods=['GET', 'POST'])
 @login_required
@@ -124,13 +177,64 @@ def crea_spesa(richiesta_id):
 
 # Aggiungeremo 'modifica_spesa' e 'cancella_spesa' quando serviranno
 
-# In rimborsi/richieste/routes.py
+@richiesta_bp.route('/<int:richiesta_id>/spese/<int:spesa_id>/modifica', methods=['GET', 'POST'])
+@login_required
+def modifica_spesa(richiesta_id, spesa_id):
+    # Recupera gli oggetti esistenti o restituisce un errore 404
+    spesa = Spesa.query.get_or_404(spesa_id)
+    richiesta = Richiesta.query.get_or_404(richiesta_id)
+    
+    # Popola il form con i dati della spesa esistente
+    form = SpesaForm(obj=spesa, richiesta_id=richiesta_id)
 
-# Assicurati di importare i modelli e form necessari
-from rimborsi.models import Spesa, DocumentoSpesa
-from .forms import DocumentoSpesaForm
+    if form.validate_on_submit():
+        # Aggiorna l'oggetto 'spesa' con i nuovi dati del form
+        spesa.categoria = form.categoria.data
+        spesa.data_spesa = form.data_spesa.data
+        spesa.descrizione_spesa = form.descrizione_spesa.data
+        spesa.importo_richiesto = form.importo_richiesto.data
+        
+        # Gestisce il collegamento con l'impiego
+        impiego_selezionato = form.impiego.data
+        if impiego_selezionato:
+            # Associa la spesa all'impiego selezionato
+            spesa.impiego_id = impiego_selezionato.id
+        else:
+            # Rimuove l'associazione se nessun impiego è selezionato
+            spesa.impiego_id = None
+            
+        db.session.commit()
+        flash('Spesa modificata con successo!', 'success')
+        return redirect(url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id))
 
-# ... (le altre tue rotte) ...
+    # Al primo caricamento (GET), il template mostrerà il form pre-compilato
+    return render_template('richiesta/crea_modifica_spesa.html',
+                           form=form,
+                           richiesta=richiesta,
+                           titolo="Modifica Spesa")
+
+# ... Cancella spesa 
+
+@richiesta_bp.route('/<int:richiesta_id>/spese/<int:spesa_id>/cancella', methods=['POST'])
+@login_required
+def cancella_spesa(richiesta_id, spesa_id):
+    spesa = Spesa.query.get_or_404(spesa_id)
+
+    # --- CONTROLLO DOCUMENTI ALLEGATI ---
+    # Grazie alla relazione 'documenti' nel modello Spesa, possiamo verificare
+    # se la lista di documenti associati non è vuota.
+    if spesa.documenti:
+        flash('Non puoi cancellare la spesa perché ha dei documenti allegati. Rimuovi prima i documenti.', 'danger')
+        return redirect(url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta_id))
+
+    # Se non ci sono documenti, procedi con la cancellazione
+    db.session.delete(spesa)
+    db.session.commit()
+    
+    flash('Spesa cancellata con successo.', 'success')
+    return redirect(url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta_id))
+
+
 
 # Rotta per la pagina di gestione dei documenti di una spesa
 @richiesta_bp.route('/spese/<int:spesa_id>/documenti', methods=['GET'])
@@ -257,23 +361,26 @@ def trasmetti_richiesta(richiesta_id):
 def download_documento(documento_id):
     """Permette il download sicuro dei documenti."""
     from flask import send_from_directory, abort
-    
+
     documento = DocumentoSpesa.query.get_or_404(documento_id)
-    
+
     # Verifica che l'utente abbia accesso a questo documento
     spesa = documento.spesa
     richiesta = spesa.richiesta
-    
+
     # Solo gli utenti autorizzati possono accedere
-    if current_user.role not in ['admin', 'istruttore'] and richiesta.organizzazione.id != current_user.organizzazione_id:
-        abort(403)  # Forbidden
-    
+    if current_user.role not in ['admin', 'istruttore']:
+        # Prendi tutti gli ID delle organizzazioni dell'utente
+        user_org_ids = [org.id for org in current_user.organizzazioni]
+        if richiesta.organizzazione.id not in user_org_ids:
+            abort(403)  # Forbidden
+
     if not documento.nome_file:
         flash("Nessun file disponibile per questo documento.", "warning")
         return redirect(url_for('richiesta.lista_documenti', spesa_id=spesa.id))
-    
+
     # Il percorso della directory uploads nell'instance folder
     uploads_dir = os.path.join(current_app.instance_path, 'uploads')
-    
+
     # Invia il file al client
     return send_from_directory(uploads_dir, documento.nome_file, as_attachment=True)
