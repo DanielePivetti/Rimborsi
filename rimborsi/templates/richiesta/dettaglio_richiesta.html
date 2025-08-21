@@ -32,6 +32,8 @@
             <dl class="row">
                 <dt class="col-sm-3">Evento</dt>
                 <dd class="col-sm-9">{{ richiesta.evento.nome }}</dd>
+                <dt class="col-sm-3">Protocollo di Attivazione</dt>
+                <dd class="col-sm-9">{{ richiesta.evento.protocollo_attivazione }}</dd>
                 <dt class="col-sm-3">Attività Svolta</dt>
                 <dd class="col-sm-9">{{ richiesta.attivita_svolta }}</dd>
             </dl>
@@ -159,7 +161,8 @@
                                 <th>Tipo Documento</th>
                                 <th>Data</th>
                                 <th>Fornitore</th>
-                                <th class="text-end">Importo</th>
+                                <th>Importo</th>
+                                <th class="text-end">Azioni</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -172,6 +175,11 @@
                                     <td>{{ doc.data_documento.strftime('%d/%m/%Y') }}</td>
                                     <td>{{ doc.fornitore or 'N/D' }}</td>
                                     <td class="text-end">&euro; {{ "%.2f"|format(doc.importo_documento) }}</td>
+                                    <td class="text-end">
+                                        <a href="{{ url_for('richiesta.modifica_documento', spesa_id=spesa.id, richiesta_id=richiesta.id, documento_id=doc.id) }}" class="btn btn-warning btn-sm" title="Modifica documento">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </td>
                                 </tr>
                                 {% endfor %}
                             {% else %}

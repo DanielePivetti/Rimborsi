@@ -4,6 +4,10 @@ from rimborsi.models import db, Evento, Richiesta, Organizzazione, Spesa, MezzoA
 from .forms import RichiestaForm, SpesaForm, ImpiegoMezzoForm, DocumentoSpesaForm
 import os
 from flask import send_from_directory, abort # import sicuro per i file
+from werkzeug.utils import secure_filename
+from flask import current_app # Importa current_app per accedere alla configurazione
+
+
 
 richiesta_bp = Blueprint('richiesta', __name__, 
                          template_folder='templates',
@@ -237,6 +241,7 @@ def cancella_spesa(richiesta_id, spesa_id):
 
 
 # Rotta per la pagina di gestione dei documenti di una spesa
+
 @richiesta_bp.route('/spese/<int:spesa_id>/documenti', methods=['GET'])
 @login_required
 def lista_documenti(spesa_id):
@@ -245,11 +250,6 @@ def lista_documenti(spesa_id):
     form = DocumentoSpesaForm() # Form per aggiungere nuovi documenti
     return render_template('richiesta/lista_documenti.html', spesa=spesa, form=form, richiesta=richiesta)
 
-# Rotta per salvare un nuovo documento (chiamata dal form)
-# in rimborsi/richieste/routes.py
-import os
-from werkzeug.utils import secure_filename
-from flask import current_app # Importa current_app per accedere alla configurazione
 
 # ... (le altre rotte) ...
 
@@ -291,6 +291,55 @@ def crea_documento(spesa_id):
         flash('Errore nella compilazione del form.', 'danger')
         
     return redirect(url_for('richiesta.lista_documenti', spesa_id=spesa_id))
+
+# Rotta per modificare un documento
+
+@richiesta_bp.route('/spese/<int:spesa_id>/documenti/<int:documento_id>/modifica', methods=['GET', 'POST'])
+@login_required
+def modifica_documento(spesa_id, documento_id):
+    # Recupera gli oggetti esistenti o restituisce un errore 404
+    spesa = Spesa.query.get_or_404(spesa_id)
+    documento = DocumentoSpesa.query.get_or_404(documento_id)
+    richiesta = spesa.richiesta  # <-- aggiungi questa riga
+   
+        # Pre-compila il form con i dati del documento esistente
+    form = DocumentoSpesaForm(obj=documento)
+    TIPI_SENZA_IMPORTO = ['C', 'D']
+    if form.validate_on_submit():
+        # Aggiorna i dati del documento con quelli inviati dal form
+        documento.tipo_documento = form.tipo_documento.data
+        documento.data_documento = form.data_documento.data
+        documento.fornitore = form.fornitore.data
+        
+        # Gestisce l'aggiornamento del file, se ne viene caricato uno nuovo
+        if form.allegato.data:
+            file = form.allegato.data
+            nome_file_sicuro = secure_filename(file.filename)
+            # (Opzionale ma consigliato: qui potresti voler cancellare il vecchio file dal server)
+            percorso_salvataggio = os.path.join(current_app.instance_path, 'uploads', nome_file_sicuro)
+            file.save(percorso_salvataggio)
+            documento.nome_file = nome_file_sicuro
+
+        # Applica la stessa logica di controllo per l'importo
+        importo = form.importo_documento.data
+        if documento.tipo_documento in TIPI_SENZA_IMPORTO:
+            importo = 0.00
+        documento.importo_documento = importo
+
+        db.session.commit()
+        flash('Documento modificato con successo.', 'success')
+        # Reindirizza alla lista dei documenti della spesa
+        return redirect(url_for('richiesta.lista_documenti', spesa_id=spesa.id))
+
+    # Per le richieste GET, mostra il form pre-compilato con i dati attuali
+    # Se la validazione POST fallisce, mostra il form con gli errori
+    return render_template('richiesta/modifica_documento.html', 
+                           form=form, 
+                           spesa=spesa, 
+                           documento=documento,
+                           richiesta=richiesta,
+                           titolo="Modifica Documento")
+
 
 # Rotta per cancellare un documento
 @richiesta_bp.route('/documenti/cancella/<int:documento_id>', methods=['POST'])

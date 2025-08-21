@@ -18,12 +18,21 @@
                         </small>
                         {% endif %}
                     </div>
-                    <div>
+                    
+                    <div class="ms-2">
+                        <a href="{{ url_for('richiesta.modifica_documento', spesa_id=spesa.id ,  documento_id=doc.id) }}" 
+                           class="btn btn-sm btn-outline-secondary me-1" 
+                           title="Modifica"
+                           {% if richiesta.stato != 'A' %} style="pointer-events: none; opacity: 0.65;" aria-disabled="true" {% endif %}>
+                            <i class="fas fa-pencil-alt"></i>
+                        </a>
+
                         {% if doc.nome_file %}
                         <a href="{{ url_for('richiesta.download_documento', documento_id=doc.id) }}" class="btn btn-sm btn-outline-primary me-1" title="Scarica">
                             <i class="fas fa-download"></i>
                         </a>
                         {% endif %}
+
                         <form action="{{ url_for('richiesta.cancella_documento', documento_id=doc.id) }}" method="POST" class="d-inline">
                             <button type="submit" class="btn btn-sm btn-outline-danger" 
                                     onclick="return confirm('Sei sicuro?');" 

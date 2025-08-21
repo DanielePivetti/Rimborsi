@@ -1,31 +1,14 @@
+{# File: modifica_documento.html #}
 {% extends 'base.html' %}
-{% block title %}Gestione Documenti{% endblock %}
+{% block title %}Modifica Documento{% endblock %}
 
 {% block content %}
-    <div class="mb-4">
-        <h2 class="mb-0">Gestione Documenti</h2>
-        <p class="lead text-muted">Per la spesa: "{{ spesa.descrizione_spesa }}" di € {{ "%.2f"|format(spesa.importo_richiesto) }}</p>
-    {#    <div class="alert alert-info">DEBUG: richiesta.stato = {{ richiesta.stato }}</div> #}
-    </div>
-
-    <div class="row g-4">
-        {# Colonna con il form per aggiungere un nuovo documento #}
+<div class="container">
+    <div class="row justify-content-center">
+        {# La rotta passa l'oggetto 'documento', quindi il form sarà in modalità "modifica" #}
         {% include 'partials/_form_documento.html' %}
-
-        {# Colonna con la lista dei documenti già caricati #}
-        {% include 'partials/_lista_documenti_caricati.html' %}
     </div>
-    
-    {# Link per tornare alla pagina di dettaglio #}
-    
-    <div class="mt-4">
-    <a href="{{ url_for('richiesta.dettaglio_richiesta', richiesta_id=spesa.richiesta_id) }}" class="btn btn-secondary">
-        <i class="fas fa-arrow-left me-1"></i> Torna al Dettaglio Richiesta
-    </a>
-    </div>
-
-    {# Modale per la fotocamera #}
-    {% include 'partials/_modal_camera.html' %}
+</div>
 {% endblock %}
 
 {% block scripts %}
