@@ -1,55 +1,237 @@
 {% extends 'base.html' %}
 
-{% block title %}Homepage{% endblock %}
+{% block title %}Piattaforma Rimborsi{% endblock %}
 
 {% block content %}
-<div class="row row-cols-1 row-cols-md-3 g-4 mb-4">
-    <div class="col">
-        <div class="card shadow-sm h-100" style="background-color: #e6f2ff; border: 1px solid #2e0e86;">
-            <div class="card-body text-center">
-                <h5 class="card-title" style="font-weight: bold;">Sei un compilatore</h5>
-                <p class="card-text" align="center">Se sei registrato puoi compilare 
-                    la richiesta di rimborso per conto della tua organizzazione di volontariato. 
-                    Se non sei registrato devi procedere alla registrazione. 
-                    L'amministratore ti associerà alle organizzazioni 
-                    per cui devi effettuare la compilazione</p>
-                <div class="d-grid gap-2">
-                    <a href="{{ url_for('auth.login') }}" class="btn btn-primary">
-                        <i class="fas fa-sign-in-alt me-1"></i>
-                        Accedi all'area compilatore
-                    </a>
-                    <a href="{{ url_for('auth.registrati') }}" class="btn btn-outline-primary">
-                        <i class="fas fa-user-plus me-1"></i>
-                        Registrati come compilatore
-                    </a>
+<!-- Header Section -->
+<div class="bg-light py-3 mb-4 rounded-3 shadow-sm border-bottom border-primary border-3">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h2 class="text-primary fw-bold mb-0">
+                    <i class="fas fa-hand-holding-dollar me-2"></i>Piattaforma Rimborsi
+                </h2>
+                <p class="text-muted small mb-0">
+                    Gestione della procedura di richiesta di rimborso secondo l'articolo 40 del d.lgs 1/2018
+                </p>
+            </div>
+            <div class="col-md-4 text-end d-none d-md-block">
+                <span class="badge bg-primary rounded-pill p-2">
+                    <i class="fas fa-check-circle me-1"></i> Sistema Attivo
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Role Cards -->
+<div class="container">
+    <div class="row g-4">
+        <!-- Compilatore Card -->
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm hover-card">
+                <div class="card-header bg-primary bg-opacity-10 border-primary border-start border-4 py-3">
+                    <h5 class="card-title text-primary mb-0 fw-bold">
+                        <i class="fas fa-user-edit me-2"></i>Sei un compilatore
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex mb-3">
+                        <div class="flex-shrink-0">
+                            <span class="badge rounded-circle bg-primary p-2">
+                                <i class="fas fa-clipboard-list"></i>
+                            </span>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <p class="card-text small">
+                                Se sei registrato puoi compilare la richiesta di rimborso per conto della tua organizzazione di volontariato.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex mb-3">
+                        <div class="flex-shrink-0">
+                            <span class="badge rounded-circle bg-primary p-2">
+                                <i class="fas fa-user-plus"></i>
+                            </span>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <p class="card-text small">
+                                Se non sei registrato devi procedere alla registrazione.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex mb-3">
+                        <div class="flex-shrink-0">
+                            <span class="badge rounded-circle bg-primary p-2">
+                                <i class="fas fa-link"></i>
+                            </span>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <p class="card-text small">
+                                L'amministratore ti associerà alle organizzazioni per cui devi effettuare la compilazione.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 mt-3">
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt me-1"></i>
+                            Accedi all'area compilatore
+                        </a>
+                        <a href="{{ url_for('auth.registrati') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-user-plus me-1"></i>
+                            Registrati come compilatore
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    <div class="col">
-        <div class="card shadow-sm h-100" style="background-color: #e6f2ff; border: 1px solid #2e0e86;">
-            <div class="card-body text-center">
-                <h5 class="card-title" style="font-weight: bold;">Sei un istruttore</h5>
-                <p class="card-text" align="center">Puoi prendere censire gli eventi per 
-                    i quali ogni organizzazione può trasmettere inle richieste di rimborso;
-                    puoi esaminare le richieste  della tua coda di lavoro, esaminare le spese e e i documenti 
-                    allegati e registrare l'esito dell'istruttoria.</p>
-                <a href="{{ url_for('auth.login') }}" class="btn btn-primary">Accedi all'area istruttore</a>
-
+        
+        <!-- Istruttore Card -->
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm hover-card">
+                <div class="card-header bg-success bg-opacity-10 border-success border-start border-4 py-3">
+                    <h5 class="card-title text-success mb-0 fw-bold">
+                        <i class="fas fa-search me-2"></i>Sei un istruttore
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex mb-3">
+                        <div class="flex-shrink-0">
+                            <span class="badge rounded-circle bg-success p-2">
+                                <i class="fas fa-calendar-alt"></i>
+                            </span>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <p class="card-text small">
+                                Puoi censire gli eventi per i quali ogni organizzazione può trasmettere le richieste di rimborso.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex mb-3">
+                        <div class="flex-shrink-0">
+                            <span class="badge rounded-circle bg-success p-2">
+                                <i class="fas fa-tasks"></i>
+                            </span>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <p class="card-text small">
+                                Puoi esaminare le richieste della tua coda di lavoro, esaminare le spese e i documenti allegati.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex mb-3">
+                        <div class="flex-shrink-0">
+                            <span class="badge rounded-circle bg-success p-2">
+                                <i class="fas fa-check-double"></i>
+                            </span>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <p class="card-text small">
+                                Puoi registrare l'esito dell'istruttoria per ogni richiesta ricevuta.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid mt-3">
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-success">
+                            <i class="fas fa-sign-in-alt me-1"></i>
+                            Accedi all'area istruttore
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="col">
-        <div class="card shadow-sm h-100" style="background-color: #e6f2ff; border: 1px solid #2e0e86;">
-            <div class="card-body text-center">
-                <h5 class="card-title" style="font-weight: bold;">Sei un amministratore</h5>
-                <p class="card-text">Puoi censire le organizzazioni, i mezzi e le attrezzature 
-                    delle organizzazioni, gli eventi e puoi associare gli utenti registrati alle 
-                    rispettive organizzazioni</p>
-                <a href="{{ url_for('auth.login') }}" class="btn btn-primary">Accedi all'area amministratore</a>
+        
+        <!-- Amministratore Card -->
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm hover-card">
+                <div class="card-header bg-info bg-opacity-10 border-info border-start border-4 py-3">
+                    <h5 class="card-title text-info mb-0 fw-bold">
+                        <i class="fas fa-cogs me-2"></i>Sei un amministratore
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex mb-3">
+                        <div class="flex-shrink-0">
+                            <span class="badge rounded-circle bg-info p-2">
+                                <i class="fas fa-building"></i>
+                            </span>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <p class="card-text small">
+                                Puoi censire le organizzazioni partecipanti al sistema di rimborsi.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex mb-3">
+                        <div class="flex-shrink-0">
+                            <span class="badge rounded-circle bg-info p-2">
+                                <i class="fas fa-truck"></i>
+                            </span>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <p class="card-text small">
+                                Puoi gestire i mezzi e le attrezzature delle organizzazioni per facilitare la richiesta.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex mb-3">
+                        <div class="flex-shrink-0">
+                            <span class="badge rounded-circle bg-info p-2">
+                                <i class="fas fa-user-cog"></i>
+                            </span>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <p class="card-text small">
+                                Puoi associare gli utenti registrati alle rispettive organizzazioni e assegnare i ruoli.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid mt-3">
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-info text-white">
+                            <i class="fas fa-sign-in-alt me-1"></i>
+                            Accedi all'area amministratore
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Quick Help Section -->
+<div class="container mt-4">
+    <div class="alert alert-light border border-primary border-1 shadow-sm">
+        <div class="d-flex">
+            <div class="flex-shrink-0">
+                <i class="fas fa-info-circle text-primary fa-2x me-3"></i>
+            </div>
+            <div>
+                <h6 class="alert-heading fw-bold">Hai bisogno di aiuto?</h6>
+                <p class="mb-0 small">
+                    Se hai dubbi sul tuo ruolo o sul funzionamento della piattaforma, contatta l'amministratore del sistema.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.hover-card {
+    transition: all 0.3s ease;
+}
+
+.hover-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+}
+</style>
 {% endblock %}
+
