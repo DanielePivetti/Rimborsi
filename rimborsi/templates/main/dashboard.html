@@ -201,6 +201,11 @@
                         In Istruttoria <span class="badge bg-info">{{ richieste_in_istruttoria|length }}</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#tab-istruite">
+                        In Istruite <span class="badge bg-success">{{ richieste_istruite|length }}</span>
+                    </a>
+                </li>
             </ul>
         </div>
         <div class="card-body">
@@ -260,6 +265,42 @@
                             </tr>
                             {% else %}
                             <tr><td colspan="4" class="text-center">Nessuna richiesta in istruttoria.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="tab-pane fade" id="tab-istruite">
+                    <table class="table table-hover">
+                         <thead>
+                            <tr>
+                                <th>Evento</th>
+                                <th>Protocollo Invio</th>
+                                <th>Data Invio</th>
+                                <th>Protocollo Istruttoria</th>
+                                <th>Data Istruttoria</th>
+                                <th class="text-end">Importo Richiesto</th>
+                                <th class="text-end">Importo Approvato</th>
+                                <th class="text-center">Azione</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for richiesta in richieste_istruite %}
+                            <tr>
+                                <td>{{ richiesta.evento.nome }}</td>
+                                <td>{{ richiesta.protocollo_invio }}</td>
+                                <td>{{ richiesta.data_invio.strftime('%d/%m/%Y') }}</td>
+                                <td>{{ richiesta.protocollo_istruttoria }}</td>
+                                <td>{{ richiesta.data_fine_istruttoria.strftime('%d/%m/%Y') }}</td>
+                                <td class="text-end">&euro; {{ "%.2f"|format(richiesta.spese|sum(attribute='importo_richiesto')) }}</td>
+                                <td class="text-end">&euro; {{ "%.2f"|format(richiesta.spese|sum(attribute='importo_approvato')) }}</td>
+                                <td class="text-center">
+                                 <a href="{{ url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id) }}" class="btn btn-outline-info btn-sm" title="Visualizza Dettaglio">
+                                 <i class="fas fa-eye"></i>
+                                 </a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="4" class="text-center">Nessuna richiesta istruita.</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>

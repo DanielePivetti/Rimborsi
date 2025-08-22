@@ -4,8 +4,14 @@
 {% block content %}
     <div class="mb-4">
         <h2 class="mb-0">Gestione Documenti</h2>
-        <p class="lead text-muted">Per la spesa: "{{ spesa.descrizione_spesa }}" di € {{ "%.2f"|format(spesa.importo_richiesto) }}</p>
-    {#    <div class="alert alert-info">DEBUG: richiesta.stato = {{ richiesta.stato }}</div> #}
+        <p class="lead text-muted">
+        Per la spesa: "{{ spesa.descrizione_spesa }}" di € {{ "%.2f"|format(spesa.importo_richiesto) }}
+       </p>
+        {% set totale_caricato = spesa.documenti | map(attribute='importo_documento') | sum %}
+        <p>  Hai caricato euro <strong>{{ "%.2f"|format(totale_caricato) }}</strong>
+        e hai a disposizione un residuo di
+        <strong>{{ "%.2f"|format(spesa.importo_richiesto - totale_caricato) }}</strong>.
+        </p>
     </div>
 
     <div class="row g-4">

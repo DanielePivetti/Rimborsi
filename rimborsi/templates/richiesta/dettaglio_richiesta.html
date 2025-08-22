@@ -82,6 +82,7 @@
                                      <a href="{{ url_for('richiesta.lista_documenti', spesa_id=spesa.id) }}" class="btn btn-info btn-sm" title="Gestisci documenti">
                                          <i class="fas fa-file-alt"></i>
                                       </a>
+                                      {% if richiesta.stato == 'A' %}
                                        <a href="{{ url_for('richiesta.modifica_spesa', richiesta_id=richiesta.id, spesa_id=spesa.id) }}" class="btn btn-warning btn-sm" title="Modifica spesa">
                                             <i class="fas fa-edit"></i>
                                        </a>
@@ -90,6 +91,7 @@
                                                 <i class="fas fa-trash-alt"></i>
                                             </button>
                                         </form>
+                                        {% endif %}
                                 </td>
                             </tr>
                             {% else %}
@@ -134,17 +136,19 @@
                                         }}
                                 </td>
                                 <td class="text-center">
+                                    {% if richiesta.stato == 'A' %}
                                    <a href="{{ url_for('richiesta.modifica_impiego', richiesta_id=richiesta.id, impiego_id=impiego.id) }}" class="btn btn-sm btn-warning me-1">
                                     <i class="fas fa-edit"></i> Modifica
                                     </a>
                                     {#
-                                <form action="{{ url_for('richiesta.cancella_impiego', richiesta_id=richiesta.id, impiego_id=impiego.id) }}" method="POST" style="display:inline;">
+                                    <form action="{{ url_for('richiesta.cancella_impiego', richiesta_id=richiesta.id, impiego_id=impiego.id) }}" method="POST" style="display:inline;">
                                     <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Sei sicuro di voler cancellare questo impiego?');">
-                                    <i class="fas fa-trash-alt"></i> Cancella
-                                     </button>
-                                </form>
-                                #}
-                                </td>
+                                        <i class="fas fa-trash-alt"></i> Cancella
+                                    </button>
+                                    </form>
+                                    {#}
+                                    {% endif %}
+                               </td>                                 
                              </tr>
                              {% else %}
                             <tr><td colspan="3" class="text-center text-muted">Nessun impiego registrato.</td></tr>
@@ -176,9 +180,15 @@
                                     <td>{{ doc.fornitore or 'N/D' }}</td>
                                     <td class="text-end">&euro; {{ "%.2f"|format(doc.importo_documento) }}</td>
                                     <td class="text-end">
+                                        {%if richiesta.stato=='A'%}
                                         <a href="{{ url_for('richiesta.modifica_documento', spesa_id=spesa.id, richiesta_id=richiesta.id, documento_id=doc.id) }}" class="btn btn-warning btn-sm" title="Modifica documento">
                                             <i class="fas fa-edit"></i>
                                         </a>
+                                        {%elif doc.nome_file%}
+                                        <a href="{{ url_for('richiesta.download_documento', spesa_id=spesa.id, richiesta_id=richiesta.id, documento_id=doc.id) }}" class="btn btn-info btn-sm" title="Scarica documento">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                        {% endif %}
                                     </td>
                                 </tr>
                                 {% endfor %}
