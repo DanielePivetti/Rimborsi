@@ -1,4 +1,4 @@
-# from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import event
 from datetime import datetime
 from flask_login import UserMixin
 from . import db
@@ -67,6 +67,7 @@ class Evento(db.Model):
     __table_args__ = (db.UniqueConstraint('protocollo_attivazione', name='uq_evento_protocollo_attivazione'),)
 class Richiesta(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    codice_uni = db.Column(db.String(25),  nullable=False)
     stato = db.Column(db.String(1), default='A', nullable=False)
     esito = db.Column(db.String(1))
     attivita_svolta = db.Column(db.Text)
@@ -88,7 +89,20 @@ class Richiesta(db.Model):
     __table_args__ = (
         db.UniqueConstraint('protocollo_invio', name='uq_richiesta_protocollo_invio'),
         db.UniqueConstraint('protocollo_istruttoria', name='uq_richiesta_protocollo_istruttoria'),
+        db.UniqueConstraint('codice_uni', name='uq_richiesta_codice_uni')
     )
+
+# Generazione automatica del codice
+@event.listens_for(Richiesta, 'before_insert')
+def generate_codice(mapper, connection, target):
+    if not target.codice_uni:
+        org = Organizzazione.query.get(target.organizzazione_id)
+        if org and org.codice_interno:
+            datastamp = datetime.utcnow().strftime('%Y%m%d%H%M%S')
+            target.codice_uni = f"{org.codice_interno}{datastamp}"
+        else:
+            datastamp = datetime.utcnow().strftime('%Y%m%d%H%M%S')
+            target.codice_uni = f"ORG{datastamp}"
 
 
 class Spesa(db.Model):

@@ -10,7 +10,7 @@
 
     <div class="card shadow-sm">
         <div class="card-body">
-            <form method="POST" action="{{ url_for('richiesta.crea_richiesta') }}" novalidate>
+            <form method="POST" action="{{ action_url if action_url is defined else url_for('richiesta.crea_richiesta') }}" novalidate>
                 {{ form.hidden_tag() }} {# Token di sicurezza CSRF #}
 
                 {# NUOVO CAMPO: Selezione dell'Evento #}

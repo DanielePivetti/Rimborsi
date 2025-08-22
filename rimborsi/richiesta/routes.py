@@ -16,6 +16,7 @@ richiesta_bp = Blueprint('richiesta', __name__,
 # La rotta 'seleziona_evento' non è più necessaria e può essere cancellata.
 
 # --- NUOVA E UNICA ROTTA DI CREAZIONE ---
+
 @richiesta_bp.route('/crea', methods=['GET', 'POST'])
 @login_required
 def crea_richiesta():
@@ -53,7 +54,48 @@ def crea_richiesta():
     return render_template('richiesta/crea_richiesta.html',
                            form=form,
                            titolo="Crea Nuova Richiesta")
-    
+
+# Rotta di Modifica Richiesta
+@richiesta_bp.route('/<int:richiesta_id>/modifica', methods=['GET', 'POST'])
+@login_required
+def modifica_richiesta(richiesta_id):
+    richiesta = Richiesta.query.get_or_404(richiesta_id)
+    form = RichiestaForm(obj=richiesta)
+
+    if form.validate_on_submit():
+        # Aggiorna i campi della richiesta con i dati del form
+        richiesta.attivita_svolta = form.attivita_svolta.data
+        richiesta.data_inizio_attivita = form.data_inizio_attivita.data
+        richiesta.data_fine_attivita = form.data_fine_attivita.data
+        richiesta.numero_volontari_coinvolti = form.numero_volontari_coinvolti.data
+
+        db.session.commit()
+        flash('Richiesta modificata con successo!', 'success')
+        return redirect(url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id))
+
+    return render_template('richiesta/crea_richiesta.html',
+                           form=form,
+                           richiesta=richiesta,
+                           titolo="Modifica Richiesta",
+                           action_url=url_for('richiesta.modifica_richiesta', richiesta_id=richiesta.id)
+    )
+
+# Rotta di cancellazione della richiesta
+@richiesta_bp.route('/<int:richiesta_id>/cancella', methods=['POST'])
+@login_required
+def cancella_richiesta(richiesta_id):
+    richiesta = Richiesta.query.get_or_404(richiesta_id)
+    # Controllo per verificare se ci soono spese o impieghi associati
+    if richiesta.spese or richiesta.impieghi:
+        flash('Non puoi cancellare la richiesta se ci sono spese o impieghi associati.', 'danger')
+        return redirect(url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id))
+    db.session.delete(richiesta)
+    db.session.commit()
+    flash('Richiesta cancellata con successo.', 'success')
+    return redirect(url_for('main.dashboard'))
+
+ # Rotta per il dettaglio della richiesta
+ 
 @richiesta_bp.route('/dettaglio/<int:richiesta_id>')
 @login_required
 def dettaglio_richiesta(richiesta_id):
