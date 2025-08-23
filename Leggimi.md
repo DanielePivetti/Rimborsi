@@ -1,4 +1,4 @@
-Applicazione Prototipo Rimborsi articoli 40
+Applicazione Prototipo per la gestione dei Rimborsi articoli 40
 
 Ultimo commit 23/08/2025
 
