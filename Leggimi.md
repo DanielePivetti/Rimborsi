@@ -122,7 +122,3 @@ flask run  oppure
 python run.py
 
 L’applicazione sarà disponibile su http://127.0.0.1:5000
-
-9. Primo popolamento del database
-
-Lanciando lo script 
