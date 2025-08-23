@@ -65,17 +65,17 @@ def populate_db():
         # --- 3. Creazione Eventi ---
         evento1 = Evento(
             protocollo_attivazione="20250812DPC_0001",
-            nome="Emergenza Sisma Centro Italia 2025",
+            nome="Emergenza imprecisata Nord Italia 2025",
             tipologia='A', # Emergenza
             data_inizio=date(2025, 8, 12),
-            descrizione="Evento sismico di magnitudo 6.0 nell'Appennino centrale."
+            descrizione="Descrizione di un evento imprecisato nel Nord Italia."
         )
         evento2 = Evento(
             protocollo_attivazione="20250915DPC_0002",
-            nome="Esercitazione Nazionale Alpi 2025",
+            nome="Emergenza imprecisata Centro Italia 2025",
             tipologia='C', # Esercitazione
             data_inizio=date(2025, 9, 15),
-            descrizione="Esercitazione di ricerca e soccorso in ambiente montano."
+            descrizione="Descrizione di un evento imprecisato nel Centro Italia."
         )
         db.session.add_all([evento1, evento2])
         print("-> Eventi creati.")
@@ -91,13 +91,30 @@ def populate_db():
             descrizione='Ambulanza Fiat Ducato',
             organizzazione_id=org1.id
         )
+        
+        mezzo2 = MezzoAttrezzatura(
+            tipologia='A', # Mezzo
+            targa_inventario='CRI-TO-123',
+            descrizione='Ambulanza Fiat Ducato',
+            organizzazione_id=org2.id
+        )
+        
+        
         attrezzatura1 = MezzoAttrezzatura(
             tipologia='B', # Attrezzatura
-            targa_inventario='CVT-IDRO-01',
+            targa_inventario='XXXXXX1',
+            descrizione='Idrovora 1500 l/min',
+            organizzazione_id=org1.id
+        )
+        
+        attrezzatura2 = MezzoAttrezzatura(
+            tipologia='B', # Attrezzatura
+            targa_inventario='XXXXXX2',
             descrizione='Idrovora 1500 l/min',
             organizzazione_id=org2.id
         )
-        db.session.add_all([mezzo1, attrezzatura1])
+
+        db.session.add_all([mezzo1, mezzo2, attrezzatura1, attrezzatura2])
         print("-> Mezzi e Attrezzature creati.")
 
         # --- 5. Associazione Utente-Organizzazione ---
