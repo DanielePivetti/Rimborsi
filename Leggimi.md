@@ -123,3 +123,12 @@ python run.py
 
 L’applicazione sarà disponibile su http://127.0.0.1:5000
 
+9. Primo popolamento del database
+
+Lanciando lo script 
+python seed.py
+
+si creano due organizzazioni, i relativi mezzi, l'utente compilatore, l'utente istruttore e l'utente amministratore:
+compilatore@test.com, istruttore@test.com, admin@test.com
+   
+
