@@ -36,3 +36,9 @@ build/
 
 # File di sessione
 flask_session/
+
+# Filedati
+
+*.sqlite
+*.db
+instance/
