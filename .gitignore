@@ -19,6 +19,7 @@ __pycache__/
 
 # File locali e di configurazione
 instance/
+scripts/
 .webassets-cache
 .env
 .flaskenv
