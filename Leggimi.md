@@ -80,7 +80,7 @@ Flusso operativo Amministratore
 2B) Aggiunta e modifica Mezzi  
 (NO cancellazione)
 
-C= Istruzioni per l'installazione
+ISTRUZIONI PER L'INSTALLAZIONE
 
 Istruzioni per l’installazione
 1. Prerequisiti
@@ -92,6 +92,9 @@ Se non l’hai già fatto, scarica il progetto sul tuo computer:
 
 git clone <URL_DEL_REPOSITORY>
 cd rimborsi
+
+In alternativa si può scaricare il file zip del progetto
+
 
 3. Crea un ambiente virtuale
 Consigliato per isolare le dipendenze del progetto:
@@ -113,6 +116,13 @@ pip install -r requirements.txt
 
 6) Configura il database
 
+Prima  di effettuare l'inizializzazione del database impostare
+la variabile d'ambiente con questo comando
+
+export FLASK_APP="run.py:create_app"
+
+flask db init
+flask db migrate -m "migrazione iniziale"
 flask db upgrade
 
 8. Avvia l’applicazione
@@ -122,3 +132,19 @@ flask run  oppure
 python run.py
 
 L’applicazione sarà disponibile su http://127.0.0.1:5000
+
+9. Popolamento del database. 
+
+python seed.py
+
+Con questo file vengono creati 2 organizzazioni 2 mezzi, due eventi e tre utenti con password 12345. 
+- Compilatore associato alla  prima organizzazione (compilatore@test.com)
+- Istruttore (istruttore@test.com)
+- Amministratore (admin@test.com)
+
+Per eliminare e ripolare il database
+
+python seed.py clear
+
+python seed.py clear
+

@@ -2,10 +2,30 @@
 from flask import app
 from rimborsi  import create_app  # Importa l'istanza dell'app Flask dal tuo file principale
 from rimborsi.models  import db, User, Organizzazione, Evento, MezzoAttrezzatura
+from rimborsi.models import associazione_utente_organizzazione
 from werkzeug.security import generate_password_hash
 from datetime import date
 
 app = create_app()
+
+# Funzione per svuotare le tabelle iniziali
+
+def clear_db():
+    """
+    Svuota tutte le tabelle principali del database.
+    """
+    with app.app_context():
+        print("Svuotamento delle tabelle...")
+        # Elimina tutte le relazioni many-to-many se presenti
+        # Poi elimina i dati dalle tabelle principali
+        db.session.query(associazione_utente_organizzazione).delete()
+        db.session.query(Evento).delete()
+        db.session.query(MezzoAttrezzatura).delete()
+        db.session.query(User).delete()
+        db.session.query(Organizzazione).delete()
+        db.session.commit()
+        print("Tabelle svuotate.")
+
 
 def populate_db():
     """
@@ -25,22 +45,24 @@ def populate_db():
         # In un'applicazione reale, questa non sarebbe una buona pratica.
         hashed_password = generate_password_hash("password", method='pbkdf2:sha256')
 
+        # Puoi impostare una password diversa per ogni utente se vuoi.
+        # Ad esempio, qui impostiamo "12345" come password per l'admin.
         admin_user = User(
             username='admin',
             email='admin@test.com',
-            password_hash=hashed_password,
+            password_hash=generate_password_hash("12345", method='pbkdf2:sha256'),
             role='amministratore'
         )
         istruttore_user = User(
             username='istruttore',
             email='istruttore@test.com',
-            password_hash=hashed_password,
+            password_hash=generate_password_hash("12345", method='pbkdf2:sha256'),
             role='istruttore'
         )
         compilatore_user = User(
             username='compilatore',
             email='compilatore@test.com',
-            password_hash=hashed_password,
+            password_hash=generate_password_hash("12345", method='pbkdf2:sha256'),
             role='compilatore'
         )
         db.session.add_all([admin_user, istruttore_user, compilatore_user])
@@ -128,4 +150,8 @@ def populate_db():
 
 
 if __name__ == '__main__':
-    populate_db()
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == "clear":
+        clear_db()
+    else:
+        populate_db()

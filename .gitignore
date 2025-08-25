@@ -43,3 +43,4 @@ flask_session/
 *.sqlite
 *.db
 instance/
+migrations/
