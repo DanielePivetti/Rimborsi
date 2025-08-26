@@ -1,0 +1,26 @@
+<div class="modal fade" id="modalRichiestaIntegrazione" tabindex="-1" aria-labelledby="modalRichiestaIntegrazioneLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="{{ url_for('istruttoria.richiedi_integrazione', richiesta_id=richiesta.id) }}">
+        {{ form.hidden_tag() }}
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalRichiestaIntegrazioneLabel">Richiedi Integrazione</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            {{ form.motivazione.label(class="form-label") }}
+            {{ form.motivazione(class="form-control", rows=3, placeholder="Inserisci la motivazione") }}
+            {% for error in form.motivazione.errors %}
+              <div class="text-danger small">{{ error }}</div>
+            {% endfor %}
+          </div>
+          <div class="alert alert-warning" role="alert">
+            Sei sicuro di voler richiedere un'integrazione? L'azione non è reversibile.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+          <button type="submit" class="btn btn-warning">Conferma richiesta</button>
+        </div>
+      </form>

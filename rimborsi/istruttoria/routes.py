@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
-from rimborsi.models import Evento, db, Richiesta, UserMixin, Spesa, DocumentoSpesa 
+from rimborsi.models import Evento, db, Richiesta, UserMixin, Spesa, DocumentoSpesa, Comunicazione 
 from datetime import datetime
-from .forms import EventoForm 
+from .forms import EventoForm, IntegrazioneRequestForm 
 from werkzeug.utils import secure_filename # Importa il form dalla cartella corrente
 
 
@@ -74,8 +74,9 @@ def dettaglio_istruttoria(richiesta_id):
         return redirect(url_for('main.dashboard'))
 
     richiesta = Richiesta.query.get_or_404(richiesta_id)
+    form = IntegrazioneRequestForm()  # crea il form
     # Per ora passiamo solo la richiesta, il template navigherà le relazioni
-    return render_template('istruttoria/dettaglio_istruttoria.html', richiesta=richiesta)
+    return render_template('istruttoria/dettaglio_istruttoria.html', richiesta=richiesta, form=form)
 
 # Rotta per il salvataggio dell'istruttoria
 
@@ -134,8 +135,37 @@ def controlla_istruttoria(richiesta_id):
                            richiesta=richiesta,
                            totale_richiesto=totale_richiesto,
                            totale_approvato=totale_approvato)
-     
-    
+
+# Rotta per la richiesta di integrazione
+@istruttoria_bp.route('/<int:richiesta_id>/richiedi_integrazione', methods=['GET', 'POST'])
+@login_required
+def richiedi_integrazione(richiesta_id):
+    richiesta = Richiesta.query.get_or_404(richiesta_id)
+
+    form = IntegrazioneRequestForm()
+
+    if form.validate_on_submit():
+        # Cambia lo stato della richiesta da 'B' a 'A'
+        richiesta.stato = 'A'  # Stato: In bozza
+
+        comunicazione = Comunicazione(richiesta_id=richiesta.id)
+        comunicazione.utente = current_user
+        comunicazione.data_transazione = datetime.utcnow()
+        protocollo = f"INT-{datetime.utcnow().strftime('%Y%m%d')}-{richiesta.id}"
+        comunicazione.protocollo = protocollo
+        comunicazione.stato_precedente = 'B'
+        comunicazione.stato_successore = 'A'
+        comunicazione.descrizione = form.motivazione.data
+
+        db.session.add(comunicazione)
+        db.session.commit()
+        flash("Richiesta di integrazione inviata con successo, con protocollo: " + protocollo, "success")
+        return redirect(url_for('main.dashboard'))
+# Form non valido
+    return render_template('istruttoria/_modal_richiesta_integrazione.html', richiesta=richiesta, form=form)
+
+# Rotta per la conclusione dell'istruttoria
+
 @istruttoria_bp.route('/<int:richiesta_id>/concludi', methods=['POST'])
 @login_required
 def concludi_istruttoria(richiesta_id):
@@ -148,7 +178,19 @@ def concludi_istruttoria(richiesta_id):
     richiesta.note_istruttoria = request.form.get('note_istruttoria')
     richiesta.data_fine_istruttoria = datetime.utcnow()
     richiesta.protocollo_istruttoria = f"ISTR-{datetime.utcnow().strftime('%Y%m%d')}-{richiesta.id}"
-    
+
+    # Aggiorna campi table Comunicazione
+
+    comunicazione = Comunicazione(richiesta_id=richiesta.id)
+    comunicazione.utente = current_user
+    comunicazione.data_transazione = datetime.utcnow()
+    comunicazione.protocollo = richiesta.protocollo_istruttoria
+    comunicazione.stato_precedente = 'B'
+    comunicazione.stato_successore = 'C'
+    comunicazione.descrizione = f"Richiesta istruita con esito = {richiesta.esito}"
+
+    db.session.add(comunicazione)
+
     db.session.commit()
     
     flash(f"Istruttoria conclusa con successo! Protocollo: {richiesta.protocollo_istruttoria}", 'success')

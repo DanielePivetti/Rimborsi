@@ -65,6 +65,7 @@ class Evento(db.Model):
     richieste = db.relationship('Richiesta', backref='evento', lazy=True)
 
     __table_args__ = (db.UniqueConstraint('protocollo_attivazione', name='uq_evento_protocollo_attivazione'),)
+
 class Richiesta(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     codice_uni = db.Column(db.String(25),  nullable=False)
@@ -93,6 +94,7 @@ class Richiesta(db.Model):
     )
 
 # Generazione automatica del codice
+
 @event.listens_for(Richiesta, 'before_insert')
 def generate_codice(mapper, connection, target):
     if not target.codice_uni:
@@ -169,3 +171,17 @@ class ImpiegoMezzoAttrezzatura(db.Model):
     mezzo_attrezzatura_id = db.Column(db.Integer, db.ForeignKey('mezzo_attrezzatura.id'), nullable=False)
    # spesa_id = db.Column(db.Integer, db.ForeignKey('spesa.id'), unique=True, nullable=True)
     spese = db.relationship('Spesa', backref='impiego', lazy='dynamic')
+
+class Comunicazione(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    richiesta_id = db.Column(db.Integer, db.ForeignKey('richiesta.id'), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    data_transazione = db.Column(db.DateTime, nullable=True)
+    protocollo = db.Column(db.String(30), nullable=True)
+    stato_precedente = db.Column(db.String(30), nullable=True)
+    stato_successore = db.Column(db.String(30), nullable=True)
+    descrizione = db.Column(db.Text, nullable=True)
+
+    # Definisci la relazione con db.relationship
+    richiesta = db.relationship('Richiesta', backref='comunicazioni')
+    utente = db.relationship('User', backref='comunicazioni')

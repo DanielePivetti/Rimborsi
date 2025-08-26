@@ -27,3 +27,15 @@ class EventoForm(FlaskForm):
     data_fine = DateField('Data Fine', format='%Y-%m-%d', validators=[Optional()])
     # submit: pulsante per inviare il modulo
     submit = SubmitField('Salva Evento')
+
+class IntegrazioneRequestForm(FlaskForm):
+    """
+    Form per gestire le richieste di integrazione.
+    """
+    motivazione = TextAreaField('Motivazione della richesta',
+                 validators=[DataRequired(message="La motivazione è obbligatoria."),
+                        Length(min=10, max=500, message="La motivazione deve essere compresa tra 10 e 500 caratteri.")
+                    ]
+                )
+    
+    submit = SubmitField('Invia Richiesta di Integrazione')

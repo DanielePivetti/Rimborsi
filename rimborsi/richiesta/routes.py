@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash
 from flask_login import login_required, current_user
-from rimborsi.models import db, Evento, Richiesta, Organizzazione, Spesa, MezzoAttrezzatura, ImpiegoMezzoAttrezzatura, DocumentoSpesa
+from rimborsi.models import db, Evento, Richiesta, Organizzazione, Spesa, MezzoAttrezzatura, ImpiegoMezzoAttrezzatura, DocumentoSpesa, Comunicazione
 from .forms import RichiestaForm, SpesaForm, ImpiegoMezzoForm, DocumentoSpesaForm
 import os
 from flask import send_from_directory, abort # import sicuro per i file
@@ -107,7 +107,10 @@ def dettaglio_richiesta(richiesta_id):
     # In futuro, qui aggiungeremo le query per caricare spese, mezzi, etc.
 
     # Corretto: renderizziamo un template invece di reindirizzare alla stessa route
-    return render_template('richiesta/dettaglio_richiesta.html', richiesta=richiesta)
+    comunicazioni = Comunicazione.query.filter_by(richiesta_id=richiesta.id).order_by(Comunicazione.data_transazione.desc()).all()
+    return render_template('richiesta/dettaglio_richiesta.html',
+                            richiesta=richiesta,
+                              comunicazioni=comunicazioni)
 
 # Rotta per Impiego Mezzo
 
@@ -441,6 +444,17 @@ def trasmetti_richiesta(richiesta_id):
     # Genera un numero di protocollo univoco (es. ANNO-MESE-GIORNO-ID)
     richiesta.protocollo_invio = f"{datetime.utcnow().strftime('%Y%m%d')}-{richiesta.id}"
     
+    # Aggiorna campi table Comunicazione
+
+    comunicazione = Comunicazione(richiesta_id=richiesta.id)
+    comunicazione.utente = current_user
+    comunicazione.data_transazione = datetime.utcnow()
+    comunicazione.protocollo =  richiesta.protocollo_invio
+    comunicazione.stato_precedente = 'A'
+    comunicazione.stato_successore = 'B'
+    comunicazione.descrizione = 'Richiesta trasmessa'
+
+    db.session.add(comunicazione)
     db.session.commit()
     
     flash(f"Richiesta trasmessa con successo! Numero di protocollo: {richiesta.protocollo_invio}", 'success')
