@@ -11,12 +11,18 @@
                     <div class="text-center mb-3 p-2 bg-light rounded">
                     {% if tutti_verificati %}
                         <form action="{{ url_for('istruttoria.reset_verifica_documenti', spesa_id=spesa.id) }}" method="POST" class="d-inline">
-                            <button type="submit" class="btn btn-sm btn-outline-secondary"><i class="fas fa-undo me-1"></i> Annulla Verifica Documenti</button>
+                            <button type="submit" class="btn btn-sm btn-outline-secondary"
+                                {% if spesa.richiesta.stato != 'B' %}disabled{% endif %}>
+                                <i class="fas fa-undo me-1"></i> Annulla Verifica Documenti
+                            </button>
                         </form>
                     {% else %}
-                        <form action="{{ url_for('istruttoria.verifica_tutti_documenti', spesa_id=spesa.id) }}" method="POST" class="d-inline">
-                            <button type="submit" class="btn btn-sm btn-success"><i class="fas fa-check me-1"></i> Verifica Tutti i Documenti</button>
-                    </form>
+                         <form action="{{ url_for('istruttoria.verifica_tutti_documenti', spesa_id=spesa.id) }}" method="POST" class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-success"
+                                {% if spesa.richiesta.stato != 'B' %}disabled{% endif %}>
+                                <i class="fas fa-check me-1"></i> Verifica Tutti i Documenti
+                            </button>
+                        </form>
                      {% endif %}    
                 </div>
                 {% endif %}
@@ -45,7 +51,8 @@
                     {% endfor %}
                 </ul>
                 <div class="text-end">
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary"
+                       {% if spesa.richiesta.stato != 'B' %}disabled {% endif %}>
                         <i class="fas fa-save me-1"></i> Salva Verifiche
                     </button>
                 </div>

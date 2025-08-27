@@ -78,8 +78,10 @@
                     <table class="table table-hover">
                         <thead>
                             <tr>
-                                <th>Data Invio</th>
-                                <th>Protocollo</th>
+                                <th>Codice Identificativo</th>
+                                <th>Protocollo invio</th>
+                                <th>Data invio</th>
+                                <th>Evento</th>
                                 <th>Organizzazione</th>
                                 <th class="text-end">Importo Richiesto</th>
                                 <th class="text-center">Azione</th>
@@ -88,8 +90,10 @@
                         <tbody>
                             {% for richiesta in richieste_da_istruire %}
                             <tr>
-                                <td>{{ richiesta.data_invio.strftime('%d/%m/%Y') }}</td>
+                                <td>{{ richiesta.codice_uni }}</td>
                                 <td>{{ richiesta.protocollo_invio }}</td>
+                                <td>{{ richiesta.data_invio.strftime('%d/%m/%Y') }}</td>
+                                <td>{{ richiesta.evento.nome }}</td>
                                 <td>{{ richiesta.organizzazione.nome }}</td>
                                 <td class="text-end">&euro; {{ "%.2f"|format(richiesta.spese|sum(attribute='importo_richiesto')) }}</td>
                                 <td class="text-center">
@@ -109,21 +113,33 @@
                     <table class="table table-hover">
                         <thead>
                             <tr>
+                                <th>Codice Identificativo</th>
                                 <th>Data Fine Istruttoria</th>
-                                <th>Protocollo</th>
+                                <th>Protocollo istruttoria</th>
+                                <th>Evento</th>
                                 <th>Organizzazione</th>
-                                <th class="text-end">Importo Approvato</th>
+                                <th> Importo Richiesto</th>
+                                <th> Importo Approvato</th>
                                 <th class="text-center">Esito</th>
+                                <th class="text-center">Azione</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for richiesta in richieste_istruite %}
                             <tr>
+                                <td>{{ richiesta.codice_uni }}</td>
                                 <td>{{ richiesta.data_fine_istruttoria.strftime('%d/%m/%Y') }}</td>
                                 <td>{{ richiesta.protocollo_istruttoria }}</td>
+                                <td>{{ richiesta.evento.nome }}</td>
                                 <td>{{ richiesta.organizzazione.nome }}</td>
-                                <td class="text-end">&euro; 0.00</td> {# Placeholder #}
-                                <td class="text-center"><span class="badge bg-secondary">{{ richiesta.esito }}</span></td> {# Placeholder #}
+                                <td class="text-end">&euro; {{ "%.2f"|format(richiesta.spese|sum(attribute='importo_richiesto')) }}</td>
+                                <td class="text-end">&euro; {{ "%.2f"|format(richiesta.spese|sum(attribute='importo_approvato')) }}</td>
+                                <td class="text-center"><span class="badge bg-secondary">{{ richiesta.esito }}</span></td>
+                                <td class="text-center">
+                                    <a href="{{ url_for('istruttoria.dettaglio_istruttoria', richiesta_id=richiesta.id) }}" class="btn btn-warning btn-sm" title="Visualizza Istruttoria">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
                             </tr>
                             {% else %}
                             <tr><td colspan="5" class="text-center text-muted">Nessuna richiesta già istruita.</td></tr>
