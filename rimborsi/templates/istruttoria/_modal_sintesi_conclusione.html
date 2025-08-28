@@ -1,0 +1,55 @@
+<div class="modal fade" id="modalSintesiConclusione_{{ richiesta.id }}" tabindex="-1" aria-labelledby="modalSintesiConclusioneLabel_{{ richiesta.id }}" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="modalSintesiConclusioneLabel_{{ richiesta.id }}">Conclusione Istruttoria</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+      </div>
+      <div class="modal-body">
+        <div class="text-center mb-4">
+          <p class="lead text-muted">
+            Riepilogo finale e registrazione dell'esito per la richiesta <strong>{{ richiesta.protocollo_invio }}</strong>.
+          </p>
+        </div>
+        {% set totale_rischiesto = richiesta.spese | sum(attribute='importo_richiesto') %}
+        {% set totale_approvato = richiesta.spese | sum(attribute='importo_approvato') %}
+        <div class="row text-center mb-4">
+          <div class="col">
+            <div class="stat-box p-2">
+              <span class="fs-4 fw-bold text-danger">&euro; {{ "%.2f"|format(totale_rischiesto) }}</span>
+              <br><span class="text-muted">Importo Totale Richiesto</span>
+            </div>
+          </div>
+          <div class="col">
+            <div class="stat-box p-2">
+              <span class="fs-4 fw-bold text-success">&euro; {{ "%.2f"|format(totale_approvato) }}</span>
+              <br><span class="text-muted">Importo Totale Approvato</span>
+            </div>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold">Esito Istruttoria</label>
+          <div>
+            <span class="badge 
+              {% if richiesta.esito == 'A' %}bg-success
+              {% elif richiesta.esito == 'B' %}bg-warning text-dark
+              {% else %}bg-danger
+              {% endif %}">
+              {% if richiesta.esito == 'A' %}APPROVATA
+              {% elif richiesta.esito == 'B' %}APPROVATA PARZIALMENTE
+              {% else %}RESPINTA
+              {% endif %}
+            </span>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold">Note Conclusive</label>
+          <div class="border rounded p-2 bg-light">{{ richiesta.note_istruttoria or '-' }}</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
+      </div>
+    </div>
+  </div>
+</div>
