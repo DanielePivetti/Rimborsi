@@ -141,6 +141,10 @@ def controlla_istruttoria(richiesta_id):
 @login_required
 def richiedi_integrazione(richiesta_id):
     richiesta = Richiesta.query.get_or_404(richiesta_id)
+     # ==> AGGIUNTA: Controllo di sicurezza sullo stato
+    if richiesta.stato != 'B': # Sostituisci 'B' con il tuo stato 'In Istruttoria'
+        flash("Azione non permessa: la richiesta non è in stato di istruttoria.", "danger")
+        return redirect(url_for('main.dashboard'))
 
     form = IntegrazioneRequestForm()
 
@@ -171,6 +175,10 @@ def richiedi_integrazione(richiesta_id):
 def concludi_istruttoria(richiesta_id):
     """Finalizza l'istruttoria, cambia stato e salva il protocollo."""
     richiesta = Richiesta.query.get_or_404(richiesta_id)
+    # ==> AGGIUNTA: Controllo di sicurezza sullo stato
+    if richiesta.stato != 'B': # Stato 'In Istruttoria'
+        flash("Azione non permessa.", "danger")
+        return redirect(url_for('main.dashboard'))
     
     # Aggiorna i campi della richiesta (qui recupererai i dati dal form di riepilogo)
     richiesta.stato = 'C'  # Stato: Istruita

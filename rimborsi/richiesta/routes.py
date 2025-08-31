@@ -433,32 +433,47 @@ from datetime import datetime
 @login_required
 def trasmetti_richiesta(richiesta_id):
     """
-    Finalizza la trasmissione della richiesta.
+    Gestisce la trasmissione e la ritrasmissione di una richiesta,
+    preservando la data del primo invio.
     """
     richiesta = Richiesta.query.get_or_404(richiesta_id)
 
-    # Aggiorna i campi della richiesta
-    richiesta.stato = 'B'  # Stato: In Istruttoria
-    richiesta.data_invio = datetime.utcnow()
-    
-    # Genera un numero di protocollo univoco (es. ANNO-MESE-GIORNO-ID)
-    richiesta.protocollo_invio = f"{datetime.utcnow().strftime('%Y%m%d')}-{richiesta.id}"
-    
-    # Aggiorna campi table Comunicazione
+    # Controlla se è la prima trasmissione verificando se la data_invio è vuota
+    is_first_transmission = not richiesta.data_invio
 
-    comunicazione = Comunicazione(richiesta_id=richiesta.id)
-    comunicazione.utente = current_user
-    comunicazione.data_transazione = datetime.utcnow()
-    comunicazione.protocollo =  richiesta.protocollo_invio
-    comunicazione.stato_precedente = 'A'
-    comunicazione.stato_successore = 'B'
-    comunicazione.descrizione = 'Richiesta trasmessa'
+    if is_first_transmission:
+        # È il primo invio: imposta data e protocollo originali
+        richiesta.data_invio = datetime.utcnow()
+        richiesta.protocollo_invio = f"{datetime.utcnow().strftime('%Y%m%d')}-{richiesta.id}"
+        
+        descrizione_log = 'Prima trasmissione della richiesta'
+        protocollo_per_log = richiesta.protocollo_invio
+    else:
+        # È una ritrasmissione: non modificare data_invio e protocollo_invio originali.
+        # Genera un nuovo protocollo solo per questo evento di log.
+        descrizione_log = 'Ritrasmissione a seguito di richiesta integrazione'
+        protocollo_per_log = f"RE-TRAS-{datetime.utcnow().strftime('%Y%m%d')}-{richiesta.id}"
+
+    # Aggiorna lo stato della richiesta (avviene in entrambi i casi)
+    richiesta.stato = 'B'  # Stato: In Istruttoria
+
+    # Crea il record di log con la descrizione e il protocollo corretti
+    comunicazione = Comunicazione(
+        richiesta_id=richiesta.id,
+        utente=current_user,
+        data_transazione=datetime.utcnow(),
+        protocollo=protocollo_per_log,
+        stato_precedente='A', # Corretto, perché si parte sempre da 'Bozza'
+        stato_successore='B',
+        descrizione=descrizione_log
+    )
 
     db.session.add(comunicazione)
     db.session.commit()
     
-    flash(f"Richiesta trasmessa con successo! Numero di protocollo: {richiesta.protocollo_invio}", 'success')
+    flash(f"Richiesta trasmessa con successo! Protocollo di riferimento: {richiesta.protocollo_invio}", 'success')
     return redirect(url_for('main.dashboard'))
+
 
 # Rotta per il download dei documenti
 @richiesta_bp.route('/documenti/<int:documento_id>/download')
