@@ -1,0 +1,30 @@
+<div class="table-responsive">
+  <table class="table table-striped align-middle">
+    <thead class="table-light">
+      <tr>
+        <th>Data</th>
+        <th>Utente</th>
+        <th>Protocollo</th>
+        <th>Stato Precedente</th>
+        <th>Stato Successivo</th>
+        <th>Descrizione</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for comunicazione in comunicazioni %}
+      <tr>
+        <td>{{ comunicazione.data_transazione.strftime('%d/%m/%Y %H:%M') }}</td>
+        <td>{{ comunicazione.utente.nome }}</td>
+        <td>{{ comunicazione.protocollo }}</td>
+        <td>{{ comunicazione.stato_precedente }}</td>
+        <td>{{ comunicazione.stato_successore }}</td>
+        <td>{{ comunicazione.descrizione }}</td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="6" class="text-center text-muted">Nessuna comunicazione presente.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
