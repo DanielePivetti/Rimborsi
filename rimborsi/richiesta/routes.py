@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash
 from flask_login import login_required, current_user
-from rimborsi.models import db, Evento, Richiesta, Organizzazione, Spesa, MezzoAttrezzatura, ImpiegoMezzoAttrezzatura, DocumentoSpesa, Comunicazione
+from rimborsi.models import db, Evento, Richiesta, Organizzazione, Spesa, MezzoAttrezzatura, ImpiegoMezzoAttrezzatura, DocumentoSpesa, Comunicazione, StatoRichiesta
 from .forms import RichiestaForm, SpesaForm, ImpiegoMezzoForm, DocumentoSpesaForm
 import os
 from flask import send_from_directory, abort # import sicuro per i file
@@ -77,7 +77,9 @@ def modifica_richiesta(richiesta_id):
                            form=form,
                            richiesta=richiesta,
                            titolo="Modifica Richiesta",
-                           action_url=url_for('richiesta.modifica_richiesta', richiesta_id=richiesta.id)
+                           statoRichiesta=StatoRichiesta,
+                           action_url=url_for('richiesta.modifica_richiesta', richiesta_id=richiesta.id),
+                           StatoRichiesta=StatoRichiesta
     )
 
 # Rotta di cancellazione della richiesta
@@ -108,9 +110,13 @@ def dettaglio_richiesta(richiesta_id):
 
     # Corretto: renderizziamo un template invece di reindirizzare alla stessa route
     comunicazioni = Comunicazione.query.filter_by(richiesta_id=richiesta.id).order_by(Comunicazione.data_transazione.desc()).all()
-    return render_template('richiesta/dettaglio_richiesta.html',
-                            richiesta=richiesta,
-                              comunicazioni=comunicazioni)
+    return render_template(
+        'richiesta/dettaglio_richiesta.html',
+        richiesta=richiesta,
+        comunicazioni=comunicazioni,
+        statoRichiesta=StatoRichiesta,
+        StatoRichiesta=StatoRichiesta
+    )
 
 # Rotta per Impiego Mezzo
 
@@ -293,7 +299,9 @@ def lista_documenti(spesa_id):
     spesa = Spesa.query.get_or_404(spesa_id)
     richiesta = spesa.richiesta  # Accedi alla richiesta associata a questa spesa
     form = DocumentoSpesaForm() # Form per aggiungere nuovi documenti
-    return render_template('richiesta/lista_documenti.html', spesa=spesa, form=form, richiesta=richiesta)
+    return render_template('richiesta/lista_documenti.html', 
+                           spesa=spesa, form=form, richiesta=richiesta,
+                           StatoRichiesta=StatoRichiesta)
 
 
 # ... (le altre rotte) ...
@@ -383,6 +391,7 @@ def modifica_documento(spesa_id, documento_id):
                            spesa=spesa, 
                            documento=documento,
                            richiesta=richiesta,
+                           StatoRichiesta=StatoRichiesta,
                            titolo="Modifica Documento")
 
 
@@ -422,7 +431,9 @@ def controlla_richiesta(richiesta_id):
             return redirect(url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id))
 
     # Se tutti i controlli sono superati, mostra la pagina di riepilogo.
-    return render_template('richiesta/riepilogo_controllo.html', richiesta=richiesta)
+    return render_template('richiesta/riepilogo_controllo.html', 
+                           richiesta=richiesta,
+                           StatoRichiesta=StatoRichiesta)
 
 # In rimborsi/richieste/routes.py
 from datetime import datetime
@@ -455,7 +466,7 @@ def trasmetti_richiesta(richiesta_id):
         protocollo_per_log = f"RE-TRAS-{datetime.utcnow().strftime('%Y%m%d')}-{richiesta.id}"
 
     # Aggiorna lo stato della richiesta (avviene in entrambi i casi)
-    richiesta.stato = 'B'  # Stato: In Istruttoria
+    richiesta.stato = StatoRichiesta.IN_ISTRUTTORIA
 
     # Crea il record di log con la descrizione e il protocollo corretti
     comunicazione = Comunicazione(
@@ -463,8 +474,8 @@ def trasmetti_richiesta(richiesta_id):
         utente=current_user,
         data_transazione=datetime.utcnow(),
         protocollo=protocollo_per_log,
-        stato_precedente='A', # Corretto, perché si parte sempre da 'Bozza'
-        stato_successore='B',
+        stato_precedente= StatoRichiesta.BOZZA.value,
+        stato_successore= StatoRichiesta.IN_ISTRUTTORIA.value,
         descrizione=descrizione_log
     )
 
@@ -487,7 +498,6 @@ def download_documento(documento_id):
     # Verifica che l'utente abbia accesso a questo documento
     spesa = documento.spesa
     richiesta = spesa.richiesta
-
     # Solo gli utenti autorizzati possono accedere
     if current_user.role not in ['admin', 'istruttore']:
         # Prendi tutti gli ID delle organizzazioni dell'utente
@@ -504,3 +514,27 @@ def download_documento(documento_id):
 
     # Invia il file al client
     return send_from_directory(uploads_dir, documento.nome_file, as_attachment=True)
+
+
+
+# Rotta per visualizzare il log delle comunicazioni
+@richiesta_bp.route('/<int:richiesta_id>/comunicazioni')
+@login_required
+def visualizza_comunicazioni(richiesta_id):
+    """
+    Visualizza lo storico delle comunicazioni per una richiesta.
+    """
+    richiesta = Richiesta.query.get_or_404(richiesta_id)
+    
+    # Verifica che l'utente sia autorizzato a vedere questa richiesta
+    if current_user.role != 'compilatore' and current_user.id != richiesta.user_id:
+        flash("Accesso non autorizzato.", "danger")
+        return redirect(url_for('main.dashboard'))
+    
+    comunicazioni = Comunicazione.query.filter_by(richiesta_id=richiesta.id).order_by(Comunicazione.data_transazione.desc()).all()
+    
+    return render_template('main/comunicazioni.html', 
+                          richiesta=richiesta,
+                          comunicazioni=comunicazioni,
+                          view_from="richiesta",  # Variabile per adattare l'interfaccia
+                          StatoRichiesta=StatoRichiesta)

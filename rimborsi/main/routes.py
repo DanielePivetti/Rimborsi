@@ -2,7 +2,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_user, login_required, current_user, logout_user
 from werkzeug.security import check_password_hash
-from rimborsi.models import User, Richiesta, Evento, db, Organizzazione
+from rimborsi.models import User, Richiesta, Evento, db, Organizzazione, StatoRichiesta
 
 main = Blueprint('main', __name__, template_folder='templates')
 
@@ -18,8 +18,8 @@ def dashboard():
 
     if current_user.role == 'istruttore':
         # Esempio di query reale: conta le richieste trasmesse
-        richieste_da_istruire = Richiesta.query.filter_by(stato='B').all()
-        richieste_istruite = Richiesta.query.filter_by(stato='C').all()
+        richieste_da_istruire = Richiesta.query.filter_by(stato=StatoRichiesta.IN_ISTRUTTORIA).all()
+        richieste_istruite = Richiesta.query.filter_by(stato=StatoRichiesta.ISTRUITA).all()
 
         
         template_data['richieste_da_istruire'] = richieste_da_istruire
@@ -47,19 +47,19 @@ def dashboard():
         else:
             # Query per trovare le richieste in bozza di quella organizzazione
             richieste_in_bozza = Richiesta.query.filter_by(
-                stato='A', 
+                stato=StatoRichiesta.BOZZA,
                 organizzazione_id=organizzazione_utente.id
             ).order_by(Richiesta.data_creazione.desc()).all()
             
             # Query per le richieste in istruttoria (stato 'B')
             richieste_in_istruttoria = Richiesta.query.filter_by(
-                stato='B',
+                stato=StatoRichiesta.IN_ISTRUTTORIA,
                 organizzazione_id=organizzazione_utente.id
             ).order_by(Richiesta.data_invio.desc()).all()
             
               # Query per le richieste in istruttoria (stato 'B')
             richieste_istruite = Richiesta.query.filter_by(
-                stato='C',
+                stato=StatoRichiesta.ISTRUITA,
                 organizzazione_id=organizzazione_utente.id
             ).order_by(Richiesta.data_invio.desc()).all()
             

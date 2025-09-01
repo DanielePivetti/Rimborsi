@@ -53,7 +53,7 @@
                     </button>
                 </div>
                 {# Bottone dinamico #}
-                {% if richiesta.stato == 'A' %}
+                {% if richiesta.stato == StatoRichiesta.BOZZA %}
                     <button type="submit" class="btn btn-primary w-100">
                         {% if documento %}Salva Modifiche{% else %}Aggiungi Documento{% endif %}
                     </button>

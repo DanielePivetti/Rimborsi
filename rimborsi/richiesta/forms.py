@@ -4,7 +4,7 @@ from wtforms import SelectField, StringField, TextAreaField, IntegerField, Submi
 from wtforms.fields import DateField
 from wtforms.validators import DataRequired, Optional, NumberRange, Length
 from wtforms_sqlalchemy.fields import QuerySelectField
-from rimborsi.models import Richiesta, Evento, Spesa, MezzoAttrezzatura,ImpiegoMezzoAttrezzatura, DocumentoSpesa
+from rimborsi.models import Richiesta, Evento, Spesa, MezzoAttrezzatura,ImpiegoMezzoAttrezzatura, DocumentoSpesa, StatoRichiesta
 from wtforms import FloatField, DateTimeField
 from flask_wtf.file import FileField, FileAllowed
 

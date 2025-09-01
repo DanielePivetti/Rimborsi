@@ -6,7 +6,7 @@
         <h2 class="mb-0">Gestione Documenti</h2>
         <p class="lead text-muted">
         Per la spesa: "{{ spesa.descrizione_spesa }}" di € {{ "%.2f"|format(spesa.importo_richiesto) }}
-       </p>
+        del  {{ spesa.data_spesa.strftime('%d/%m/%Y') }} </p>
         {% set totale_caricato = spesa.documenti | map(attribute='importo_documento') | sum %}
         <p>  Hai caricato euro <strong>{{ "%.2f"|format(totale_caricato) }}</strong>
         e hai a disposizione un residuo di

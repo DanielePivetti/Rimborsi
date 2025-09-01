@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
-from rimborsi.models import Evento, db, Richiesta, UserMixin, Spesa, DocumentoSpesa, Comunicazione 
+from rimborsi.models import Evento, db, Richiesta, UserMixin, Spesa, DocumentoSpesa, Comunicazione, StatoRichiesta 
 from datetime import datetime
 from .forms import EventoForm, IntegrazioneRequestForm 
 from werkzeug.utils import secure_filename # Importa il form dalla cartella corrente
@@ -76,7 +76,8 @@ def dettaglio_istruttoria(richiesta_id):
     richiesta = Richiesta.query.get_or_404(richiesta_id)
     form = IntegrazioneRequestForm()  # crea il form
     # Per ora passiamo solo la richiesta, il template navigherà le relazioni
-    return render_template('istruttoria/dettaglio_istruttoria.html', richiesta=richiesta, form=form)
+    return render_template('istruttoria/dettaglio_istruttoria.html', 
+                           richiesta=richiesta, form=form, StatoRichiesta=StatoRichiesta)
 
 # Rotta per il salvataggio dell'istruttoria
 
@@ -133,6 +134,7 @@ def controlla_istruttoria(richiesta_id):
     # Passiamo i totali e la richiesta al template
     return render_template('istruttoria/riepilogo_conclusione.html', 
                            richiesta=richiesta,
+                           StatoRichiesta=StatoRichiesta,
                            totale_richiesto=totale_richiesto,
                            totale_approvato=totale_approvato)
 
@@ -142,7 +144,7 @@ def controlla_istruttoria(richiesta_id):
 def richiedi_integrazione(richiesta_id):
     richiesta = Richiesta.query.get_or_404(richiesta_id)
      # ==> AGGIUNTA: Controllo di sicurezza sullo stato
-    if richiesta.stato != 'B': # Sostituisci 'B' con il tuo stato 'In Istruttoria'
+    if richiesta.stato != StatoRichiesta.IN_ISTRUTTORIA:
         flash("Azione non permessa: la richiesta non è in stato di istruttoria.", "danger")
         return redirect(url_for('main.dashboard'))
 
@@ -150,23 +152,25 @@ def richiedi_integrazione(richiesta_id):
 
     if form.validate_on_submit():
         # Cambia lo stato della richiesta da 'B' a 'A'
-        richiesta.stato = 'A'  # Stato: In bozza
+        richiesta.stato = StatoRichiesta.BOZZA
 
         comunicazione = Comunicazione(richiesta_id=richiesta.id)
         comunicazione.utente = current_user
         comunicazione.data_transazione = datetime.utcnow()
         protocollo = f"INT-{datetime.utcnow().strftime('%Y%m%d')}-{richiesta.id}"
         comunicazione.protocollo = protocollo
-        comunicazione.stato_precedente = 'B'
-        comunicazione.stato_successore = 'A'
+        comunicazione.stato_precedente = StatoRichiesta.IN_ISTRUTTORIA.value
+        comunicazione.stato_successore = StatoRichiesta.BOZZA.value
         comunicazione.descrizione = form.motivazione.data
 
         db.session.add(comunicazione)
         db.session.commit()
         flash("Richiesta di integrazione inviata con successo, con protocollo: " + protocollo, "success")
         return redirect(url_for('main.dashboard'))
-# Form non valido
-    return render_template('istruttoria/_modal_richiesta_integrazione.html', richiesta=richiesta, form=form)
+    
+    # Form non valido
+    return render_template('istruttoria/_modal_richiesta_integrazione.html', richiesta=richiesta, 
+                           StatoRichiesta=StatoRichiesta, form=form)
 
 # Rotta per la conclusione dell'istruttoria
 
@@ -176,12 +180,12 @@ def concludi_istruttoria(richiesta_id):
     """Finalizza l'istruttoria, cambia stato e salva il protocollo."""
     richiesta = Richiesta.query.get_or_404(richiesta_id)
     # ==> AGGIUNTA: Controllo di sicurezza sullo stato
-    if richiesta.stato != 'B': # Stato 'In Istruttoria'
+    if richiesta.stato != StatoRichiesta.IN_ISTRUTTORIA: # Stato 'In Istruttoria'
         flash("Azione non permessa.", "danger")
         return redirect(url_for('main.dashboard'))
     
     # Aggiorna i campi della richiesta (qui recupererai i dati dal form di riepilogo)
-    richiesta.stato = 'C'  # Stato: Istruita
+    richiesta.stato = StatoRichiesta.ISTRUITA
     richiesta.esito = request.form.get('esito')
     richiesta.note_istruttoria = request.form.get('note_istruttoria')
     richiesta.data_fine_istruttoria = datetime.utcnow()
@@ -193,8 +197,8 @@ def concludi_istruttoria(richiesta_id):
     comunicazione.utente = current_user
     comunicazione.data_transazione = datetime.utcnow()
     comunicazione.protocollo = richiesta.protocollo_istruttoria
-    comunicazione.stato_precedente = 'B'
-    comunicazione.stato_successore = 'C'
+    comunicazione.stato_precedente = StatoRichiesta.IN_ISTRUTTORIA.value
+    comunicazione.stato_successore = StatoRichiesta.ISTRUITA.value
     comunicazione.descrizione = f"Richiesta istruita con esito = {richiesta.esito}"
 
     db.session.add(comunicazione)
@@ -279,3 +283,24 @@ def salva_documenti(spesa_id):
     
     # Redirect alla pagina di dettaglio dell'istruttoria
     return redirect(url_for('istruttoria.dettaglio_istruttoria', richiesta_id=richiesta_id))
+
+# Rotta per visualizzare il log delle comunicazioni
+
+@istruttoria_bp.route('/<int:richiesta_id>/comunicazioni')
+@login_required
+def visualizza_comunicazioni(richiesta_id):
+    # Verifica che l'utente sia un istruttore
+    if current_user.role != 'istruttore':
+        flash("Accesso non autorizzato.", "danger")
+        return redirect(url_for('main.dashboard'))
+    
+    richiesta = Richiesta.query.get_or_404(richiesta_id)
+    comunicazioni = Comunicazione.query.filter_by(richiesta_id=richiesta.id).order_by(Comunicazione.data_transazione.desc()).all()
+    
+    return render_template('main/comunicazioni.html', 
+                          richiesta=richiesta,
+                          comunicazioni=comunicazioni,
+                          view_from="istruttoria",  # Variabile per adattare l'interfaccia
+                          StatoRichiesta=StatoRichiesta)
+
+

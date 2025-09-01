@@ -8,17 +8,17 @@
             <h2 class="mb-0">Dettaglio Richiesta</h2>
             <p class="lead text-muted">
                 Stato: 
-                {% if richiesta.stato == 'A' %}
+                {% if richiesta.stato == StatoRichiesta.BOZZA %}
                     <span class="badge bg-warning text-dark">In Bozza</span>
-                {% elif richiesta.stato == 'B' %}
+                {% elif richiesta.stato == StatoRichiesta.ISTRUTTORIA %}
                     <span class="badge bg-info">In Istruttoria</span>
-                {% elif richiesta.stato == 'C' %}
+                {% elif richiesta.stato == StatoRichiesta.ISTRUITA %}
                     <span class="badge bg-success">Istruita</span>
                 {% endif %}
             </p>
         </div>
         <div>
-             {% if richiesta.stato == 'A' %}
+             {% if richiesta.stato == StatoRichiesta.BOZZA %}
             <a href="{{ url_for('richiesta.controlla_richiesta', richiesta_id=richiesta.id) }}" class="btn btn-success btn-lg" title="Vai alla pagina di controllo finale">
             <i class="fas fa-check-double me-1"></i> Controlla e Trasmetti
             </a>
@@ -62,7 +62,7 @@
         <div class="card-body">
             <div class="tab-content">
                 <div class="tab-pane fade show active" id="tab-spese">
-                     {% if richiesta.stato == 'A' %}
+                     {% if richiesta.stato == StatoRichiesta.BOZZA %}
                     <a href="{{ url_for('richiesta.crea_spesa', richiesta_id=richiesta.id) }}" class="btn btn-primary mb-3">
                         <i class="fas fa-euro-sign me-1"></i> Aggiungi Spesa
                     </a>
@@ -86,7 +86,7 @@
                                      <a href="{{ url_for('richiesta.lista_documenti', spesa_id=spesa.id) }}" class="btn btn-info btn-sm" title="Gestisci documenti">
                                          <i class="fas fa-file-alt"></i>
                                       </a>
-                                      {% if richiesta.stato == 'A' %}
+                                      {% if richiesta.stato == StatoRichiesta.BOZZA %}
                                        <a href="{{ url_for('richiesta.modifica_spesa', richiesta_id=richiesta.id, spesa_id=spesa.id) }}" class="btn btn-warning btn-sm" title="Modifica spesa">
                                             <i class="fas fa-edit"></i>
                                        </a>
@@ -106,7 +106,7 @@
                 </div>
 
                 <div class="tab-pane fade" id="tab-impieghi">
-                   {% if richiesta.stato == 'A' %}
+                   {% if richiesta.stato == StatoRichiesta.BOZZA %}
                     <a href="{{ url_for('richiesta.crea_impiego', richiesta_id=richiesta.id) }}" class="btn btn-primary mb-3">
                         <i class="fas fa-truck me-1"></i> Aggiungi Impiego Mezzo
                     </a>
@@ -140,7 +140,7 @@
                                         }}
                                 </td>
                                 <td class="text-center">
-                                    {% if richiesta.stato == 'A' %}
+                                    {% if richiesta.stato == StatoRichiesta.BOZZA %}
                                    <a href="{{ url_for('richiesta.modifica_impiego', richiesta_id=richiesta.id, impiego_id=impiego.id) }}" class="btn btn-sm btn-warning me-1">
                                     <i class="fas fa-edit"></i> Modifica
                                     </a>
@@ -205,7 +205,11 @@
                     </table>
                 </div>
                 <div class="tab-pane fade" id="tab-comunicazioni">
-                    {% include 'main/comunicazioni.html' %}
+                    <div class="card border-0">
+                        <div class="card-body p-0">
+                            {% include 'partials/_comunicazioni_content.html' %}
+                        </div>
+                    </div>
             </div>
         </div>
     </div>

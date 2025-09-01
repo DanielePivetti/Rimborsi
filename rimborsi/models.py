@@ -2,6 +2,7 @@ from sqlalchemy import event
 from datetime import datetime
 from flask_login import UserMixin
 from . import db
+import enum
 
 # db = SQLAlchemy()
 
@@ -66,10 +67,27 @@ class Evento(db.Model):
 
     __table_args__ = (db.UniqueConstraint('protocollo_attivazione', name='uq_evento_protocollo_attivazione'),)
 
+# Gestione centralizzata degli stati della richiesta
+
+class StatoRichiesta(enum.Enum):
+    BOZZA = 'A'
+    IN_ISTRUTTORIA = 'B'
+    ISTRUITA = 'C'
+ 
+    @property
+    def label(self):
+        # Mappatura per visualizzare un'etichetta leggibile nel frontend
+        return {
+            self.BOZZA: 'In Bozza',
+            self.IN_ISTRUTTORIA: 'In Istruttoria',
+            self.ISTRUITA: 'Istruita'
+        }.get(self)
+
+
 class Richiesta(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     codice_uni = db.Column(db.String(25),  nullable=False)
-    stato = db.Column(db.String(1), default='A', nullable=False)
+    stato = db.Column(db.Enum(StatoRichiesta), default=StatoRichiesta.BOZZA, nullable=False)
     esito = db.Column(db.String(1))
     attivita_svolta = db.Column(db.Text)
     data_inizio_attivita = db.Column(db.Date)
