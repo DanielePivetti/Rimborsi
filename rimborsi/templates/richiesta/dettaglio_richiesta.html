@@ -44,11 +44,10 @@
         <div class="card-header">
             <ul class="nav nav-tabs card-header-tabs">
                 <li class="nav-item">
-                    <a class="nav-link active" data-bs-toggle="tab" href="#tab-spese">Riepilogo Spese</a>
+                    <a class="nav-link active" data-bs-toggle="tab" href="#tab-impieghi">Riepilogo Impiego Mezzi</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" data-bs-toggle="tab" href="#tab-impieghi">Riepilogo Impiego Mezzi</a>
-                </li>
+                    <a class="nav-link" data-bs-toggle="tab" href="#tab-spese">Riepilogo Spese</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" data-bs-toggle="tab" href="#tab-documenti">Riepilogo Documenti</a>
@@ -61,51 +60,7 @@
         </div>
         <div class="card-body">
             <div class="tab-content">
-                <div class="tab-pane fade show active" id="tab-spese">
-                     {% if richiesta.stato == StatoRichiesta.BOZZA %}
-                    <a href="{{ url_for('richiesta.crea_spesa', richiesta_id=richiesta.id) }}" class="btn btn-primary mb-3">
-                        <i class="fas fa-euro-sign me-1"></i> Aggiungi Spesa
-                    </a>
-                    {% endif %}
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Categoria</th>
-                                <th>Descrizione</th>
-                                <th class="text-end">Importo</th>
-                                <th class="text-center">Azioni</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for spesa in richiesta.spese %}
-                            <tr>
-                                <td>{{ spesa.categoria }}</td>
-                                <td>{{ spesa.descrizione_spesa }}</td>
-                                <td class="text-end">&euro; {{ "%.2f"|format(spesa.importo_richiesto) }}</td>
-                                <td class="text-center">
-                                     <a href="{{ url_for('richiesta.lista_documenti', spesa_id=spesa.id) }}" class="btn btn-info btn-sm" title="Gestisci documenti">
-                                         <i class="fas fa-file-alt"></i>
-                                      </a>
-                                      {% if richiesta.stato == StatoRichiesta.BOZZA %}
-                                       <a href="{{ url_for('richiesta.modifica_spesa', richiesta_id=richiesta.id, spesa_id=spesa.id) }}" class="btn btn-warning btn-sm" title="Modifica spesa">
-                                            <i class="fas fa-edit"></i>
-                                       </a>
-                                        <form action="{{ url_for('richiesta.cancella_spesa', richiesta_id=richiesta.id, spesa_id=spesa.id) }}" method="POST" style="display:inline;">
-                                            <button type="submit" class="btn btn-danger btn-sm" title="Cancella spesa" onclick="return confirm('Sei sicuro di voler cancellare questa spesa?');">
-                                                <i class="fas fa-trash-alt"></i>
-                                            </button>
-                                        </form>
-                                        {% endif %}
-                                </td>
-                            </tr>
-                            {% else %}
-                            <tr><td colspan="4" class="text-center text-muted">Nessuna spesa inserita.</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="tab-pane fade" id="tab-impieghi">
+                <div class="tab-pane fade show active" id="tab-impieghi">
                    {% if richiesta.stato == StatoRichiesta.BOZZA %}
                     <a href="{{ url_for('richiesta.crea_impiego', richiesta_id=richiesta.id) }}" class="btn btn-primary mb-3">
                         <i class="fas fa-truck me-1"></i> Aggiungi Impiego Mezzo
@@ -160,6 +115,51 @@
                         </tbody>
                     </table>
                 </div>
+
+                <div class="tab-pane fade" id="tab-spese">
+                     {% if richiesta.stato == StatoRichiesta.BOZZA %}
+                    <a href="{{ url_for('richiesta.crea_spesa', richiesta_id=richiesta.id) }}" class="btn btn-primary mb-3">
+                        <i class="fas fa-euro-sign me-1"></i> Aggiungi Spesa
+                    </a>
+                    {% endif %}
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Categoria</th>
+                                <th>Descrizione</th>
+                                <th class="text-end">Importo</th>
+                                <th class="text-center">Azioni</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for spesa in richiesta.spese %}
+                            <tr>
+                                <td>{{ spesa.categoria }}</td>
+                                <td>{{ spesa.descrizione_spesa }}</td>
+                                <td class="text-end">&euro; {{ "%.2f"|format(spesa.importo_richiesto) }}</td>
+                                <td class="text-center">
+                                     <a href="{{ url_for('richiesta.lista_documenti', spesa_id=spesa.id) }}" class="btn btn-info btn-sm" title="Gestisci documenti">
+                                         <i class="fas fa-file-alt"></i>
+                                      </a>
+                                      {% if richiesta.stato == StatoRichiesta.BOZZA %}
+                                       <a href="{{ url_for('richiesta.modifica_spesa', richiesta_id=richiesta.id, spesa_id=spesa.id) }}" class="btn btn-warning btn-sm" title="Modifica spesa">
+                                            <i class="fas fa-edit"></i>
+                                       </a>
+                                        <form action="{{ url_for('richiesta.cancella_spesa', richiesta_id=richiesta.id, spesa_id=spesa.id) }}" method="POST" style="display:inline;">
+                                            <button type="submit" class="btn btn-danger btn-sm" title="Cancella spesa" onclick="return confirm('Sei sicuro di voler cancellare questa spesa?');">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="4" class="text-center text-muted">Nessuna spesa inserita.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
                 <div class="tab-pane fade" id="tab-documenti">
                     <h5 class="card-title mb-3">Elenco completo dei documenti caricati</h5>
                     <table class="table table-hover">

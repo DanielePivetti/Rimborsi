@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_required, current_user
 from rimborsi.models import Evento, db, Richiesta, UserMixin, Spesa, DocumentoSpesa, Comunicazione, StatoRichiesta 
 from datetime import datetime
@@ -212,27 +212,29 @@ def concludi_istruttoria(richiesta_id):
 
 # in rimborsi/istruttoria/routes.py
 
-@istruttoria_bp.route('/<int:richiesta_id>/approva_tutti_importi', methods=['POST'])
-@login_required
-def approva_tutti_importi(richiesta_id):
-    """Imposta importo_approvato = importo_richiesto per tutte le spese."""
-    richiesta = Richiesta.query.get_or_404(richiesta_id)
-    for spesa in richiesta.spese:
-        spesa.importo_approvato = spesa.importo_richiesto
-    db.session.commit()
-    flash('Tutti gli importi delle spese sono stati approvati massivamente.', 'success')
-    return redirect(url_for('istruttoria.dettaglio_istruttoria', richiesta_id=richiesta.id))
+# Route disattivata - Approva tutti gli importi rimosso
+# @istruttoria_bp.route('/<int:richiesta_id>/approva_tutti_importi', methods=['POST'])
+# @login_required
+# def approva_tutti_importi(richiesta_id):
+#     """Imposta importo_approvato = importo_richiesto per tutte le spese."""
+#     richiesta = Richiesta.query.get_or_404(richiesta_id)
+#     for spesa in richiesta.spese:
+#         spesa.importo_approvato = spesa.importo_richiesto
+#     db.session.commit()
+#     flash('Tutti gli importi delle spese sono stati approvati massivamente.', 'success')
+#     return redirect(url_for('istruttoria.dettaglio_istruttoria', richiesta_id=richiesta.id))
 
-@istruttoria_bp.route('/<int:richiesta_id>/reset_importi', methods=['POST'])
-@login_required
-def reset_importi_approvati(richiesta_id):
-    """Resetta importo_approvato a None per tutte le spese."""
-    richiesta = Richiesta.query.get_or_404(richiesta_id)
-    for spesa in richiesta.spese:
-        spesa.importo_approvato = None
-    db.session.commit()
-    flash('L\'approvazione massiva degli importi è stata annullata.', 'info')
-    return redirect(url_for('istruttoria.dettaglio_istruttoria', richiesta_id=richiesta.id))
+# Route disattivata - Reset importi approvati rimosso
+# @istruttoria_bp.route('/<int:richiesta_id>/reset_importi', methods=['POST'])
+# @login_required
+# def reset_importi_approvati(richiesta_id):
+#     """Resetta importo_approvato a None per tutte le spese."""
+#     richiesta = Richiesta.query.get_or_404(richiesta_id)
+#     for spesa in richiesta.spese:
+#         spesa.importo_approvato = None
+#     db.session.commit()
+#     flash('L\'approvazione massiva degli importi è stata annullata.', 'info')
+#     return redirect(url_for('istruttoria.dettaglio_istruttoria', richiesta_id=richiesta.id))
 
 # in rimborsi/istruttoria/routes.py
 
@@ -283,6 +285,71 @@ def salva_documenti(spesa_id):
     
     # Redirect alla pagina di dettaglio dell'istruttoria
     return redirect(url_for('istruttoria.dettaglio_istruttoria', richiesta_id=richiesta_id))
+
+
+# Nuovo endpoint AJAX per salvare un singolo documento
+@istruttoria_bp.route('/documenti/<int:documento_id>/salva-verifica', methods=['POST'])
+@login_required
+def salva_verifica_documento(documento_id):
+    """Salva la verifica di un singolo documento via AJAX."""
+    try:
+        doc = DocumentoSpesa.query.get_or_404(documento_id)
+        
+        # Verifica che la richiesta sia in istruttoria
+        if doc.spesa.richiesta.stato != StatoRichiesta.IN_ISTRUTTORIA:
+            return jsonify({'success': False, 'message': 'La richiesta non è in istruttoria'}), 403
+        
+        # Recupera i dati dal JSON della richiesta
+        data = request.get_json()
+        doc.verificato = data.get('verificato', False)
+        doc.note_istruttore = data.get('note', '')
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True, 
+            'message': 'Documento salvato con successo',
+            'documento_id': doc.id,
+            'verificato': doc.verificato
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+# Nuovo endpoint AJAX per salvare l'importo approvato di una singola spesa
+@istruttoria_bp.route('/spese/<int:spesa_id>/salva-importo-approvato', methods=['POST'])
+@login_required
+def salva_importo_approvato(spesa_id):
+    """Salva l'importo approvato di una singola spesa via AJAX."""
+    try:
+        spesa = Spesa.query.get_or_404(spesa_id)
+        
+        # Verifica che la richiesta sia in istruttoria
+        if spesa.richiesta.stato != StatoRichiesta.IN_ISTRUTTORIA:
+            return jsonify({'success': False, 'message': 'La richiesta non è in istruttoria'}), 403
+        
+        # Recupera i dati dal JSON della richiesta
+        data = request.get_json()
+        importo = data.get('importo_approvato')
+        
+        if importo is not None:
+            spesa.importo_approvato = float(importo)
+        else:
+            spesa.importo_approvato = None
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True, 
+            'message': 'Importo approvato salvato con successo',
+            'spesa_id': spesa.id,
+            'importo_approvato': float(spesa.importo_approvato) if spesa.importo_approvato else None
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 
 # Rotta per visualizzare il log delle comunicazioni
 
