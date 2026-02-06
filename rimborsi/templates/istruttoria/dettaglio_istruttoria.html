@@ -18,69 +18,177 @@
             {% endif %}
         </div>
 
-    <div class="card shadow-sm mb-4">
-        <div class="card-body text-center">
-        {% set tutti_importi_approvati = richiesta.spese and (richiesta.spese|selectattr('importo_approvato')|list|length == richiesta.spese|length) and (richiesta.spese|sum(attribute='importo_richiesto') == richiesta.spese|sum(attribute='importo_approvato')) %}
-        {% if richiesta.stato == StatoRichiesta.IN_ISTRUTTORIA %}
-            <form action="{{ url_for('istruttoria.reset_importi_approvati', richiesta_id=richiesta.id) }}" method="POST" class="d-inline {{ '' if tutti_importi_approvati else 'd-none' }}">
-                <button type="submit" class="btn btn-outline-secondary">
-                <i class="fas fa-undo me-1"></i> Annulla Approvazione Massiva
-                </button>
-            </form>
-            <form action="{{ url_for('istruttoria.approva_tutti_importi', richiesta_id=richiesta.id) }}" method="POST" class="d-inline {{ 'd-none' if tutti_importi_approvati else '' }}">
-                <button type="submit" class="btn btn-success">
-                <i class="fas fa-check-double me-1"></i> Approva Tutti gli Importi
-            </button>
-        </form>
-        {% endif %} 
-        </div>
-    </div> 
-
     <form action="{{ url_for('istruttoria.salva_istruttoria', richiesta_id=richiesta.id) }}" method="POST">
         <div class="card shadow-sm">
-            <div class="card-header"><h5 class="mb-0">Tabella di Lavoro: Spese</h5></div>
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-bs-toggle="tab" href="#tab-documenti">
+                            <i class="fas fa-file-alt me-1"></i> 1. Verifica Documenti
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#tab-spese">
+                            <i class="fas fa-euro-sign me-1"></i> 2. Approvazione Spese
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#tab-verbale">
+                            <i class="fas fa-file-signature me-1"></i> 3. Verbale
+                        </a>
+                    </li>
+                </ul>
+            </div>
             <div class="card-body">
+                <div class="tab-content">
+                    <!-- Tab Documenti di Spesa - STEP 1 -->
+                    <div class="tab-pane fade show active" id="tab-documenti">
+                        <div class="alert alert-primary">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Step 1: Verifica Documenti</strong> - Controllare ogni documento e confermare la regolarità. Una volta verificati tutti i documenti di una spesa, l'importo approvato verrà automaticamente impostato.
+                        </div>
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID Doc</th>
+                                    <th>ID Spesa</th>
+                                    <th>Descrizione Spesa</th>
+                                    <th>Tipo Documento</th>
+                                    <th>Data</th>
+                                    <th>Fornitore</th>
+                                    <th class="text-end">Importo</th>
+                                    <th class="text-center" style="width: 100px;">Verificato</th>
+                                    <th style="width: 200px;">Note Istruttore</th>
+                                    <th class="text-center">Azioni</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for spesa in richiesta.spese %}
+                                    {% for doc in spesa.documenti %}
+                                    <tr data-spesa-id="{{ spesa.id }}" data-doc-id="{{ doc.id }}" class="documento-row">
+                                        <td><strong>{{ doc.id }}</strong></td>
+                                        <td><span class="badge bg-primary">{{ spesa.id }}</span></td>
+                                        <td>{{ spesa.descrizione_spesa | truncate(30) }}</td>
+                                        <td>{{ doc.get_tipo_documento_display() }}</td>
+                                        <td>{{ doc.data_documento.strftime('%d/%m/%Y') }}</td>
+                                        <td>{{ doc.fornitore or 'N/D' }}</td>
+                                        <td class="text-end">&euro; {{ "%.2f"|format(doc.importo_documento) }}</td>
+                                        <td class="text-center">
+                                            <div class="form-check d-inline-block">
+                                                <input class="form-check-input verifica-checkbox" 
+                                                       type="checkbox" 
+                                                       name="verificato_{{ doc.id }}" 
+                                                       id="verificato_{{ doc.id }}" 
+                                                       data-spesa-id="{{ spesa.id }}"
+                                                       {% if doc.verificato %}checked{% endif %}
+                                                       {% if richiesta.stato != StatoRichiesta.IN_ISTRUTTORIA %}disabled{% endif %}>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <textarea name="note_documento_{{ doc.id }}" 
+                                                      class="form-control form-control-sm" 
+                                                      rows="1" 
+                                                      placeholder="Note..."
+                                                      {% if richiesta.stato != StatoRichiesta.IN_ISTRUTTORIA %}disabled{% endif %}>{{ doc.note_istruttore or '' }}</textarea>
+                                        </td>
+                                        <td class="text-center">
+                                            {% if doc.nome_file %}
+                                            <a href="{{ url_for('richiesta.download_documento', documento_id=doc.id) }}" 
+                                               class="btn btn-info btn-sm" 
+                                               title="Scarica documento">
+                                                <i class="fas fa-download"></i>
+                                            </a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                <tr>
+                                    <td colspan="10" class="text-center text-muted">Nessun documento presente.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Fine Tab Documenti -->
+
+                    <!-- Tab Spese - STEP 2 -->
+                    <div class="tab-pane fade" id="tab-spese">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Step 2: Approvazione Spese</strong> - Verificare e approvare gli importi. L'importo approvato viene automaticamente impostato se tutti i documenti della spesa sono stati verificati.
+                        </div>
                 <table class="table table-hover">
                     <thead class="table-light">
                         <tr>
+                            <th>ID Spesa</th>
                             <th>Data</th>
                             <th>Descrizione</th>
                             <th class="text-end">Importo richiesto</th>
                             <th>Importo approvato</th>
-                            <th>Note</th>
+                            <th>Note Spesa</th>
+                            <th class="text-center">Doc. Verificati</th>
                             <th class="text-center">Azioni</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for spesa in richiesta.spese %}
-                        <tr>
+                        {% set verificati = spesa.documenti|selectattr('verificato')|list|length %}
+                        {% set tutti_verificati = verificati == spesa.documenti|length and spesa.documenti|length > 0 %}
+                        <tr class="spesa-row" data-spesa-id="{{ spesa.id }}">
+                            <td><span class="badge bg-primary">{{ spesa.id }}</span></td>
                             <td>{{ spesa.data_spesa.strftime('%d/%m/%Y') }}</td>
                             <td>{{ spesa.descrizione_spesa }}</td>
-                            <td class="text-end">&euro; {{ "%.2f"|format(spesa.importo_richiesto) }}</td>
+                            <td class="text-end importo-richiesto" data-importo="{{ spesa.importo_richiesto }}">&euro; {{ "%.2f"|format(spesa.importo_richiesto) }}</td>
                             <td>
-                                <input type="number" step="0.01" name="importo_approvato_{{ spesa.id }}" class="form-control" 
-                                       value="{{ spesa.importo_approvato if spesa.importo_approvato is not none else '' }}">
+                                <input type="number" 
+                                       step="0.01" 
+                                       name="importo_approvato_{{ spesa.id }}" 
+                                       id="importo_approvato_{{ spesa.id }}"
+                                       class="form-control importo-approvato" 
+                                       data-spesa-id="{{ spesa.id }}"
+                                       value="{{ spesa.importo_approvato if spesa.importo_approvato is not none else (spesa.importo_richiesto if tutti_verificati else '') }}"
+                                       {% if richiesta.stato != StatoRichiesta.IN_ISTRUTTORIA %}disabled{% endif %}>
                             </td>
                             <td>
-                                <textarea name="note_spesa_{{ spesa.id }}" class="form-control" rows="1">{{ spesa.note_istruttoria or '' }}</textarea>
+                                <textarea name="note_spesa_{{ spesa.id }}" 
+                                          class="form-control" 
+                                          rows="1"
+                                          {% if richiesta.stato != StatoRichiesta.IN_ISTRUTTORIA %}disabled{% endif %}>{{ spesa.note_istruttoria or '' }}</textarea>
                             </td>
                             <td class="text-center">
-                                {% set verificati = spesa.documenti|selectattr('verificato')|list|length %}
-                                <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#documentiModal_{{ spesa.id }}">
-                                    <i class="fas fa-file-alt me-1"></i> 
-                                    {% if verificati == spesa.documenti|length and spesa.documenti|length > 0 %}
-                                        <span class="badge bg-success rounded-pill">{{ verificati }}/{{ spesa.documenti|length }}</span>
-                                    {% elif verificati > 0 %}
-                                        <span class="badge bg-warning rounded-pill">{{ verificati }}/{{ spesa.documenti|length }}</span>
-                                    {% else %}
-                                        <span class="badge bg-light text-dark rounded-pill">0/{{ spesa.documenti|length }}</span>
-                                    {% endif %}
+                                {% if tutti_verificati %}
+                                    <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>{{ verificati }}/{{ spesa.documenti|length }}</span>
+                                {% elif verificati > 0 %}
+                                    <span class="badge bg-warning"><i class="fas fa-exclamation-circle me-1"></i>{{ verificati }}/{{ spesa.documenti|length }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary"><i class="fas fa-times-circle me-1"></i>0/{{ spesa.documenti|length }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#documentiModalReadOnly_{{ spesa.id }}" title="Visualizza documenti (sola lettura)">
+                                    <i class="fas fa-eye"></i>
                                 </button>
                             </td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
+                    </div>
+                    <!-- Fine Tab Spese -->
+
+                    <!-- Tab Verbale - STEP 3 -->
+                    <div class="tab-pane fade" id="tab-verbale">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Verbale di Istruttoria</strong>
+                            <p class="mb-0 mt-2">Questa sezione è in fase di sviluppo e conterrà il verbale conclusivo dell'istruttoria.</p>
+                        </div>
+                        <!-- Qui andrà il contenuto del verbale -->
+                    </div>
+                    <!-- Fine Tab Verbale -->
+
+                </div>
             </div>
         </div>
 
@@ -99,9 +207,63 @@
             <i class="fas fa-save me-1"></i> Salva Istruttoria
             </button>
         </div>
-    <!-- Modali per i documenti (fuori dal form principale) -->
+     </form>
+    <!-- Modali per visualizzare i documenti in sola lettura (dal tab Spese) -->
     {% for spesa in richiesta.spese %}
-        {% include 'istruttoria/_modal_documenti.html' %}
+    <div class="modal fade" id="documentiModalReadOnly_{{ spesa.id }}" tabindex="-1" aria-labelledby="modalLabelRO_{{ spesa.id }}" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalLabelRO_{{ spesa.id }}">
+                        <i class="fas fa-eye me-2"></i>Documenti per Spesa #{{ spesa.id }} (Sola Lettura)
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Questa è una visualizzazione in sola lettura. Per modificare la verifica dei documenti, utilizzare il tab "1. Verifica Documenti".
+                    </div>
+                    <ul class="list-group">
+                    {% for doc in spesa.documenti %}
+                    <li class="list-group-item">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <strong>{{ doc.get_tipo_documento_display() }}</strong> del {{ doc.data_documento.strftime('%d/%m/%Y') }}
+                                <br>
+                                <small class="text-muted">{{ doc.fornitore or 'N/D' }} - &euro; {{ "%.2f"|format(doc.importo_documento) }}</small>
+                                {% if doc.note_istruttore %}
+                                <br>
+                                <small><strong>Note:</strong> {{ doc.note_istruttore }}</small>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 text-end">
+                                {% if doc.verificato %}
+                                    <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Verificato</span>
+                                {% else %}
+                                    <span class="badge bg-secondary"><i class="fas fa-times-circle me-1"></i>Non Verificato</span>
+                                {% endif %}
+                                {% if doc.nome_file %}
+                                <br>
+                                <a href="{{ url_for('richiesta.download_documento', spesa_id=spesa.id, richiesta_id=richiesta.id, documento_id=doc.id) }}" 
+                                   class="btn btn-sm btn-info mt-2">
+                                    <i class="fas fa-download me-1"></i>Scarica
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </li>
+                    {% else %}
+                    <li class="list-group-item text-center text-muted">Nessun documento per questa spesa.</li>
+                    {% endfor %}
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
+                </div>
+            </div>
+        </div>
+    </div>
     {% endfor %}
     {% include 'istruttoria/_modal_richiesta_integrazione.html' %}
 
@@ -110,4 +272,239 @@
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/approva_all.js') }}"></script>
+<script>
+// Auto-compilazione importo approvato quando tutti i documenti di una spesa sono verificati
+document.addEventListener('DOMContentLoaded', function() {
+    const checkboxes = document.querySelectorAll('.verifica-checkbox');
+    const noteTextareas = document.querySelectorAll('textarea[name^="note_documento_"]');
+    
+    // Gestione checkbox verifica
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const spesaId = this.getAttribute('data-spesa-id');
+            const docId = this.id.replace('verificato_', '');
+            const isChecked = this.checked;
+            
+            // Salva via AJAX
+            salvaVerificaDocumento(docId, isChecked, null, () => {
+                // Callback dopo il salvataggio
+                updateModaleBadge(spesaId, docId, isChecked);
+                updateImportoApprovato(spesaId);
+                updateContatoreDocs(spesaId);
+            });
+        });
+    });
+    
+    // Gestione note documento (salva quando si perde il focus)
+    noteTextareas.forEach(textarea => {
+        textarea.addEventListener('blur', function() {
+            const docId = this.name.replace('note_documento_', '');
+            const note = this.value;
+            const checkbox = document.getElementById(`verificato_${docId}`);
+            const verificato = checkbox ? checkbox.checked : false;
+            
+            // Salva via AJAX
+            salvaVerificaDocumento(docId, verificato, note);
+        });
+    });
+    
+    function salvaVerificaDocumento(docId, verificato, note, callback) {
+        // Se note è null, recupera il valore dal textarea
+        if (note === null) {
+            const noteTextarea = document.querySelector(`textarea[name="note_documento_${docId}"]`);
+            note = noteTextarea ? noteTextarea.value : '';
+        }
+        
+        fetch(`/istruttoria/documenti/${docId}/salva-verifica`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: JSON.stringify({
+                verificato: verificato,
+                note: note
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log('Documento salvato:', data.message);
+                // Mostra un piccolo indicatore di salvataggio
+                showSaveIndicator(docId);
+                if (callback) callback();
+            } else {
+                console.error('Errore salvataggio:', data.message);
+                alert('Errore durante il salvataggio: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Errore:', error);
+            alert('Errore di connessione durante il salvataggio');
+        });
+    }
+    
+    function showSaveIndicator(docId) {
+        const row = document.querySelector(`.documento-row[data-doc-id="${docId}"]`);
+        if (row) {
+            // Aggiungi un indicatore temporaneo
+            const originalBg = row.style.backgroundColor;
+            row.style.backgroundColor = '#d4edda';
+            row.style.transition = 'background-color 0.3s';
+            
+            setTimeout(() => {
+                row.style.backgroundColor = originalBg;
+            }, 1000);
+        }
+    }
+    
+    function getCsrfToken() {
+        // Cerca il token CSRF nel form o nei meta tag
+        const csrfInput = document.querySelector('input[name="csrf_token"]');
+        if (csrfInput) {
+            return csrfInput.value;
+        }
+        const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+        if (csrfMeta) {
+            return csrfMeta.content;
+        }
+        return '';
+    }
+    
+    function updateModaleBadge(spesaId, docId, isChecked) {
+        // Trova il badge nella modale di sola lettura
+        const modale = document.getElementById(`documentiModalReadOnly_${spesaId}`);
+        if (modale) {
+            // Trova tutti i badge nella modale per aggiornare quello corrispondente
+            const listItems = modale.querySelectorAll('.list-group-item');
+            listItems.forEach((item, index) => {
+                // Trova il documento corrispondente tramite l'ordine
+                const docRow = document.querySelector(`.documento-row[data-spesa-id="${spesaId}"][data-doc-id="${docId}"]`);
+                if (docRow) {
+                    const rowIndex = Array.from(document.querySelectorAll(`.documento-row[data-spesa-id="${spesaId}"]`)).indexOf(docRow);
+                    if (index === rowIndex) {
+                        const badgeContainer = item.querySelector('.text-end');
+                        if (badgeContainer) {
+                            const oldBadge = badgeContainer.querySelector('.badge');
+                            if (oldBadge) {
+                                if (isChecked) {
+                                    oldBadge.className = 'badge bg-success';
+                                    oldBadge.innerHTML = '<i class="fas fa-check-circle me-1"></i>Verificato';
+                                } else {
+                                    oldBadge.className = 'badge bg-secondary';
+                                    oldBadge.innerHTML = '<i class="fas fa-times-circle me-1"></i>Non Verificato';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+    
+    function updateContatoreDocs(spesaId) {
+        // Aggiorna il contatore nel tab Spese
+        const spesaRow = document.querySelector(`.spesa-row[data-spesa-id="${spesaId}"]`);
+        if (spesaRow) {
+            const spesaCheckboxes = document.querySelectorAll(`.verifica-checkbox[data-spesa-id="${spesaId}"]`);
+            const totalCheckboxes = spesaCheckboxes.length;
+            let checkedCount = 0;
+            
+            spesaCheckboxes.forEach(cb => {
+                if (cb.checked) checkedCount++;
+            });
+            
+            const badgeContainer = spesaRow.querySelector('td:nth-last-child(2)');
+            if (badgeContainer) {
+                let badgeHTML;
+                if (checkedCount === totalCheckboxes && totalCheckboxes > 0) {
+                    badgeHTML = `<span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>${checkedCount}/${totalCheckboxes}</span>`;
+                } else if (checkedCount > 0) {
+                    badgeHTML = `<span class="badge bg-warning"><i class="fas fa-exclamation-circle me-1"></i>${checkedCount}/${totalCheckboxes}</span>`;
+                } else {
+                    badgeHTML = `<span class="badge bg-secondary"><i class="fas fa-times-circle me-1"></i>0/${totalCheckboxes}</span>`;
+                }
+                badgeContainer.innerHTML = badgeHTML;
+            }
+        }
+    }
+    
+    function updateImportoApprovato(spesaId) {
+        // Trova tutti i checkbox per questa spesa
+        const spesaCheckboxes = document.querySelectorAll(`.verifica-checkbox[data-spesa-id="${spesaId}"]`);
+        const totalCheckboxes = spesaCheckboxes.length;
+        let checkedCount = 0;
+        
+        spesaCheckboxes.forEach(cb => {
+            if (cb.checked) checkedCount++;
+        });
+        
+        // Se tutti i documenti sono verificati, auto-compila l'importo approvato
+        const importoApprovatoField = document.getElementById(`importo_approvato_${spesaId}`);
+        if (importoApprovatoField && totalCheckboxes > 0 && checkedCount === totalCheckboxes) {
+            // Trova l'importo richiesto dalla riga della spesa
+            const spesaRow = document.querySelector(`.spesa-row[data-spesa-id="${spesaId}"]`);
+            if (spesaRow) {
+                const importoRichiesto = spesaRow.querySelector('.importo-richiesto').getAttribute('data-importo');
+                if (importoRichiesto && !importoApprovatoField.value) {
+                    importoApprovatoField.value = parseFloat(importoRichiesto).toFixed(2);
+                    importoApprovatoField.classList.add('bg-success-subtle');
+                    
+                    // Salva automaticamente l'importo approvato via AJAX
+                    salvaImportoApprovato(spesaId, importoRichiesto);
+                }
+            }
+        } else if (importoApprovatoField && checkedCount < totalCheckboxes) {
+            // Se non tutti sono verificati, rimuovi l'evidenziazione
+            importoApprovatoField.classList.remove('bg-success-subtle');
+        }
+    }
+    
+    function salvaImportoApprovato(spesaId, importo) {
+        fetch(`/istruttoria/spese/${spesaId}/salva-importo-approvato`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: JSON.stringify({
+                importo_approvato: importo
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log('Importo approvato salvato:', data.message);
+                // Mostra un piccolo indicatore di salvataggio sul campo
+                const field = document.getElementById(`importo_approvato_${spesaId}`);
+                if (field) {
+                    const originalBorder = field.style.border;
+                    field.style.border = '2px solid #28a745';
+                    setTimeout(() => {
+                        field.style.border = originalBorder;
+                    }, 1000);
+                }
+            } else {
+                console.error('Errore salvataggio importo:', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Errore:', error);
+        });
+    }
+
+    // Gestione cambio manuale dell'importo approvato
+    const importiApprovati = document.querySelectorAll('.importo-approvato');
+    importiApprovati.forEach(campo => {
+        campo.addEventListener('blur', function() {
+            const spesaId = this.dataset.spesaId;
+            const importo = this.value;
+            
+            if (importo !== '') {
+                salvaImportoApprovato(spesaId, parseFloat(importo));
+            }
+        });
+    });
+});
+</script>
 {% endblock %}

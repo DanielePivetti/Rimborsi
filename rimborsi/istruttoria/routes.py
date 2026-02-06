@@ -262,6 +262,56 @@ def reset_verifica_documenti(spesa_id):
     flash(f"La verifica per i documenti della spesa #{spesa.id} è stata annullata.", 'info')
     return redirect(url_for('istruttoria.dettaglio_istruttoria', richiesta_id=spesa.richiesta_id))
 
+# Endpoint AJAX per salvare l'importo approvato di una singola spesa
+@istruttoria_bp.route('/spese/<int:spesa_id>/salva-importo-approvato', methods=['POST'])
+@login_required
+def salva_importo_approvato(spesa_id):
+    """Salva l'importo approvato di una spesa via AJAX."""
+    from flask import jsonify
+    
+    if current_user.role != 'istruttore':
+        return jsonify({'success': False, 'message': 'Accesso non autorizzato'}), 403
+    
+    spesa = Spesa.query.get_or_404(spesa_id)
+    
+    try:
+        data = request.get_json()
+        importo_approvato = data.get('importo_approvato')
+        
+        if importo_approvato is not None:
+            spesa.importo_approvato = float(importo_approvato)
+        else:
+            spesa.importo_approvato = None
+            
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Importo approvato salvato con successo'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+# Endpoint AJAX per salvare la verifica di un singolo documento
+@istruttoria_bp.route('/documenti/<int:documento_id>/salva-verifica', methods=['POST'])
+@login_required
+def salva_verifica_documento(documento_id):
+    """Salva la verifica e le note di un documento via AJAX."""
+    from flask import jsonify
+    
+    if current_user.role != 'istruttore':
+        return jsonify({'success': False, 'message': 'Accesso non autorizzato'}), 403
+    
+    documento = DocumentoSpesa.query.get_or_404(documento_id)
+    
+    try:
+        data = request.get_json()
+        documento.verificato = data.get('verificato', False)
+        documento.note_istruttore = data.get('note', '')
+        
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Documento salvato con successo'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 # Nuovo endpoint per salvare le verifiche dei documenti separatamente
 @istruttoria_bp.route('/spese/<int:spesa_id>/documenti/salva', methods=['POST'])
 @login_required
