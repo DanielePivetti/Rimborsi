@@ -319,8 +319,11 @@ def crea_documento(spesa_id):
             file = form.allegato.data
             # Rendi il nome del file sicuro
             nome_file_sicuro = secure_filename(file.filename)
+            # Crea la directory uploads se non esiste
+            uploads_dir = os.path.join(current_app.instance_path, 'uploads')
+            os.makedirs(uploads_dir, exist_ok=True)
             # Crea un percorso unico per evitare sovrascritture
-            percorso_salvataggio = os.path.join(current_app.instance_path, 'uploads', nome_file_sicuro)
+            percorso_salvataggio = os.path.join(uploads_dir, nome_file_sicuro)
             file.save(percorso_salvataggio)
             nome_file_salvato = nome_file_sicuro
 
@@ -328,6 +331,8 @@ def crea_documento(spesa_id):
         tipo_doc = form.tipo_documento.data
         importo = form.importo_documento.data
         if tipo_doc in TIPI_SENZA_IMPORTO:
+            importo = 0.00
+        elif importo is None:
             importo = 0.00
         nuovo_doc = DocumentoSpesa(
             spesa_id=spesa.id,
@@ -369,13 +374,18 @@ def modifica_documento(spesa_id, documento_id):
             file = form.allegato.data
             nome_file_sicuro = secure_filename(file.filename)
             # (Opzionale ma consigliato: qui potresti voler cancellare il vecchio file dal server)
-            percorso_salvataggio = os.path.join(current_app.instance_path, 'uploads', nome_file_sicuro)
+            # Crea la directory uploads se non esiste
+            uploads_dir = os.path.join(current_app.instance_path, 'uploads')
+            os.makedirs(uploads_dir, exist_ok=True)
+            percorso_salvataggio = os.path.join(uploads_dir, nome_file_sicuro)
             file.save(percorso_salvataggio)
             documento.nome_file = nome_file_sicuro
 
         # Applica la stessa logica di controllo per l'importo
         importo = form.importo_documento.data
         if documento.tipo_documento in TIPI_SENZA_IMPORTO:
+            importo = 0.00
+        elif importo is None:
             importo = 0.00
         documento.importo_documento = importo
 

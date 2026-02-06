@@ -57,18 +57,18 @@ def dashboard():
                 organizzazione_id=organizzazione_utente.id
             ).order_by(Richiesta.data_invio.desc()).all()
             
-              # Query per le richieste in istruttoria (stato 'B')
+            # Query per le richieste istruite (stato 'C')
             richieste_istruite = Richiesta.query.filter_by(
                 stato=StatoRichiesta.ISTRUITA,
                 organizzazione_id=organizzazione_utente.id
             ).order_by(Richiesta.data_invio.desc()).all()
             
             template_data['compilatore_senza_organizzazione'] = False
-
-        # Passiamo le liste di richieste al template
-        template_data['richieste_in_bozza'] = richieste_in_bozza
-        template_data['richieste_in_istruttoria'] = richieste_in_istruttoria
-        template_data['richieste_istruite'] = richieste_istruite
+            
+            # Passiamo le liste di richieste al template
+            template_data['richieste_in_bozza'] = richieste_in_bozza
+            template_data['richieste_in_istruttoria'] = richieste_in_istruttoria
+            template_data['richieste_istruite'] = richieste_istruite
 
     elif current_user.role == 'amministratore':
         # Query per trovare utenti COMPILATORI non associati a nessuna organizzazione

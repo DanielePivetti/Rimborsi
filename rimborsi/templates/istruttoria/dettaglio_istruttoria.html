@@ -207,6 +207,7 @@
             <i class="fas fa-save me-1"></i> Salva Istruttoria
             </button>
         </div>
+     </form>
     <!-- Modali per visualizzare i documenti in sola lettura (dal tab Spese) -->
     {% for spesa in richiesta.spese %}
     <div class="modal fade" id="documentiModalReadOnly_{{ spesa.id }}" tabindex="-1" aria-labelledby="modalLabelRO_{{ spesa.id }}" aria-hidden="true">
@@ -491,6 +492,19 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Errore:', error);
         });
     }
+
+    // Gestione cambio manuale dell'importo approvato
+    const importiApprovati = document.querySelectorAll('.importo-approvato');
+    importiApprovati.forEach(campo => {
+        campo.addEventListener('blur', function() {
+            const spesaId = this.dataset.spesaId;
+            const importo = this.value;
+            
+            if (importo !== '') {
+                salvaImportoApprovato(spesaId, parseFloat(importo));
+            }
+        });
+    });
 });
 </script>
 {% endblock %}
