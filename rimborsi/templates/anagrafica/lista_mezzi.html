@@ -53,6 +53,69 @@
         {% endfor %}
     </div>
 
+    {% if mezzi_temporanei %}
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-clock me-2 text-warning"></i>Mezzi/Attrezzature Temporanei
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                I mezzi temporanei sono utilizzabili solo per richieste specifiche e non fanno parte dell'anagrafica permanente.
+            </div>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Targa/Inventario</th>
+                            <th>Descrizione</th>
+                            <th>Ente Autorizzante</th>
+                            <th>Data Autorizzazione</th>
+                            <th>Documento</th>
+                            <th>Stato</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for mezzo in mezzi_temporanei %}
+                        <tr>
+                            <td>
+                                {% if mezzo.tipologia == 'M' %}
+                                    <span class="badge bg-primary">Autoveicolo</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Attrezzatura</span>
+                                {% endif %}
+                            </td>
+                            <td><strong>{{ mezzo.targa_inventario }}</strong></td>
+                            <td>{{ mezzo.descrizione or 'N/D' }}</td>
+                            <td>{{ mezzo.authorizing_entity }}</td>
+                            <td>{{ mezzo.authorization_date.strftime('%d/%m/%Y') }}</td>
+                            <td>
+                                {% if mezzo.authorization_document %}
+                                    <a href="{{ url_for('richiesta.download_authorization', mezzo_id=mezzo.id) }}" 
+                                    class="btn btn-sm btn-outline-info">
+                                        <i class="fas fa-download me-1"></i>Scarica
+                                    </a>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if mezzo.is_authorization_valid() %}
+                                    <span class="badge bg-success">Autorizzato</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Non Valido</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
     {# Pulsante per tornare indietro #}
     <div class="mt-4">
         <a href="{{ url_for('anagrafica.lista_organizzazioni') }}" class="btn btn-secondary">

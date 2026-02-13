@@ -49,11 +49,24 @@ class MezzoAttrezzatura(db.Model):
     targa_inventario = db.Column(db.String(50), nullable=False) # Rimosso unique=True
     descrizione = db.Column(db.String(200))
     organizzazione_id = db.Column(db.Integer, db.ForeignKey('organizzazione.id'), nullable=False)
+    # Campi per mezzi temporanei (aggiungi dopo organizzazione_id)
+    is_temporary = db.Column(db.Boolean, default=False, nullable=False)
+    authorization_document = db.Column(db.String(255), nullable=True)  # Nome file autorizzazione
+    authorizing_entity = db.Column(db.String(200), nullable=True)  # Ente che rilascia autorizzazione
+    authorization_date = db.Column(db.Date, nullable=True)  # Data autorizzazione
     
     impieghi = db.relationship('ImpiegoMezzoAttrezzatura', backref='mezzo_attrezzatura', lazy=True)
     
     __table_args__ = (db.UniqueConstraint('targa_inventario', name='uq_mezzoattrezzatura_targa_inventario'),)
 
+# Aggiungi questo metodo alla classe MezzoAttrezzatura
+def is_authorization_valid(self):
+    """Verifica se il mezzo temporaneo ha un'autorizzazione valida."""
+    if not self.is_temporary:
+        return True
+    return (self.authorization_document is not None and 
+            self.authorizing_entity is not None and 
+            self.authorization_date is not None)
 
 class Evento(db.Model):
     id = db.Column(db.Integer, primary_key=True)

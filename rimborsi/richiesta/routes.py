@@ -1,11 +1,15 @@
 from flask import Blueprint, render_template, redirect, url_for, flash
 from flask_login import login_required, current_user
 from rimborsi.models import db, Evento, Richiesta, Organizzazione, Spesa, MezzoAttrezzatura, ImpiegoMezzoAttrezzatura, DocumentoSpesa, Comunicazione, StatoRichiesta
-from .forms import RichiestaForm, SpesaForm, ImpiegoMezzoForm, DocumentoSpesaForm
+from .forms import RichiestaForm, SpesaForm, ImpiegoMezzoForm, DocumentoSpesaForm, TemporaryMezzoForm
 import os
 from flask import send_from_directory, abort # import sicuro per i file
 from werkzeug.utils import secure_filename
 from flask import current_app # Importa current_app per accedere alla configurazione
+from datetime import datetime
+from werkzeug.utils import secure_filename
+from flask import send_from_directory, current_app
+
 
 
 
@@ -548,3 +552,64 @@ def visualizza_comunicazioni(richiesta_id):
                           comunicazioni=comunicazioni,
                           view_from="richiesta",  # Variabile per adattare l'interfaccia
                           StatoRichiesta=StatoRichiesta)
+
+
+@richiesta_bp.route('/richiesta/<int:richiesta_id>/mezzo-temporaneo', methods=['GET', 'POST'])
+@login_required
+def crea_mezzo_temporaneo(richiesta_id):
+    """Crea un mezzo temporaneo per la richiesta corrente"""
+    richiesta = Richiesta.query.get_or_404(richiesta_id)
+    
+    # Verifica che l'utente possa modificare questa richiesta
+    if richiesta.organizzazione_id != current_user.organizzazioni[0].id:
+        flash('Non hai i permessi per modificare questa richiesta.', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
+    form = TemporaryMezzoForm()
+    
+    if form.validate_on_submit():
+        # Salva documento autorizzazione
+        file = form.authorization_document.data
+        filename = secure_filename(f"{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}_{file.filename}")
+        auth_docs_dir = os.path.join(current_app.instance_path, 'uploads', 'authorization_docs')
+        os.makedirs(auth_docs_dir, exist_ok=True)
+        filepath = os.path.join(auth_docs_dir, filename)
+        file.save(filepath)
+        
+        # Crea mezzo temporaneo
+        mezzo = MezzoAttrezzatura(
+            tipologia=form.tipologia.data,
+            targa_inventario=form.targa_inventario.data,
+            descrizione=form.descrizione.data,
+            organizzazione_id=current_user.organizzazioni[0].id,
+            is_temporary=True,
+            authorization_document=filename,
+            authorizing_entity=form.authorizing_entity.data,
+            authorization_date=form.authorization_date.data
+        )
+        
+        db.session.add(mezzo)
+        db.session.commit()
+        
+        flash('Mezzo temporaneo creato con successo!', 'success')
+        return redirect(url_for('richiesta.crea_impiego', richiesta_id=richiesta_id))
+    
+    return render_template('richiesta/crea_mezzo_temporaneo.html', form=form, richiesta=richiesta)
+
+@richiesta_bp.route('/download-authorization/<int:mezzo_id>')
+@login_required 
+def download_authorization(mezzo_id):
+    """Download del documento di autorizzazione per mezzi temporanei"""
+    mezzo = MezzoAttrezzatura.query.get_or_404(mezzo_id)
+    
+    # Verifica accesso (solo la stessa organizzazione)
+    if mezzo.organizzazione_id != current_user.organizzazioni[0].id:
+        flash('Accesso negato', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
+    if not mezzo.is_temporary or not mezzo.authorization_document:
+        flash('Documento non disponibile', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
+    auth_docs_dir = os.path.join(current_app.instance_path, 'uploads', 'authorization_docs')
+    return send_from_directory(auth_docs_dir, mezzo.authorization_document, as_attachment=True)

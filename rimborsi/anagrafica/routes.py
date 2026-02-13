@@ -80,7 +80,24 @@ def lista_tutti_mezzi():
 @login_required
 def lista_mezzi(org_id):
     organizzazione = Organizzazione.query.get_or_404(org_id)
-    return render_template('anagrafica/lista_mezzi.html', organizzazione=organizzazione)
+    
+    # Mezzi permanenti
+    mezzi = MezzoAttrezzatura.query.filter_by(
+        organizzazione_id=org_id,
+        is_temporary=False
+    ).order_by(MezzoAttrezzatura.targa_inventario).all()
+    
+    # Mezzi temporanei
+    mezzi_temporanei = MezzoAttrezzatura.query.filter_by(
+        organizzazione_id=org_id,
+        is_temporary=True
+    ).order_by(MezzoAttrezzatura.authorization_date.desc()).all()
+    
+    return render_template('anagrafica/lista_mezzi.html', 
+                         organizzazione=organizzazione,
+                         mezzi=mezzi, 
+                         mezzi_temporanei=mezzi_temporanei)
+
 
 @anagrafica_bp.route('/organizzazioni/<int:org_id>/mezzi/crea', methods=['GET', 'POST'])
 @login_required

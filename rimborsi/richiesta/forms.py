@@ -1,4 +1,5 @@
 from operator import length_hint
+from flask_login import current_user
 from flask_wtf import FlaskForm
 from wtforms import SelectField, StringField, TextAreaField, IntegerField, SubmitField, ValidationError
 from wtforms.fields import DateField
@@ -50,9 +51,10 @@ class ImpiegoMezzoForm(FlaskForm):
     Form per creare/modificare un Impiego di Mezzo/Attrezzatura.
     """
     mezzo_attrezzatura = QuerySelectField('Mezzo/Attrezzatura Utilizzato',
-                                          get_label='targa_inventario',
-                                          allow_blank=False,
-                                          validators=[DataRequired("È obbligatorio selezionare un mezzo.")])
+                                      query_factory=lambda: MezzoAttrezzatura.query.filter_by(id=0),  # Query vuota di default
+                                      get_label=lambda obj: f"{'[TEMP] ' if obj.is_temporary else ''}{obj.targa_inventario} - {obj.descrizione or 'N/D'}",
+                                      allow_blank=False,
+                                      validators=[DataRequired("È obbligatorio selezionare un mezzo.")])
     
     localita_impiego = StringField('Località di Impiego', validators=[Optional(), Length(max=200)])
     data_ora_inizio_impiego = DateTimeField('Data e Ora Inizio Impiego', format='%Y-%m-%dT%H:%M', validators=[DataRequired()])
@@ -63,10 +65,20 @@ class ImpiegoMezzoForm(FlaskForm):
 
     def __init__(self, organizzazione_id, *args, **kwargs):
         super(ImpiegoMezzoForm, self).__init__(*args, **kwargs)
-        # Filtra i mezzi per mostrare solo quelli dell'organizzazione corrente
+        # Includi sia mezzi permanenti che temporanei dell'organizzazione
+        from sqlalchemy import or_, and_
         self.mezzo_attrezzatura.query = MezzoAttrezzatura.query.filter_by(
             organizzazione_id=organizzazione_id
-        ).order_by(MezzoAttrezzatura.targa_inventario)
+        ).filter(
+            or_(
+                MezzoAttrezzatura.is_temporary == False,
+                and_(
+                    MezzoAttrezzatura.is_temporary == True,
+                    MezzoAttrezzatura.authorization_document.isnot(None)
+                )
+            )
+    ).order_by(MezzoAttrezzatura.is_temporary, MezzoAttrezzatura.targa_inventario)
+
         
 # In rimborsi/richieste/forms.py
 
@@ -148,3 +160,29 @@ class DocumentoSpesaForm(FlaskForm):
         if tipo_selezionato in TIPI_SENZA_IMPORTO:
             # ...svuotiamo il campo per sicurezza, anche se l'utente provasse a inviare un valore.
             field.data = None
+
+# Aggiungi questa classe alla fine del file
+class TemporaryMezzoForm(FlaskForm):
+    """Form per creare mezzi/attrezzature temporanei"""
+    tipologia = SelectField('Tipologia', 
+                           choices=[('M', 'Autoveicolo'), ('A', 'Attrezzatura')], 
+                           validators=[DataRequired()])
+    targa_inventario = StringField('Targa/Inventario', validators=[DataRequired(), Length(max=50)])
+    descrizione = StringField('Descrizione', validators=[Optional(), Length(max=200)])
+    authorizing_entity = StringField('Ente Autorizzante', validators=[DataRequired(), Length(max=200)])
+    authorization_date = DateField('Data Autorizzazione', format='%Y-%m-%d', validators=[DataRequired()])
+    authorization_document = FileField('Documento Autorizzazione', 
+                                     validators=[DataRequired(), 
+                                               FileAllowed(['pdf', 'png', 'jpg', 'jpeg'])])
+    submit = SubmitField('Salva Mezzo Temporaneo')
+    
+    def validate_targa_inventario(self, field):
+        """Verifica che targa/inventario non esista nei mezzi permanenti"""
+        if current_user.organizzazioni:
+            existing = MezzoAttrezzatura.query.filter_by(
+                targa_inventario=field.data,
+                is_temporary=False,
+                organizzazione_id=current_user.organizzazioni[0].id
+            ).first()
+            if existing:
+                raise ValidationError('Questa targa/inventario esiste già nei mezzi permanenti.')

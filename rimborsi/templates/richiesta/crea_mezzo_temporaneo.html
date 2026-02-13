@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}Mezzo Temporaneo{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-plus-circle me-2"></i>Aggiungi Mezzo/Attrezzatura Temporaneo
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Mezzo Temporaneo:</strong> Questo mezzo non entrerà nell'anagrafica permanente e sarà utilizzabile solo per questa richiesta.
+                    </div>
+                    
+                    <form method="POST" enctype="multipart/form-data">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.tipologia.label(class="form-label") }}
+                                    {{ form.tipologia(class="form-select") }}
+                                    {% for error in form.tipologia.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.targa_inventario.label(class="form-label") }}
+                                    {{ form.targa_inventario(class="form-control") }}
+                                    {% for error in form.targa_inventario.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.descrizione.label(class="form-label") }}
+                            {{ form.descrizione(class="form-control") }}
+                            {% for error in form.descrizione.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    {{ form.authorizing_entity.label(class="form-label") }}
+                                    {{ form.authorizing_entity(class="form-control", placeholder="Es: Prefettura di Roma") }}
+                                    {% for error in form.authorizing_entity.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    {{ form.authorization_date.label(class="form-label") }}
+                                    {{ form.authorization_date(class="form-control") }}
+                                    {% for error in form.authorization_date.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.authorization_document.label(class="form-label") }}
+                            {{ form.authorization_document(class="form-control", accept=".pdf,.png,.jpg,.jpeg") }}
+                            <div class="form-text">Formati accettati: PDF, PNG, JPG, JPEG</div>
+                            {% for error in form.authorization_document.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('richiesta.crea_impiego', richiesta_id=richiesta.id) }}" 
+                               class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Annulla
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Salva Mezzo Temporaneo
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

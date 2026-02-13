@@ -3,11 +3,17 @@
 {% block title %}{{ titolo }}{% endblock %}
 
 {% block content %}
-    <div class="mb-4">
-        <h1 class="mb-0">{{ titolo }}</h1>
-        <p class="lead text-muted">Per la richiesta ID: {{ richiesta.id }}</p>
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <h1 class="mb-0">{{ titolo }}</h1>
+            <p class="lead text-muted">Per la richiesta ID: {{ richiesta.id }}</p>
+        </div>
+        <a href="{{ url_for('richiesta.crea_mezzo_temporaneo', richiesta_id=richiesta.id) }}" 
+        class="btn btn-outline-primary">
+            <i class="fas fa-plus-circle me-1"></i>Aggiungi Mezzo Temporaneo
+        </a>
     </div>
-
+   
     <div class="card shadow-sm">
         <div class="card-body">
             <form method="POST" action="" novalidate>
@@ -70,4 +76,20 @@
             </form>
         </div>
     </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const mezzoSelect = document.getElementById('mezzo_attrezzatura');
+        if (mezzoSelect) {
+            // Evidenzia i mezzi temporanei nel dropdown
+            const options = mezzoSelect.querySelectorAll('option');
+            options.forEach(option => {
+                if (option.textContent.includes('[TEMP]')) {
+                    option.style.backgroundColor = '#fff3cd';
+                    option.style.fontWeight = 'bold';
+                    option.style.color = '#856404';
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}
