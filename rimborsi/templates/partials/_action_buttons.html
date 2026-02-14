@@ -1,0 +1,139 @@
+{# 
+    PARTIAL: Action Buttons Standardizzati
+    
+    Tipi di button group:
+    - workflow_navigation: Annulla/Indietro + Avanti/Salva
+    - form_actions: Annulla + Salva + azioni extra 
+    - confirmation: Annulla + Conferma (per azioni critiche)
+    
+    Parametri:
+    - button_type: tipo di gruppo pulsanti
+    - primary_text: testo pulsante primario
+    - primary_action: URL o "submit" per pulsante primario
+    - primary_icon: icona per pulsante primario
+    - secondary_text: testo pulsante secondario
+    - secondary_action: URL per pulsante secondario
+    - secondary_icon: icona per pulsante secondario
+    - extra_buttons: lista di pulsanti aggiuntivi
+    - is_final_step: indica se è l'ultimo step del workflow
+    
+    Utilizzo:
+    {{ render_action_buttons("workflow_navigation", "Continua", "submit", "fas fa-arrow-right", "Annulla", url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id)) }}
+#}
+
+{% macro render_action_buttons(button_type="form_actions", primary_text="Salva", primary_action="submit", primary_icon=None, secondary_text="Annulla", secondary_action=None, secondary_icon=None, extra_buttons=None, is_final_step=False) %}
+    <div class="d-flex justify-content-between align-items-center pt-3 mt-4 border-top">
+        
+        <!-- Secondary Action (Annulla/Indietro) -->
+        <div>
+            {% if secondary_action %}
+                <a href="{{ secondary_action }}" class="btn btn-outline-secondary">
+                    {% if secondary_icon %}
+                        <i class="{{ secondary_icon }} me-1"></i>
+                    {% endif %}
+                    {{ secondary_text }}
+                </a>
+            {% endif %}
+        </div>
+        
+        <!-- Extra Buttons (Centro) -->
+        {% if extra_buttons %}
+            <div class="d-flex gap-2">
+                {% for btn in extra_buttons %}
+                    <button type="{{ btn.type or 'button' }}" 
+                            class="btn {{ btn.class or 'btn-outline-primary' }}"
+                            {% if btn.onclick %}onclick="{{ btn.onclick }}"{% endif %}
+                            {% if btn.disabled %}disabled{% endif %}>
+                        {% if btn.icon %}
+                            <i class="{{ btn.icon }} me-1"></i>
+                        {% endif %}
+                        {{ btn.text }}
+                    </button>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <!-- Primary Action (Avanti/Salva/Conferma) -->
+        <div>
+            {% if primary_action == "submit" %}
+                <button type="submit" class="btn {{ 'btn-success' if is_final_step else 'btn-primary' }}">
+                    {% if primary_icon %}
+                        <i class="{{ primary_icon }} me-1"></i>
+                    {% endif %}
+                    {{ primary_text }}
+                </button>
+            {% else %}
+                <a href="{{ primary_action }}" class="btn {{ 'btn-success' if is_final_step else 'btn-primary' }}">
+                    {% if primary_icon %}
+                        <i class="{{ primary_icon }} me-1"></i>
+                    {% endif %}
+                    {{ primary_text }}
+                </a>
+            {% endif %}
+        </div>
+    </div>
+{% endmacro %}
+
+{# 
+    MACRO PRECONFIGURATI per casi comuni
+#}
+
+{% macro render_workflow_step_buttons(step, total_steps, cancel_url, is_form_valid=True) %}
+    {% if step == 1 %}
+        {{ render_action_buttons(
+            "workflow_navigation", 
+            "Continua", 
+            "submit", 
+            "fas fa-arrow-right",
+            "Annulla",
+            cancel_url,
+            "fas fa-times"
+        ) }}
+    {% elif step == total_steps %}
+        {{ render_action_buttons(
+            "workflow_navigation",
+            "Completa", 
+            "submit", 
+            "fas fa-check",
+            "Indietro",
+            None,  # Will be handled by browser back or custom logic
+            "fas fa-arrow-left",
+            is_final_step=True
+        ) }}
+    {% else %}
+        {{ render_action_buttons(
+            "workflow_navigation",
+            "Continua", 
+            "submit", 
+            "fas fa-arrow-right",
+            "Indietro",
+            None,  # Will be handled by browser back or custom logic  
+            "fas fa-arrow-left"
+        ) }}
+    {% endif %}
+{% endmacro %}
+
+{% macro render_form_buttons(save_text="Salva", cancel_url=None, extra_actions=None) %}
+    {{ render_action_buttons(
+        "form_actions",
+        save_text,
+        "submit", 
+        "fas fa-save",
+        "Annulla",
+        cancel_url,
+        "fas fa-times",
+        extra_buttons=extra_actions
+    ) }}
+{% endmacro %}
+
+{% macro render_confirmation_buttons(confirm_text="Conferma", confirm_action="submit", cancel_url=None, is_dangerous=False) %}
+    {{ render_action_buttons(
+        "confirmation",
+        confirm_text,
+        confirm_action,
+        "fas fa-exclamation-triangle" if is_dangerous else "fas fa-check",
+        "Annulla",
+        cancel_url,
+        "fas fa-times"
+    ) }}
+{% endmacro %}

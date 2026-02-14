@@ -1,0 +1,39 @@
+{# 
+    PARTIAL: Error Handling Standardizzato
+    
+    Tipi di errori:
+    - form_errors: errori di validazione form
+    - system_error: errori di sistema/server
+    - warning: avvisi per l'utente
+    - info: informazioni utili
+    
+    Parametri:
+    - error_type: tipo di errore
+    - title: titolo dell'errore
+    - message: messaggio principale
+    - details: dettagli aggiuntivi (lista)
+    - actions: azioni suggerite (lista di dict con text e url)
+    - dismissible: se l'errore può essere chiuso
+    
+    Utilizzo:
+    {{ render_error_alert("form_errors", "Errori di validazione", form_errors, actions=[{"text": "Riprova", "url": "#"}]) }}
+#}
+
+{% macro render_error_alert(error_type="info", title=None, message=None, details=None, actions=None, dismissible=True) %}
+    {% set alert_class = {
+        'form_errors': 'alert-warning',
+        'system_error': 'alert-danger', 
+        'warning': 'alert-warning',
+        'info': 'alert-info',
+        'success': 'alert-success'
+    } %}
+    
+    {% set icon_class = {
+        'form_errors': 'fas fa-exclamation-triangle',
+        'system_error': 'fas fa-times-circle',
+        'warning': 'fas fa-exclamation-triangle', 
+        'info': 'fas fa-info-circle',
+        'success': 'fas fa-check-circle'
+    } %}
+    
+    <div class=\"alert {{ alert_class[error_type] or 'alert-info' }} {{ 'alert-dismissible fade show' if dismissible else '' }}\" role=\"alert\">\n        <div class=\"d-flex\">\n            <div class=\"me-3\">\n                <i class=\"{{ icon_class[error_type] or 'fas fa-info-circle' }} fs-4\"></i>\n            </div>\n            <div class=\"flex-grow-1\">\n                {% if title %}\n                    <h6 class=\"alert-heading\">{{ title }}</h6>\n                {% endif %}\n                \n                {% if message %}\n                    <p class=\"mb-2\">{{ message }}</p>\n                {% endif %}\n                \n                {% if details %}\n                    <ul class=\"mb-2\">\n                        {% for detail in details %}\n                            <li>{{ detail }}</li>\n                        {% endfor %}\n                    </ul>\n                {% endif %}\n                \n                {% if actions %}\n                    <div class=\"mt-3\">\n                        {% for action in actions %}\n                            <a href=\"{{ action.url }}\" class=\"btn btn-sm {{ action.class or 'btn-outline-secondary' }} me-2\">\n                                {% if action.icon %}\n                                    <i class=\"{{ action.icon }} me-1\"></i>\n                                {% endif %}\n                                {{ action.text }}\n                            </a>\n                        {% endfor %}\n                    </div>\n                {% endif %}\n            </div>\n            \n            {% if dismissible %}\n                <button type=\"button\" class=\"btn-close\" data-bs-dismiss=\"alert\" aria-label=\"Close\"></button>\n            {% endif %}\n        </div>\n    </div>\n{% endmacro %}\n\n{# \n    MACRO per errori di form automatizzati\n#}\n{% macro render_form_errors(form) %}\n    {% if form.errors %}\n        {% set error_list = [] %}\n        {% for field_name, field_errors in form.errors.items() %}\n            {% for error in field_errors %}\n                {% if field_name != 'csrf_token' %}\n                    {% set _ = error_list.append(form[field_name].label.text ~ \": \" ~ error) %}\n                {% endif %}\n            {% endfor %}\n        {% endfor %}\n        \n        {% if error_list %}\n            {{ render_error_alert(\n                \"form_errors\", \n                \"Errori di validazione\", \n                \"Correggi i seguenti errori prima di continuare:\",\n                error_list,\n                dismissible=False\n            ) }}\n        {% endif %}\n    {% endif %}\n{% endmacro %}\n\n{# \n    MACRO per messaggi flash standardizzati\n#}\n{% macro render_flash_messages() %}\n    {% with messages = get_flashed_messages(with_categories=true) %}\n        {% if messages %}\n            {% for category, message in messages %}\n                {% set flash_type = {\n                    'error': 'system_error',\n                    'danger': 'system_error', \n                    'warning': 'warning',\n                    'info': 'info',\n                    'success': 'success'\n                }[category] or 'info' %}\n                \n                {{ render_error_alert(flash_type, message=message) }}\n            {% endfor %}\n        {% endif %}\n    {% endwith %}\n{% endmacro %}

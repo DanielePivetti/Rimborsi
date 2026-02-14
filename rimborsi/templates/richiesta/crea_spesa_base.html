@@ -1,50 +1,40 @@
 {% extends 'base.html' %}
 {% from 'partials/_form_helpers.html' import render_field %}
-{% from 'partials/_progress_indicator.html' import render_expense_progress %}
-{% from 'partials/_breadcrumb.html' import render_expense_breadcrumb %}
+{% from 'partials/_workflow_layout.html' import render_expense_layout %}
+{% from 'partials/_action_buttons.html' import render_workflow_step_buttons %}
+{% from 'partials/_error_handling.html' import render_form_errors %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            {{ render_expense_breadcrumb(richiesta, "step1") }}
-            
-            <h2 class="mb-4">{{ titolo }}</h2>
-            
-            {{ render_expense_progress(1, "Dati Spesa", "Inserisci categoria, importo, descrizione e collega eventualmente ad un impiego mezzo.") }}
-            
-            <form method="POST" class="needs-validation" novalidate>
-                {{ form.hidden_tag() }}
-                
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        {{ render_field(form.categoria) }}
-                        <small class="text-muted">
-                            Le categorie Carburante, Pedaggi e Ripristino mezzi richiedono un collegamento con un impiego.
-                        </small>
-                    </div>
-                    <div class="col-md-6 mb-3">{{ render_field(form.data_spesa) }}</div>
-                </div>
-                
-                <div class="mb-3">{{ render_field(form.descrizione_spesa) }}</div>
-                
-                <div class="row">
-                    <div class="col-md-6 mb-3">{{ render_field(form.importo_richiesto) }}</div>
-                    <div class="col-md-6 mb-3">
-                        {{ render_field(form.impiego) }}
-                        <small class="text-muted">Seleziona un impiego se la categoria lo richiede</small>
-                    </div>
-                </div>
-                
-                <div class="d-flex justify-content-between">
-                    <a href="{{ url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id) }}" 
-                       class="btn btn-secondary">Annulla</a>
-                    {{ form.submit(class_='btn btn-primary') }}
-                </div>
-            </form>
+{% call render_expense_layout(1, titolo, richiesta, step_description="Inserisci categoria, importo, descrizione e collega eventualmente ad un impiego mezzo.") %}
+    
+    {{ render_form_errors(form) }}
+    
+    <form method="POST" class="needs-validation" novalidate>
+        {{ form.hidden_tag() }}
+        
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                {{ render_field(form.categoria) }}
+                <small class="text-muted">
+                    Le categorie Carburante, Pedaggi e Ripristino mezzi richiedono un collegamento con un impiego.
+                </small>
+            </div>
+            <div class="col-md-6 mb-3">{{ render_field(form.data_spesa) }}</div>
         </div>
-    </div>
-</div>
+        
+        <div class="mb-3">{{ render_field(form.descrizione_spesa) }}</div>
+        
+        <div class="row">
+            <div class="col-md-6 mb-3">{{ render_field(form.importo_richiesto) }}</div>
+            <div class="col-md-6 mb-3">
+                {{ render_field(form.impiego) }}
+                <small class="text-muted">Seleziona un impiego se la categoria lo richiede</small>
+            </div>
+        </div>
+        
+        {{ render_workflow_step_buttons(1, 2, url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id)) }}
+    </form>
+{% endcall %}
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

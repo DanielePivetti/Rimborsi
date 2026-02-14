@@ -1,64 +1,54 @@
 {% extends 'base.html' %}
 {% from 'partials/_form_helpers.html' import render_field %}
-{% from 'partials/_progress_indicator.html' import render_expense_progress %}
-{% from 'partials/_breadcrumb.html' import render_expense_breadcrumb %}
+{% from 'partials/_workflow_layout.html' import render_expense_layout %}
+{% from 'partials/_action_buttons.html' import render_workflow_step_buttons %}
+{% from 'partials/_error_handling.html' import render_form_errors %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            {{ render_expense_breadcrumb(richiesta, "step2", spesa) }}
-            
-            <h2 class="mb-4">{{ titolo }}</h2>
-            
-            {{ render_expense_progress(2, "Aggiungi Documenti", "Carica i documenti giustificativi per completare la spesa.", 
-               "Spesa creata: " ~ spesa.categoria_display ~ " - €" ~ "%.2f"|format(spesa.importo_richiesto) ~ " del " ~ spesa.data_spesa.strftime('%d/%m/%Y')) }}
-            
-            <!-- Rimuoviamo gli alert ridondanti -->
-            <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
-                {{ form.hidden_tag() }}
-                
-                <div id="documenti-container">
-                    {% for documento in form.documenti %}
-                        <div class="card mb-3">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <h6 class="mb-0">Documento {{ loop.index }}</h6>
-                                {% if loop.index > 1 %}
-                                    {{ form.remove_document(class_='btn btn-sm btn-outline-danger') }}
-                                {% endif %}
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6 mb-2">{{ render_field(documento.tipo_documento) }}</div>
-                                    <div class="col-md-6 mb-2">{{ render_field(documento.data_documento) }}</div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6 mb-2">{{ render_field(documento.fornitore) }}</div>
-                                    <div class="col-md-6 mb-2">{{ render_field(documento.importo_documento) }}</div>
-                                </div>
-                                <div class="mb-2">{{ render_field(documento.allegato) }}</div>
-                                {{ documento.remove(type="hidden", value="false") }}
-                            </div>
+{% call render_expense_layout(2, titolo, richiesta, spesa, 
+    step_description="Carica i documenti giustificativi per completare la spesa.", 
+    completion_info="Spesa creata: " ~ spesa.categoria_display ~ " - €" ~ "%.2f"|format(spesa.importo_richiesto) ~ " del " ~ spesa.data_spesa.strftime('%d/%m/%Y')) %}
+    
+    {{ render_form_errors(form) }}
+    
+    <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+        {{ form.hidden_tag() }}
+        
+        <div id="documenti-container">
+            {% for documento in form.documenti %}
+                <div class="card mb-3">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">Documento {{ loop.index }}</h6>
+                        {% if loop.index > 1 %}
+                            {{ form.remove_document(class_='btn btn-sm btn-outline-danger') }}
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-2">{{ render_field(documento.tipo_documento) }}</div>
+                            <div class="col-md-6 mb-2">{{ render_field(documento.data_documento) }}</div>
                         </div>
-                    {% endfor %}
+                        <div class="row">
+                            <div class="col-md-6 mb-2">{{ render_field(documento.fornitore) }}</div>
+                            <div class="col-md-6 mb-2">{{ render_field(documento.importo_documento) }}</div>
+                        </div>
+                        <div class="mb-2">{{ render_field(documento.allegato) }}</div>
+                        {{ documento.remove(type="hidden", value="false") }}
+                    </div>
                 </div>
-                
-                <div class="d-flex justify-content-between mb-3">
-                    {% if num_docs < 10 %}
-                        {{ form.add_document(class_='btn btn-outline-primary') }}
-                    {% endif %}
-                    <span class="text-muted">{{ num_docs }}/10 documenti</span>
-                </div>
-                
-                <div class="d-flex justify-content-between">
-                    <a href="{{ url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id) }}" 
-                       class="btn btn-secondary">Annulla</a>
-                    {{ form.submit(class_='btn btn-success') }}
-                </div>
-            </form>
+            {% endfor %}
         </div>
-    </div>
-</div>
+        
+        <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
+            {% if num_docs < 10 %}
+                {{ form.add_document(class_='btn btn-outline-primary') }}
+            {% endif %}
+            <span class="text-muted">{{ num_docs }}/10 documenti</span>
+        </div>
+        
+        {{ render_workflow_step_buttons(2, 2, url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id)) }}
+    </form>
+{% endcall %}
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

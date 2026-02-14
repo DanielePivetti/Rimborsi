@@ -1,0 +1,84 @@
+{# 
+    PARTIAL: Layout Container Standardizzato
+    
+    Parametri:
+    - title: titolo della pagina
+    - subtitle: sottotitolo opzionale  
+    - richiesta: oggetto richiesta per breadcrumb
+    - current_section: sezione per breadcrumb
+    - current_action: azione per breadcrumb
+    - current_step: step corrente per progress (opzionale)
+    - total_steps: totale step per progress (opzionale)  
+    - step_title: titolo step per progress (opzionale)
+    - step_description: descrizione step (opzionale)
+    - completion_info: info completamento (opzionale)
+    
+    Utilizzo:
+    {% call render_workflow_layout("Nuova Spesa", richiesta=richiesta, current_section="spese", current_action="step1", current_step=1, total_steps=2) %}
+        <!-- Contenuto del form -->
+    {% endcall %}
+#}
+
+{% macro render_workflow_layout(title, subtitle=None, richiesta=None, current_section=None, current_action=None, current_step=None, total_steps=None, step_title=None, step_description=None, completion_info=None) %}
+    {% from 'partials/_breadcrumb.html' import render_breadcrumb %}
+    {% from 'partials/_progress_indicator.html' import render_progress_indicator %}
+    
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-10 col-xl-8">
+                
+                <!-- Breadcrumb Navigation -->
+                {% if richiesta and current_section %}
+                    {{ render_breadcrumb(richiesta, current_section, current_action) }}
+                {% endif %}
+                
+                <!-- Page Header -->
+                <div class="d-flex justify-content-between align-items-start mb-4">
+                    <div>
+                        <h2 class="mb-0">{{ title }}</h2>
+                        {% if subtitle %}
+                            <p class="text-muted mb-0">{{ subtitle }}</p>
+                        {% endif %}
+                    </div>
+                    {% if richiesta %}
+                        <div class="text-end">
+                            <small class="text-muted d-block">Richiesta #{{ richiesta.id }}</small>
+                            <small class="text-muted">{{ richiesta.evento.nome[:50] }}{% if richiesta.evento.nome|length > 50 %}...{% endif %}</small>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Progress Indicator (se specificato) -->
+                {% if current_step and total_steps %}
+                    {{ render_progress_indicator(current_step, total_steps, step_title or title, step_description, completion_info) }}
+                {% endif %}
+                
+                <!-- Main Content Card -->
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4">
+                        {{ caller() }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endmacro %}
+
+{# 
+    MACRO SEMPLIFICATO per workflow spese
+#}
+{% macro render_expense_layout(step, title, richiesta, spesa=None, step_description=None, completion_info=None) %}
+    {% if step == 1 %}
+        {% call render_workflow_layout(title, richiesta=richiesta, current_section="spese", current_action="step1", current_step=1, total_steps=2, step_title="Dati Spesa", step_description=step_description) %}
+            {{ caller() }}
+        {% endcall %}
+    {% elif step == 2 %}
+        {% call render_workflow_layout(title, richiesta=richiesta, current_section="spese", current_action="step2", current_step=2, total_steps=2, step_title="Documenti", step_description=step_description, completion_info=completion_info) %}
+            {{ caller() }}
+        {% endcall %}
+    {% else %}
+        {% call render_workflow_layout(title, richiesta=richiesta, current_section="spese", current_action="modifica") %}
+            {{ caller() }}
+        {% endcall %}
+    {% endif %}
+{% endmacro %}
