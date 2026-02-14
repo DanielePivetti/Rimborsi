@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% from 'partials/_form_helpers.html' import render_field %}
+{% from 'partials/_progress_indicator.html' import render_expense_progress %}
+{% from 'partials/_breadcrumb.html' import render_expense_breadcrumb %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            {{ render_expense_breadcrumb(richiesta, "step1") }}
+            
+            <h2 class="mb-4">{{ titolo }}</h2>
+            
+            {{ render_expense_progress(1, "Dati Spesa", "Inserisci categoria, importo, descrizione e collega eventualmente ad un impiego mezzo.") }}
+            
+            <form method="POST" class="needs-validation" novalidate>
+                {{ form.hidden_tag() }}
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ render_field(form.categoria) }}
+                        <small class="text-muted">
+                            Le categorie Carburante, Pedaggi e Ripristino mezzi richiedono un collegamento con un impiego.
+                        </small>
+                    </div>
+                    <div class="col-md-6 mb-3">{{ render_field(form.data_spesa) }}</div>
+                </div>
+                
+                <div class="mb-3">{{ render_field(form.descrizione_spesa) }}</div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">{{ render_field(form.importo_richiesto) }}</div>
+                    <div class="col-md-6 mb-3">
+                        {{ render_field(form.impiego) }}
+                        <small class="text-muted">Seleziona un impiego se la categoria lo richiede</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id) }}" 
+                       class="btn btn-secondary">Annulla</a>
+                    {{ form.submit(class_='btn btn-primary') }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const categoriaField = document.getElementById('{{ form.categoria.id }}');
+    const impiegoField = document.getElementById('{{ form.impiego.id }}');
+    const impiegoContainer = impiegoField.closest('.mb-3');
+    
+    function toggleImpiegoField() {
+        const categoria = categoriaField.value;
+        const categorieMezzo = ['01', '02', '04']; // Carburante, Pedaggi, Ripristino mezzi
+        
+        if (categorieMezzo.includes(categoria)) {
+            impiegoContainer.style.display = 'block';
+            impiegoField.required = true;
+        } else {
+            impiegoContainer.style.display = 'none';
+            impiegoField.required = false;
+            impiegoField.value = '';
+        }
+    }
+    
+    categoriaField.addEventListener('change', toggleImpiegoField);
+    toggleImpiegoField(); // Esegui all'inizializzazione
+});
+</script>
+{% endblock %}

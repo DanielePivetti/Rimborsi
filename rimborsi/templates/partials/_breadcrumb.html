@@ -1,0 +1,86 @@
+{# 
+    PARTIAL: Breadcrumb Navigation
+    
+    Parametri:
+    - richiesta: oggetto richiesta corrente
+    - current_section: sezione corrente (es. "spese", "impieghi", "documenti")
+    - current_action: azione corrente (es. "crea", "modifica", "step1", "step2")
+    - current_item: oggetto corrente opzionale (es. spesa, impiego)
+    
+    Utilizzo:
+    {% from 'partials/_breadcrumb.html' import render_breadcrumb %}
+    {{ render_breadcrumb(richiesta, "spese", "crea") }}
+#}
+
+{% macro render_breadcrumb(richiesta, current_section=None, current_action=None, current_item=None) %}
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb bg-light p-3 rounded">
+            <!-- Home -->
+            <li class="breadcrumb-item">
+                <a href="{{ url_for('main.dashboard') }}">
+                    <i class="fas fa-home me-1"></i>Dashboard
+                </a>
+            </li>
+            
+            {% if richiesta %}
+                <!-- Richiesta -->
+                <li class="breadcrumb-item">
+                    <a href="{{ url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id) }}">
+                        Richiesta #{{ richiesta.id }}
+                    </a>
+                </li>
+                
+                {% if current_section %}
+                    <!-- Sezione -->
+                    <li class="breadcrumb-item">
+                        {% if current_section == "spese" %}
+                            <i class="fas fa-receipt me-1"></i>Spese
+                        {% elif current_section == "impieghi" %}
+                            <i class="fas fa-truck me-1"></i>Impieghi
+                        {% elif current_section == "documenti" %}
+                            <i class="fas fa-file-pdf me-1"></i>Documenti
+                        {% else %}
+                            {{ current_section|title }}
+                        {% endif %}
+                    </li>
+                    
+                    {% if current_action %}
+                        <!-- Azione -->
+                        <li class="breadcrumb-item active" aria-current="page">
+                            {% if current_action == "crea" or current_action == "step1" %}
+                                <i class="fas fa-plus me-1"></i>Nuova
+                            {% elif current_action == "step2" %}
+                                <i class="fas fa-upload me-1"></i>Documenti
+                            {% elif current_action == "modifica" %}
+                                <i class="fas fa-edit me-1"></i>Modifica
+                            {% else %}
+                                {{ current_action|title }}
+                            {% endif %}
+                            
+                            {% if current_item %}
+                                {% if current_section == "spese" %}
+                                    ({{ current_item.categoria_display }})
+                                {% elif current_section == "impieghi" %}
+                                    ({{ current_item.mezzo_attrezzatura.targa_inventario }})
+                                {% endif %}
+                            {% endif %}
+                        </li>
+                    {% endif %}
+                {% endif %}
+            {% endif %}
+        </ol>
+    </nav>
+{% endmacro %}
+
+{# 
+    MACRO SEMPLIFICATO per workflow spese
+#}
+{% macro render_expense_breadcrumb(richiesta, step="step1", spesa=None) %}
+    {% if step == "step1" %}
+        {{ render_breadcrumb(richiesta, "spese", "crea") }}
+    {% elif step == "step2" %}
+        {{ render_breadcrumb(richiesta, "spese", "step2", spesa) }}
+    {% else %}
+        {{ render_breadcrumb(richiesta, "spese", step, spesa) }}
+    {% endif %}
+{% endmacro %}

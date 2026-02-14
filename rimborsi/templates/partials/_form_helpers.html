@@ -1,0 +1,58 @@
+{% macro render_field(field, label_visible=true) -%}
+    <div class="form-group mb-3">
+        {% if label_visible and field.label %}
+            {{ field.label(class_="form-label") }}
+        {% endif %}
+        
+        {% if field.widget.input_type == 'file' %}
+            {% set class_value = "form-control-file" %}
+        {% elif field.widget.input_type == 'textarea' %}
+            {% set class_value = "form-control" %}
+        {% else %}
+            {% set class_value = "form-control" %}
+        {% endif %}
+        
+        {% if field.errors %}
+            {% set class_value = class_value + " is-invalid" %}
+        {% endif %}
+        
+        {% if field.widget.input_type == 'textarea' %}
+            {{ field(class_=class_value, rows="3") }}
+        {% else %}
+            {{ field(class_=class_value) }}
+        {% endif %}
+        
+        {% if field.errors %}
+            <div class="invalid-feedback">
+                {% for error in field.errors %}
+                    {{ error }}
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        {% if field.description %}
+            <small class="form-text text-muted">{{ field.description }}</small>
+        {% endif %}
+    </div>
+{%- endmacro %}
+
+{% macro render_submit_button(text="Salva", class_="btn-primary") -%}
+    <button type="submit" class="btn {{ class_ }}">
+        {{ text }}
+    </button>
+{%- endmacro %}
+
+{% macro render_form_errors(form) -%}
+    {% if form.errors %}
+        <div class="alert alert-danger">
+            <h6>Correggi i seguenti errori:</h6>
+            <ul class="mb-0">
+                {% for field_name, errors in form.errors.items() %}
+                    {% for error in errors %}
+                        <li><strong>{{ form[field_name].label.text }}:</strong> {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+{%- endmacro %}

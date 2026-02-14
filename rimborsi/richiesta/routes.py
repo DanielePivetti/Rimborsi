@@ -228,11 +228,11 @@ def crea_spesa(richiesta_id):
             impiego_selezionato.spesa_id = nuova_spesa.id
             db.session.commit() # Salviamo l'aggiornamento dell'impiego
         
-        flash('Spesa aggiunta con successo!', 'success')
-        return redirect(url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id))
+        flash('Spesa creata con successo! Ora aggiungi i documenti.', 'success')
+        return redirect(url_for('richiesta.aggiungi_documenti_spesa', spesa_id=nuova_spesa.id))
 
-    return render_template('richiesta/crea_modifica_spesa.html',
-                           form=form, richiesta=richiesta, titolo="Aggiungi Nuova Spesa")
+    return render_template('richiesta/crea_spesa_base.html',
+                           form=form, richiesta=richiesta, titolo="Nuova Spesa - Step 1 di 2")
 
 # Aggiungeremo 'modifica_spesa' e 'cancella_spesa' quando serviranno
 
@@ -267,7 +267,7 @@ def modifica_spesa(richiesta_id, spesa_id):
         return redirect(url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id))
 
     # Al primo caricamento (GET), il template mostrerà il form pre-compilato
-    return render_template('richiesta/crea_modifica_spesa.html',
+    return render_template('richiesta/crea_spesa_base.html',
                            form=form,
                            richiesta=richiesta,
                            titolo="Modifica Spesa")
@@ -293,6 +293,53 @@ def cancella_spesa(richiesta_id, spesa_id):
     flash('Spesa cancellata con successo.', 'success')
     return redirect(url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta_id))
 
+
+# === NUOVA ROTTA PER STEP 2 DEL WORKFLOW SPESE ===
+@richiesta_bp.route('/spese/<int:spesa_id>/documenti/aggiungi', methods=['GET', 'POST'])
+@login_required
+def aggiungi_documenti_spesa(spesa_id):
+    """Step 2 del workflow: aggiunta documenti a spesa esistente"""
+    spesa = Spesa.query.get_or_404(spesa_id)
+    richiesta = spesa.richiesta
+    
+    # Per ora form semplice - successivamente miglioreremo
+    form = DocumentoSpesaForm()
+    
+    if form.validate_on_submit():
+        nome_file_salvato = None
+        TIPI_SENZA_IMPORTO = ['C', 'D']
+        
+        # Gestione file upload
+        if form.allegato.data:
+            file = form.allegato.data
+            filename = secure_filename(file.filename)
+            # Genera nome file unico
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            nome_file_salvato = f"{timestamp}_{filename}"
+            # Salva file nella cartella uploads
+            uploads_dir = os.path.join(current_app.instance_path, 'uploads')
+            os.makedirs(uploads_dir, exist_ok=True)
+            file.save(os.path.join(uploads_dir, nome_file_salvato))
+        
+        # Crea documento
+        nuovo_documento = DocumentoSpesa(
+            spesa_id=spesa.id,
+            tipo_documento=form.tipo_documento.data,
+            data_documento=form.data_documento.data,
+            fornitore=form.fornitore.data,
+            importo_documento=form.importo_documento.data if form.tipo_documento.data not in TIPI_SENZA_IMPORTO else None,
+            nome_file=nome_file_salvato
+        )
+        
+        db.session.add(nuovo_documento)
+        db.session.commit()
+        
+        flash('Documento aggiunto con successo!', 'success')
+        return redirect(url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id))
+    
+    return render_template('richiesta/aggiungi_documenti.html',
+                           form=form, spesa=spesa, richiesta=richiesta,
+                           titolo="Aggiungi Documenti - Step 2 di 2")
 
 
 # Rotta per la pagina di gestione dei documenti di una spesa

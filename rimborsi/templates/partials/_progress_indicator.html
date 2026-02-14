@@ -1,0 +1,125 @@
+{# 
+    PARTIAL: Progress Indicator per Workflow Multi-Step
+    
+    Parametri:
+    - current_step: numero step corrente (es. 1, 2)
+    - total_steps: numero totale di step (es. 2, 3)  
+    - step_title: titolo del step corrente
+    - step_description: descrizione opzionale del step
+    - completion_info: info di completamento opzionale (per step intermedi)
+    
+    Utilizzo:
+    {% from 'partials/_progress_indicator.html' import render_progress_indicator %}
+    {{ render_progress_indicator(1, 2, "Crea Spesa", "Inserisci i dati principali della spesa") }}
+#}
+
+{% macro render_progress_indicator(current_step, total_steps, step_title, step_description=None, completion_info=None) %}
+    <!-- Progress Steps Navigation -->
+    <div class="mb-4">
+        <div class="row align-items-center">
+            <div class="col-auto">
+                <div class="d-flex align-items-center">
+                    {% for step_num in range(1, total_steps + 1) %}
+                        <div class="step-indicator {{ 'completed' if step_num < current_step else 'active' if step_num == current_step else 'pending' }}">
+                            <div class="step-number">
+                                {% if step_num < current_step %}
+                                    <i class="fas fa-check"></i>
+                                {% else %}
+                                    {{ step_num }}
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% if step_num < total_steps %}
+                            <div class="step-connector {{ 'completed' if step_num < current_step else 'pending' }}"></div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="col">
+                <span class="badge bg-primary fs-6 px-3 py-2">
+                    Step {{ current_step }} di {{ total_steps }}
+                </span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Current Step Info -->
+    <div class="alert alert-info border-start border-4 border-primary">
+        <div class="d-flex align-items-start">
+            <div class="me-3">
+                <i class="fas fa-info-circle fs-4"></i>
+            </div>
+            <div class="flex-grow-1">
+                <h6 class="alert-heading mb-2">{{ step_title }}</h6>
+                {% if step_description %}
+                    <p class="mb-0">{{ step_description }}</p>
+                {% endif %}
+                {% if completion_info %}
+                    <div class="mt-2 p-2 bg-light rounded">
+                        <small class="text-muted">{{ completion_info }}</small>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Inline Styles for Step Indicators -->
+    <style>
+        .step-indicator {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            position: relative;
+        }
+        
+        .step-indicator.completed {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .step-indicator.active {
+            background-color: #007bff;
+            color: white;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+        }
+        
+        .step-indicator.pending {
+            background-color: #e9ecef;
+            color: #6c757d;
+            border: 2px solid #dee2e6;
+        }
+        
+        .step-connector {
+            width: 60px;
+            height: 3px;
+            margin: 0 10px;
+        }
+        
+        .step-connector.completed {
+            background-color: #28a745;
+        }
+        
+        .step-connector.pending {
+            background-color: #dee2e6;
+        }
+        
+        .step-number {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+{% endmacro %}
+
+{# 
+    MACRO SEMPLIFICATO per workflow a 2 step (spese)
+#}
+{% macro render_expense_progress(current_step, step_title, step_description=None, completion_info=None) %}
+    {{ render_progress_indicator(current_step, 2, step_title, step_description, completion_info) }}
+{% endmacro %}
