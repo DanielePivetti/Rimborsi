@@ -14,39 +14,21 @@
     <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
         {{ form.hidden_tag() }}
         
-        <div id="documenti-container">
-            {% set document_count = [] %}
-            {% for documento in form.documenti %}
-                {% set _ = document_count.append(1) %}
-                <div class="card mb-3">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h6 class="mb-0">Documento {{ loop.index }}</h6>
-                        {% if loop.index > 1 %}
-                            {{ form.remove_document(class_='btn btn-sm btn-outline-danger') }}
-                        {% endif %}
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6 mb-2">{{ render_field(documento.tipo_documento) }}</div>
-                            <div class="col-md-6 mb-2">{{ render_field(documento.data_documento) }}</div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-2">{{ render_field(documento.fornitore) }}</div>
-                            <div class="col-md-6 mb-2">{{ render_field(documento.importo_documento) }}</div>
-                        </div>
-                        <div class="mb-2">{{ render_field(documento.allegato) }}</div>
-                        {{ documento.remove(type="hidden", value="false") }}
-                    </div>
+        <div class="card mb-3">
+            <div class="card-header">
+                <h6 class="mb-0">Nuovo Documento</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-2">{{ render_field(form.tipo_documento) }}</div>
+                    <div class="col-md-6 mb-2">{{ render_field(form.data_documento) }}</div>
                 </div>
-            {% endfor %}
-        </div>
-        
-        {% set num_docs = document_count|length %}
-        <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
-            {% if num_docs < 10 %}
-                {{ form.add_document(class_='btn btn-outline-primary') }}
-            {% endif %}
-            <span class="text-muted">{{ num_docs }}/10 documenti</span>
+                <div class="row">
+                    <div class="col-md-6 mb-2">{{ render_field(form.fornitore) }}</div>
+                    <div class="col-md-6 mb-2">{{ render_field(form.importo_documento) }}</div>
+                </div>
+                <div class="mb-2">{{ render_field(form.allegato) }}</div>
+            </div>
         </div>
         
         {{ render_workflow_step_buttons(2, 2, url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id)) }}
