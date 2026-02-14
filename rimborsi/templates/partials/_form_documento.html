@@ -65,7 +65,7 @@
                  {# Aggiunge un bottone "Annulla" nel caso della modifica #}
                 {% if documento %}
                 <div class="d-grid mt-2">
-                    <a href="{{ url_for('richiesta.lista_documenti', spesa_id=spesa.id) }}" class="btn btn-secondary">Annulla</a>
+                    <a href="{{ url_for('richiesta.aggiungi_documenti_spesa', spesa_id=spesa.id) }}" class="btn btn-secondary">Annulla</a>
                 </div>
                 {% endif %}
             </form>

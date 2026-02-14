@@ -349,21 +349,6 @@ def aggiungi_documenti_spesa(spesa_id):
                            titolo="Aggiungi Documenti - Step 2 di 2")
 
 
-# Rotta per la pagina di gestione dei documenti di una spesa
-
-@richiesta_bp.route('/spese/<int:spesa_id>/documenti', methods=['GET'])
-@login_required
-def lista_documenti(spesa_id):
-    spesa = Spesa.query.get_or_404(spesa_id)
-    richiesta = spesa.richiesta  # Accedi alla richiesta associata a questa spesa
-    form = DocumentoSpesaForm() # Form per aggiungere nuovi documenti
-    return render_template('richiesta/lista_documenti.html', 
-                           spesa=spesa, form=form, richiesta=richiesta,
-                           StatoRichiesta=StatoRichiesta)
-
-
-# ... (le altre rotte) ...
-
 @richiesta_bp.route('/spese/<int:spesa_id>/documenti/crea', methods=['POST'])
 @login_required
 def crea_documento(spesa_id):
@@ -406,7 +391,7 @@ def crea_documento(spesa_id):
     else:
         flash('Errore nella compilazione del form.', 'danger')
         
-    return redirect(url_for('richiesta.lista_documenti', spesa_id=spesa_id))
+    return redirect(url_for('richiesta.aggiungi_documenti_spesa', spesa_id=spesa_id))
 
 # Rotta per modificare un documento
 
@@ -449,8 +434,8 @@ def modifica_documento(spesa_id, documento_id):
 
         db.session.commit()
         flash('Documento modificato con successo.', 'success')
-        # Reindirizza alla lista dei documenti della spesa
-        return redirect(url_for('richiesta.lista_documenti', spesa_id=spesa.id))
+        # Reindirizza alla pagina documenti della spesa
+        return redirect(url_for('richiesta.aggiungi_documenti_spesa', spesa_id=spesa.id))
 
     # Per le richieste GET, mostra il form pre-compilato con i dati attuali
     # Se la validazione POST fallisce, mostra il form con gli errori
@@ -472,7 +457,7 @@ def cancella_documento(documento_id):
     db.session.delete(documento)
     db.session.commit()
     flash('Documento cancellato con successo.', 'info')
-    return redirect(url_for('richiesta.lista_documenti', spesa_id=spesa_id))
+    return redirect(url_for('richiesta.aggiungi_documenti_spesa', spesa_id=spesa_id))
 
 # Rotta per il controllo finale
 
@@ -575,7 +560,7 @@ def download_documento(documento_id):
 
     if not documento.nome_file:
         flash("Nessun file disponibile per questo documento.", "warning")
-        return redirect(url_for('richiesta.lista_documenti', spesa_id=spesa.id))
+        return redirect(url_for('richiesta.aggiungi_documenti_spesa', spesa_id=spesa.id))
 
     # Il percorso della directory uploads nell'instance folder
     uploads_dir = os.path.join(current_app.instance_path, 'uploads')
