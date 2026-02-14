@@ -335,7 +335,14 @@ def aggiungi_documenti_spesa(spesa_id):
         db.session.commit()
         
         flash('Documento aggiunto con successo!', 'success')
-        return redirect(url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id))
+        
+        # Controlla quale pulsante è stato premuto
+        if 'aggiungi_altro' in request.form:
+            # L'utente vuole aggiungere un altro documento
+            return redirect(url_for('richiesta.aggiungi_documenti_spesa', spesa_id=spesa.id))
+        else:
+            # L'utente ha finito, torna al dettaglio richiesta
+            return redirect(url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id))
     
     return render_template('richiesta/aggiungi_documenti.html',
                            form=form, spesa=spesa, richiesta=richiesta,

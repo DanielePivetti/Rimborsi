@@ -11,12 +11,32 @@
     
     {{ render_form_errors(form) }}
     
+    {# Mostra documenti già aggiunti #}
+    {% if spesa.documenti %}
+    <div class="alert alert-info mb-3">
+        <h6 class="alert-heading"><i class="bi bi-file-earmark-text me-2"></i>Documenti già caricati ({{ spesa.documenti|length }})</h6>
+        <ul class="mb-0 small">
+        {% for doc in spesa.documenti %}
+            <li>
+                <strong>{{ doc.get_tipo_documento_display() }}</strong>
+                {% if doc.fornitore %} - {{ doc.fornitore }}{% endif %}
+                {% if doc.importo_documento %} - € {{ "%.2f"|format(doc.importo_documento) }}{% endif %}
+                <span class="text-muted">({{ doc.data_documento.strftime('%d/%m/%Y') }})</span>
+            </li>
+        {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    
     <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
         {{ form.hidden_tag() }}
         
         <div class="card mb-3">
             <div class="card-header">
-                <h6 class="mb-0">Nuovo Documento</h6>
+                <h6 class="mb-0">
+                    <i class="bi bi-plus-circle me-2"></i>
+                    {% if spesa.documenti %}Aggiungi altro documento{% else %}Nuovo Documento{% endif %}
+                </h6>
             </div>
             <div class="card-body">
                 <div class="row">
@@ -31,7 +51,22 @@
             </div>
         </div>
         
-        {{ render_workflow_step_buttons(2, 2, url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id)) }}
+        {# Pulsanti per aggiungere documento #}
+        <div class="d-flex justify-content-between align-items-center">
+            <a href="{{ url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id) }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>
+                {% if spesa.documenti %}Annulla{% else %}Indietro{% endif %}
+            </a>
+            <div class="d-flex gap-2">
+                <button type="submit" name="aggiungi_altro" class="btn btn-outline-primary">
+                    <i class="bi bi-plus-circle me-2"></i>Salva e aggiungi altro
+                </button>
+                <button type="submit" name="completa" class="btn btn-success">
+                    <i class="bi bi-check-lg me-2"></i>
+                    {% if spesa.documenti %}Salva e completa{% else %}Salva documento{% endif %}
+                </button>
+            </div>
+        </div>
     </form>
 {% endcall %}
 
