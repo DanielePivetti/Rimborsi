@@ -66,19 +66,48 @@
 
 {# 
     MACRO SEMPLIFICATO per workflow spese
+    Ora accetta il contenuto come parametro invece di usare caller()
 #}
-{% macro render_expense_layout(step, title, richiesta, spesa=None, step_description=None, completion_info=None) %}
+{% macro render_expense_layout_wrapper(step, title, richiesta, content, spesa=None, step_description=None, completion_info=None) %}
     {% if step == 1 %}
         {% call render_workflow_layout(title, richiesta=richiesta, current_section="spese", current_action="step1", current_step=1, total_steps=2, step_title="Dati Spesa", step_description=step_description) %}
-            {{ caller() }}
+            {{ content }}
         {% endcall %}
     {% elif step == 2 %}
         {% call render_workflow_layout(title, richiesta=richiesta, current_section="spese", current_action="step2", current_step=2, total_steps=2, step_title="Documenti", step_description=step_description, completion_info=completion_info) %}
-            {{ caller() }}
+            {{ content }}
         {% endcall %}
     {% else %}
         {% call render_workflow_layout(title, richiesta=richiesta, current_section="spese", current_action="modifica") %}
+            {{ content }}
+        {% endcall %}
+    {% endif %}
+{% endmacro %}
+
+{# 
+    MACRO ALTERNATIVO per workflow spese che usa caller() correttamente
+#}
+{% macro render_expense_layout(step, title, richiesta, spesa=None, step_description=None, completion_info=None) %}
+    {% if step == 1 %}
+        {% set workflow_content %}
             {{ caller() }}
+        {% endset %}
+        {% call render_workflow_layout(title, richiesta=richiesta, current_section="spese", current_action="step1", current_step=1, total_steps=2, step_title="Dati Spesa", step_description=step_description) %}
+            {{ workflow_content }}
+        {% endcall %}
+    {% elif step == 2 %}
+        {% set workflow_content %}
+            {{ caller() }}
+        {% endset %}
+        {% call render_workflow_layout(title, richiesta=richiesta, current_section="spese", current_action="step2", current_step=2, total_steps=2, step_title="Documenti", step_description=step_description, completion_info=completion_info) %}
+            {{ workflow_content }}
+        {% endcall %}
+    {% else %}
+        {% set workflow_content %}
+            {{ caller() }}
+        {% endset %}
+        {% call render_workflow_layout(title, richiesta=richiesta, current_section="spese", current_action="modifica") %}
+            {{ workflow_content }}
         {% endcall %}
     {% endif %}
 {% endmacro %}

@@ -15,7 +15,9 @@
         {{ form.hidden_tag() }}
         
         <div id="documenti-container">
+            {% set document_count = [] %}
             {% for documento in form.documenti %}
+                {% set _ = document_count.append(1) %}
                 <div class="card mb-3">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h6 class="mb-0">Documento {{ loop.index }}</h6>
@@ -39,6 +41,7 @@
             {% endfor %}
         </div>
         
+        {% set num_docs = document_count|length %}
         <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
             {% if num_docs < 10 %}
                 {{ form.add_document(class_='btn btn-outline-primary') }}
