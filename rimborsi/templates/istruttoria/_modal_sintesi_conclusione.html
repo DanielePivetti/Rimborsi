@@ -12,7 +12,7 @@
           </p>
         </div>
         {% set totale_rischiesto = richiesta.spese | sum(attribute='importo_richiesto') %}
-        {% set totale_approvato = richiesta.spese | sum(attribute='importo_approvato') %}
+        {% set totale_approvato = richiesta.spese | selectattr('importo_approvato', 'ne', None) | sum(attribute='importo_approvato') %}
         <div class="row text-center mb-4">
           <div class="col">
             <div class="stat-box p-2">

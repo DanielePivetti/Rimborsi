@@ -133,7 +133,7 @@
                                 <td>{{ richiesta.evento.nome }}</td>
                                 <td>{{ richiesta.organizzazione.nome }}</td>
                                 <td class="text-end">&euro; {{ "%.2f"|format(richiesta.spese|sum(attribute='importo_richiesto')) }}</td>
-                                <td class="text-end">&euro; {{ "%.2f"|format(richiesta.spese|sum(attribute='importo_approvato')) }}</td>
+                                <td class="text-end">&euro; {{ "%.2f"|format(richiesta.spese|selectattr('importo_approvato', 'ne', None)|sum(attribute='importo_approvato')) }}</td>
                                <td class="text-center">
                                 <span class="badge bg-secondary">{{ richiesta.esito }}</span>
                                </td>
@@ -341,7 +341,7 @@
                                 <td>{{ richiesta.protocollo_istruttoria }}</td>
                                 <td>{{ richiesta.data_fine_istruttoria.strftime('%d/%m/%Y') }}</td>
                                 <td class="text-end">&euro; {{ "%.2f"|format(richiesta.spese|sum(attribute='importo_richiesto')) }}</td>
-                                <td class="text-end">&euro; {{ "%.2f"|format(richiesta.spese|sum(attribute='importo_approvato')) }}</td>
+                                <td class="text-end">&euro; {{ "%.2f"|format(richiesta.spese|selectattr('importo_approvato', 'ne', None)|sum(attribute='importo_approvato')) }}</td>
                                 <td class="text-center">
                                  <a href="{{ url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id) }}" class="btn btn-outline-info btn-sm" title="Visualizza Dettaglio">
                                  <i class="fas fa-eye"></i>
