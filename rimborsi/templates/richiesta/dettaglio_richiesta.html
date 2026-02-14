@@ -85,8 +85,12 @@
                                 <td class="text-center">
                                      <a href="{{ url_for('richiesta.lista_documenti', spesa_id=spesa.id) }}" class="btn btn-info btn-sm" title="Gestisci documenti">
                                          <i class="fas fa-file-alt"></i>
+                                         <span class="badge bg-light text-dark ms-1">{{ spesa.documenti|length }}</span>
                                       </a>
                                       {% if richiesta.stato == StatoRichiesta.BOZZA %}
+                                       <a href="{{ url_for('richiesta.aggiungi_documenti_spesa', spesa_id=spesa.id) }}" class="btn btn-success btn-sm" title="Aggiungi documento">
+                                            <i class="fas fa-plus"></i>
+                                       </a>
                                        <a href="{{ url_for('richiesta.modifica_spesa', richiesta_id=richiesta.id, spesa_id=spesa.id) }}" class="btn btn-warning btn-sm" title="Modifica spesa">
                                             <i class="fas fa-edit"></i>
                                        </a>

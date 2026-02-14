@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash
+from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from rimborsi.models import db, Evento, Richiesta, Organizzazione, Spesa, MezzoAttrezzatura, ImpiegoMezzoAttrezzatura, DocumentoSpesa, Comunicazione, StatoRichiesta
 from .forms import RichiestaForm, SpesaForm, ImpiegoMezzoForm, DocumentoSpesaForm, TemporaryMezzoForm
