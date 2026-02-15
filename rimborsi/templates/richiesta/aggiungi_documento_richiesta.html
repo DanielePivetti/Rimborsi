@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+{% from 'partials/_form_helpers.html' import render_field %}
+
+{% block title %}{{ titolo }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-file-upload me-2"></i>{{ titolo }}
+                    </h4>
+                    <span class="badge bg-info">Richiesta #{{ richiesta.id }}</span>
+                </div>
+                <div class="card-body">
+                    
+                    {# Alert se non ci sono spese #}
+                    {% if not richiesta.spese %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Attenzione:</strong> Non ci sono spese in questa richiesta. 
+                        <a href="{{ url_for('richiesta.crea_spesa', richiesta_id=richiesta.id) }}" class="alert-link">
+                            Crea prima una spesa
+                        </a>
+                    </div>
+                    {% else %}
+                    
+                    <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+                        {{ form.hidden_tag() }}
+                        
+                        {# Selezione Spesa #}
+                        <div class="card mb-3 border-primary">
+                            <div class="card-header bg-primary text-white">
+                                <h6 class="mb-0"><i class="fas fa-receipt me-2"></i>Seleziona Spesa di Riferimento</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    {{ form.spesa_id.label(class="form-label") }}
+                                    {{ form.spesa_id(class="form-select form-select-lg", id="spesa_select") }}
+                                    {% for error in form.spesa_id.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                
+                                {# Info residuo dinamico #}
+                                <div id="info-residuo" class="alert mb-3" style="display: none;">
+                                    <div class="row text-center">
+                                        <div class="col-3">
+                                            <small class="text-muted d-block">Importo Spesa</small>
+                                            <strong id="importo-spesa">€ 0.00</strong>
+                                        </div>
+                                        <div class="col-3">
+                                            <small class="text-muted d-block">Già Documentato</small>
+                                            <strong id="documentato">€ 0.00</strong>
+                                        </div>
+                                        <div class="col-3">
+                                            <small class="text-muted d-block">Residuo</small>
+                                            <strong id="residuo" class="fs-5">€ 0.00</strong>
+                                        </div>
+                                        <div class="col-3">
+                                            <small class="text-muted d-block">Documenti</small>
+                                            <strong id="num-documenti"><i class="fas fa-file-alt me-1"></i>0</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="text-end">
+                                    <a href="{{ url_for('richiesta.crea_spesa', richiesta_id=richiesta.id) }}" 
+                                       class="btn btn-outline-success btn-sm">
+                                        <i class="fas fa-plus me-1"></i>Crea nuova spesa
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {# Dati Documento #}
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="fas fa-file-alt me-2"></i>Dati Documento</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        {{ form.tipo_documento.label(class="form-label") }}
+                                        {{ form.tipo_documento(class="form-select", id="tipo_documento") }}
+                                        {% for error in form.tipo_documento.errors %}
+                                            <div class="text-danger small">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        {{ form.data_documento.label(class="form-label") }}
+                                        {{ form.data_documento(class="form-control") }}
+                                        {% for error in form.data_documento.errors %}
+                                            <div class="text-danger small">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        {{ form.fornitore.label(class="form-label") }}
+                                        {{ form.fornitore(class="form-control", placeholder="Es: Stazione di servizio XYZ") }}
+                                        {% for error in form.fornitore.errors %}
+                                            <div class="text-danger small">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                    <div class="col-md-6 mb-3" id="importo-container">
+                                        {{ form.importo_documento.label(class="form-label") }}
+                                        {{ form.importo_documento(class="form-control", id="importo_documento", placeholder="0.00") }}
+                                        {% for error in form.importo_documento.errors %}
+                                            <div class="text-danger small">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    {{ form.allegato.label(class="form-label") }}
+                                    {{ form.allegato(class="form-control", accept=".pdf,.png,.jpg,.jpeg") }}
+                                    <div class="form-text">Formati accettati: PDF, PNG, JPG, JPEG</div>
+                                    {% for error in form.allegato.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {# Pulsanti azione #}
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="{{ url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id) }}" 
+                               class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Annulla
+                            </a>
+                            <div class="d-flex gap-2">
+                                <button type="submit" name="aggiungi_altro" class="btn btn-outline-primary">
+                                    <i class="fas fa-plus-circle me-2"></i>Salva e aggiungi altro
+                                </button>
+                                <button type="submit" name="completa" class="btn btn-success">
+                                    <i class="fas fa-check me-2"></i>Salva documento
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    {% endif %}
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // === Gestione tipo documento (nascondi importo per certi tipi) ===
+    const tipoSelect = document.getElementById('tipo_documento');
+    const importoContainer = document.getElementById('importo-container');
+    const importoInput = document.getElementById('importo_documento');
+    const tipiSenzaImporto = ['C', 'D'];
+
+    function toggleImporto() {
+        if (tipiSenzaImporto.includes(tipoSelect.value)) {
+            importoContainer.style.display = 'none';
+            importoInput.value = '';
+        } else {
+            importoContainer.style.display = 'block';
+        }
+    }
+
+    tipoSelect.addEventListener('change', toggleImporto);
+    toggleImporto();
+    
+    // === Gestione info residuo per spesa selezionata ===
+    const speseInfo = {{ spese_info | tojson | safe }};
+    const spesaSelect = document.getElementById('spesa_select');
+    const infoResiduo = document.getElementById('info-residuo');
+    const importoSpesaEl = document.getElementById('importo-spesa');
+    const documentatoEl = document.getElementById('documentato');
+    const residuoEl = document.getElementById('residuo');
+    const numDocumentiEl = document.getElementById('num-documenti');
+    
+    function aggiornaInfoResiduo() {
+        const spesaId = spesaSelect.value;
+        if (spesaId && speseInfo[spesaId]) {
+            const info = speseInfo[spesaId];
+            
+            importoSpesaEl.textContent = '€ ' + info.importo.toFixed(2);
+            documentatoEl.textContent = '€ ' + info.documentato.toFixed(2);
+            residuoEl.textContent = '€ ' + info.residuo.toFixed(2);
+            numDocumentiEl.innerHTML = '<i class="fas fa-file-alt me-1"></i>' + info.num_documenti;
+            
+            // Colore in base al residuo
+            infoResiduo.classList.remove('alert-success', 'alert-warning', 'alert-info', 'alert-danger');
+            if (info.residuo < 0) {
+                // Rosso chiaro: documentato più del richiesto
+                infoResiduo.classList.add('alert-danger');
+                residuoEl.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i>€ ' + Math.abs(info.residuo).toFixed(2) + ' in eccesso';
+            } else if (info.residuo === 0) {
+                // Verde: perfettamente coperto
+                infoResiduo.classList.add('alert-success');
+                residuoEl.innerHTML = '<i class="fas fa-check-circle me-1"></i>Completo';
+            } else if (info.residuo < info.importo * 0.5) {
+                // Azzurro: a buon punto
+                infoResiduo.classList.add('alert-info');
+            } else {
+                // Giallo: ancora molto da documentare
+                infoResiduo.classList.add('alert-warning');
+            }
+            
+            infoResiduo.style.display = 'block';
+        } else {
+            infoResiduo.style.display = 'none';
+        }
+    }
+    
+    spesaSelect.addEventListener('change', aggiornaInfoResiduo);
+    // Inizializza se c'è già una selezione
+    aggiornaInfoResiduo();
+});
+</script>
+{% endblock %}

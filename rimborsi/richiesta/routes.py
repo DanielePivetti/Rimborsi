@@ -1,14 +1,10 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, send_from_directory, abort, current_app
 from flask_login import login_required, current_user
 from rimborsi.models import db, Evento, Richiesta, Organizzazione, Spesa, MezzoAttrezzatura, ImpiegoMezzoAttrezzatura, DocumentoSpesa, Comunicazione, StatoRichiesta
-from .forms import RichiestaForm, SpesaForm, ImpiegoMezzoForm, DocumentoSpesaForm, TemporaryMezzoForm
-import os
-from flask import send_from_directory, abort # import sicuro per i file
+from .forms import RichiestaForm, SpesaForm, ImpiegoMezzoForm, DocumentoSpesaForm, TemporaryMezzoForm, DocumentoConSpesaForm
 from werkzeug.utils import secure_filename
-from flask import current_app # Importa current_app per accedere alla configurazione
 from datetime import datetime
-from werkzeug.utils import secure_filename
-from flask import send_from_directory, current_app
+import os
 
 
 
@@ -50,6 +46,20 @@ def crea_richiesta():
         )
         
         db.session.add(nuova_richiesta)
+        db.session.flush()  # Per ottenere l'ID della richiesta prima del commit
+        
+        # Crea la comunicazione iniziale
+        comunicazione_iniziale = Comunicazione(
+            richiesta_id=nuova_richiesta.id,
+            user_id=current_user.id,
+            data_transazione=datetime.now(),
+            protocollo=None,
+            stato_precedente=None,
+            stato_successore=StatoRichiesta.BOZZA.value,
+            descrizione="Richiesta creata"
+        )
+        db.session.add(comunicazione_iniziale)
+        
         db.session.commit()
         
         flash('Richiesta creata con successo! Ora puoi aggiungere le spese.', 'success')
@@ -454,10 +464,109 @@ def modifica_documento(spesa_id, documento_id):
 def cancella_documento(documento_id):
     documento = DocumentoSpesa.query.get_or_404(documento_id)
     spesa_id = documento.spesa_id # Salvo l'ID per il redirect
+    richiesta_id = documento.spesa.richiesta_id
+    
+    # Controlla se la richiesta viene dal tab documenti (redirect_to parametro)
+    redirect_to = request.form.get('redirect_to', 'spesa')
+    
     db.session.delete(documento)
     db.session.commit()
     flash('Documento cancellato con successo.', 'info')
+    
+    if redirect_to == 'richiesta':
+        return redirect(url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta_id))
     return redirect(url_for('richiesta.aggiungi_documenti_spesa', spesa_id=spesa_id))
+
+
+# Rotta per aggiungere documento dalla vista richiesta (con selezione spesa)
+@richiesta_bp.route('/<int:richiesta_id>/documenti/aggiungi', methods=['GET', 'POST'])
+@login_required
+def aggiungi_documento_richiesta(richiesta_id):
+    """Aggiunge un documento selezionando la spesa di riferimento"""
+    richiesta = Richiesta.query.get_or_404(richiesta_id)
+    
+    # Verifica stato bozza
+    if richiesta.stato != StatoRichiesta.BOZZA:
+        flash('Non è possibile aggiungere documenti a una richiesta non in bozza.', 'warning')
+        return redirect(url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta_id))
+    
+    # Verifica che ci siano spese
+    if not richiesta.spese:
+        flash('Devi prima creare almeno una spesa per poter aggiungere documenti.', 'warning')
+        return redirect(url_for('richiesta.crea_spesa', richiesta_id=richiesta_id))
+    
+    form = DocumentoConSpesaForm()
+    
+    # Calcola i dati per ogni spesa (importo, documentato, residuo, num_documenti)
+    spese_info = {}
+    for s in richiesta.spese:
+        totale_documentato = sum(d.importo_documento or 0 for d in s.documenti)
+        residuo = s.importo_richiesto - totale_documentato
+        spese_info[s.id] = {
+            'importo': float(s.importo_richiesto),
+            'documentato': float(totale_documentato),
+            'residuo': float(residuo),
+            'num_documenti': len(s.documenti)
+        }
+    
+    # Popola le choices del SelectField con le spese della richiesta
+    form.spesa_id.choices = [
+        (s.id, f"{s.categoria_display} - €{s.importo_richiesto:.2f} ({s.data_spesa.strftime('%d/%m/%Y')})")
+        for s in richiesta.spese
+    ]
+    
+    TIPI_SENZA_IMPORTO = ['C', 'D']
+    
+    if form.validate_on_submit():
+        try:
+            nome_file_salvato = None
+            
+            # Gestione file upload
+            if form.allegato.data:
+                file = form.allegato.data
+                filename = secure_filename(file.filename)
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                nome_file_salvato = f"{timestamp}_{filename}"
+                uploads_dir = os.path.join(current_app.instance_path, 'uploads')
+                os.makedirs(uploads_dir, exist_ok=True)
+                file.save(os.path.join(uploads_dir, nome_file_salvato))
+            
+            # Gestione importo
+            importo = form.importo_documento.data
+            if form.tipo_documento.data in TIPI_SENZA_IMPORTO:
+                importo = 0.00
+            elif importo is None:
+                importo = 0.00
+            
+            # Crea documento
+            nuovo_documento = DocumentoSpesa(
+                spesa_id=form.spesa_id.data,
+                tipo_documento=form.tipo_documento.data,
+                data_documento=form.data_documento.data,
+                fornitore=form.fornitore.data,
+                importo_documento=importo,
+                nome_file=nome_file_salvato
+            )
+            
+            db.session.add(nuovo_documento)
+            db.session.commit()
+            
+            flash('Documento aggiunto con successo!', 'success')
+            
+            # Controlla quale pulsante è stato premuto
+            if 'aggiungi_altro' in request.form:
+                return redirect(url_for('richiesta.aggiungi_documento_richiesta', richiesta_id=richiesta_id))
+            return redirect(url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta_id))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Errore durante il salvataggio: {str(e)}', 'danger')
+    
+    return render_template('richiesta/aggiungi_documento_richiesta.html',
+                           form=form, richiesta=richiesta,
+                           spese_info=spese_info,
+                           titolo="Aggiungi Documento")
+
 
 # Rotta per il controllo finale
 
@@ -487,9 +596,6 @@ def controlla_richiesta(richiesta_id):
     return render_template('richiesta/riepilogo_controllo.html', 
                            richiesta=richiesta,
                            StatoRichiesta=StatoRichiesta)
-
-# In rimborsi/richieste/routes.py
-from datetime import datetime
 
 # Rotta per la trasmissione della richiesta
 

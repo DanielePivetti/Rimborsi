@@ -161,6 +161,32 @@ class DocumentoSpesaForm(FlaskForm):
             # ...svuotiamo il campo per sicurezza, anche se l'utente provasse a inviare un valore.
             field.data = None
 
+
+class DocumentoConSpesaForm(FlaskForm):
+    """Form per aggiungere documento con selezione della spesa di riferimento"""
+    spesa_id = SelectField('Spesa di Riferimento', coerce=int, validators=[DataRequired()])
+    tipo_documento = SelectField('Tipo Documento', choices=[
+        ('A', 'Scontrino'),
+        ('B', 'Fattura'),
+        ('C', 'Autorizzazione'),
+        ('D', 'Attestazione Danno')
+    ], validators=[DataRequired()])
+    data_documento = DateField('Data del Documento', format='%Y-%m-%d', validators=[DataRequired()])
+    fornitore = StringField('Fornitore', validators=[Optional(), Length(max=150)])
+    importo_documento = FloatField('Importo del Documento (€)', validators=[Optional()])
+    allegato = FileField('Allega Documento (PDF, PNG, JPG)', validators=[
+        FileAllowed(['pdf', 'png', 'jpg', 'jpeg'], 'Sono ammessi solo file PDF, PNG e JPG!')
+    ])
+    submit = SubmitField('Aggiungi Documento')
+    
+    def validate_importo_documento(self, field):
+        tipo_selezionato = self.tipo_documento.data
+        if tipo_selezionato not in TIPI_SENZA_IMPORTO and not field.data:
+            raise ValidationError('L\'importo è obbligatorio per Scontrini e Fatture.')
+        if tipo_selezionato in TIPI_SENZA_IMPORTO:
+            field.data = None
+
+
 # Aggiungi questa classe alla fine del file
 class TemporaryMezzoForm(FlaskForm):
     """Form per creare mezzi/attrezzature temporanei"""

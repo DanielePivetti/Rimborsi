@@ -40,38 +40,35 @@
             <div class="row text-center mt-3">
                 <div class="col">
                     <div class="stat-box border rounded p-2">
-                    <span class="fs-4 fw-bold">{{ richiesta.spese|length }}</span>
-                    <br>
-                    <span class="text-muted">Voci di Spesa</span>
+                        <span class="fs-4 fw-bold">{{ richiesta.spese|length }}</span>
+                        <br>
+                        <span class="text-muted">Voci di Spesa</span>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="stat-box border rounded p-2">
+                        {% set totale_documenti = namespace(valore=0) %}
+                        {% for spesa in richiesta.spese %}
+                            {% set totale_documenti.valore = totale_documenti.valore + spesa.documenti|length %}
+                        {% endfor %}
+                        <span class="fs-4 fw-bold">{{ totale_documenti.valore }}</span>
+                        <br>
+                        <span class="text-muted">Documenti Caricati</span>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="stat-box border rounded p-2 bg-light">
+                        <span class="fs-4 fw-bold">&euro; {{ "%.2f"|format(richiesta.spese|sum(attribute='importo_richiesto')) }}</span>
+                        <br>
+                        <span class="text-muted">Importo Totale Richiesto</span>
+                    </div>
                 </div>
             </div>
-            <div class="col">
-                <div class="stat-box border rounded p-2">
-                {# --- CORREZIONE QUI --- #}
-                {# 1. Dichiariamo una variabile a zero #}
-                {% set totale_documenti = namespace(valore=0) %}
-                {# 2. Cicliamo attraverso le spese per contare i documenti #}
-                {% for spesa in richiesta.spese %}
-                {% set totale_documenti.valore = totale_documenti.valore + spesa.documenti|length %}
-                {% endfor %}
-                {# 3. Visualizziamo il totale calcolato #}
-                <span class="fs-4 fw-bold">{{ totale_documenti.valore }}</span>
-                <br>
-                <span class="text-muted">Documenti Caricati</span>
-            </div>
         </div>
-    <div class="col">
-        <div class="stat-box border rounded p-2 bg-light">
-            <span class="fs-4 fw-bold">&euro; {{ "%.2f"|format(richiesta.spese|sum(attribute='importo_richiesto')) }}</span>
-            <br>
-            <span class="text-muted">Importo Totale Richiesto</span>
-        </div>
-    </div>
-</div>
-    </div>
         <div class="card-footer text-center">
             <p class="mb-2">Cliccando su "Conferma e Trasmetti", la richiesta verrà inviata all'istruttore e non potrà più essere modificata.</p>
             <form action="{{ url_for('richiesta.trasmetti_richiesta', richiesta_id=richiesta.id) }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <a href="{{ url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id) }}" class="btn btn-secondary">Annulla</a>
                 <button type="submit" class="btn btn-success btn-lg">
                     <i class="fas fa-paper-plane me-1"></i> Conferma e Trasmetti

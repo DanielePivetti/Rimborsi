@@ -72,16 +72,31 @@
                             <tr>
                                 <th>Categoria</th>
                                 <th>Descrizione</th>
+                                <th>Data</th>
                                 <th class="text-end">Importo</th>
+                                <th class="text-end">Documentato</th>
                                 <th class="text-center">Azioni</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for spesa in richiesta.spese %}
+                            {% set totale_documentato = spesa.documenti | sum(attribute='importo_documento') %}
+                            {% set residuo = spesa.importo_richiesto - totale_documentato %}
                             <tr>
-                                <td>{{ spesa.categoria }}</td>
+                                <td>{{ spesa.categoria_display }}</td>
                                 <td>{{ spesa.descrizione_spesa }}</td>
+                                <td>{{ spesa.data_spesa.strftime('%d/%m/%Y') }}</td>
                                 <td class="text-end">&euro; {{ "%.2f"|format(spesa.importo_richiesto) }}</td>
+                                <td class="text-end">
+                                    <span class="{% if residuo < 0 %}text-danger{% elif residuo == 0 %}text-success{% elif residuo < spesa.importo_richiesto * 0.5 %}text-info{% else %}text-warning{% endif %}">
+                                        &euro; {{ "%.2f"|format(totale_documentato) }}
+                                    </span>
+                                    {% if residuo < 0 %}
+                                        <i class="fas fa-exclamation-triangle text-danger ms-1" title="Eccedenza: € {{ '%.2f'|format(-residuo) }}"></i>
+                                    {% elif residuo == 0 %}
+                                        <i class="fas fa-check-circle text-success ms-1" title="Completo"></i>
+                                    {% endif %}
+                                </td>
                                 <td class="text-center">
                                      <a href="{{ url_for('richiesta.aggiungi_documenti_spesa', spesa_id=spesa.id) }}" class="btn btn-info btn-sm" title="Gestisci documenti">
                                          <i class="fas fa-file-alt"></i>
@@ -100,7 +115,7 @@
                                 </td>
                             </tr>
                             {% else %}
-                            <tr><td colspan="4" class="text-center text-muted">Nessuna spesa inserita.</td></tr>
+                            <tr><td colspan="6" class="text-center text-muted">Nessuna spesa inserita.</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -145,24 +160,32 @@
                                    <a href="{{ url_for('richiesta.modifica_impiego', richiesta_id=richiesta.id, impiego_id=impiego.id) }}" class="btn btn-sm btn-warning me-1">
                                     <i class="fas fa-edit"></i> Modifica
                                     </a>
-                                    {#
+                                    {# Cancella impiego - commentato temporaneamente
                                     <form action="{{ url_for('richiesta.cancella_impiego', richiesta_id=richiesta.id, impiego_id=impiego.id) }}" method="POST" style="display:inline;">
                                     <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Sei sicuro di voler cancellare questo impiego?');">
                                         <i class="fas fa-trash-alt"></i> Cancella
                                     </button>
                                     </form>
-                                    {#}
+                                    #}
                                     {% endif %}
                                </td>                                 
                              </tr>
                              {% else %}
-                            <tr><td colspan="3" class="text-center text-muted">Nessun impiego registrato.</td></tr>
+                            <tr><td colspan="6" class="text-center text-muted">Nessun impiego registrato.</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
                 <div class="tab-pane fade" id="tab-documenti">
-                    <h5 class="card-title mb-3">Elenco completo dei documenti caricati</h5>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title mb-0">Elenco completo dei documenti caricati</h5>
+                        {% if richiesta.stato == StatoRichiesta.BOZZA %}
+                        <a href="{{ url_for('richiesta.aggiungi_documento_richiesta', richiesta_id=richiesta.id) }}" 
+                           class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus me-1"></i>Aggiungi Documento
+                        </a>
+                        {% endif %}
+                    </div>
                     <table class="table table-hover">
                         <thead>
                             <tr>
@@ -170,8 +193,8 @@
                                 <th>Tipo Documento</th>
                                 <th>Data</th>
                                 <th>Fornitore</th>
-                                <th>Importo</th>
-                                <th class="text-end">Azioni</th>
+                                <th class="text-end">Importo</th>
+                                <th class="text-center">Azioni</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -183,27 +206,75 @@
                                     <td>{{ doc.get_tipo_documento_display() }}</td>
                                     <td>{{ doc.data_documento.strftime('%d/%m/%Y') }}</td>
                                     <td>{{ doc.fornitore or 'N/D' }}</td>
-                                    <td class="text-end">&euro; {{ "%.2f"|format(doc.importo_documento) }}</td>
                                     <td class="text-end">
-                                        {%if richiesta.stato=='A'%}
-                                        <a href="{{ url_for('richiesta.modifica_documento', spesa_id=spesa.id, richiesta_id=richiesta.id, documento_id=doc.id) }}" class="btn btn-warning btn-sm" title="Modifica documento">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        {%elif doc.nome_file%}
-                                        <a href="{{ url_for('richiesta.download_documento', spesa_id=spesa.id, richiesta_id=richiesta.id, documento_id=doc.id) }}" class="btn btn-info btn-sm" title="Scarica documento">
+                                        {% if doc.importo_documento %}
+                                        &euro; {{ "%.2f"|format(doc.importo_documento) }}
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {# Anteprima/Download #}
+                                        {% if doc.nome_file %}
+                                        <button type="button" class="btn btn-info btn-sm" 
+                                                title="Anteprima in corso di sviluppo"
+                                                onclick="alert('Funzionalità anteprima in corso di sviluppo');">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <a href="{{ url_for('richiesta.download_documento', documento_id=doc.id) }}" 
+                                           class="btn btn-secondary btn-sm" title="Scarica">
                                             <i class="fas fa-download"></i>
                                         </a>
+                                        {% endif %}
+                                        {# Modifica e Cancella solo in bozza #}
+                                        {% if richiesta.stato == StatoRichiesta.BOZZA %}
+                                        <a href="{{ url_for('richiesta.modifica_documento', spesa_id=spesa.id, documento_id=doc.id) }}" 
+                                           class="btn btn-warning btn-sm" title="Modifica">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <form action="{{ url_for('richiesta.cancella_documento', documento_id=doc.id) }}" 
+                                              method="POST" style="display:inline;">
+                                            <input type="hidden" name="redirect_to" value="richiesta">
+                                            <button type="submit" class="btn btn-danger btn-sm" 
+                                                    title="Cancella" 
+                                                    onclick="return confirm('Sei sicuro di voler cancellare questo documento?');">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </form>
                                         {% endif %}
                                     </td>
                                 </tr>
                                 {% endfor %}
                             {% else %}
                             <tr>
-                                <td colspan="5" class="text-center text-muted">Nessun documento inserito per questa richiesta.</td>
+                                <td colspan="6" class="text-center text-muted">Nessun documento inserito per questa richiesta.</td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
+                    
+                    {# Riepilogo totali documenti #}
+                    {% set totale_docs = namespace(count=0, importo=0) %}
+                    {% for spesa in richiesta.spese %}
+                        {% for doc in spesa.documenti %}
+                            {% set totale_docs.count = totale_docs.count + 1 %}
+                            {% if doc.importo_documento %}
+                                {% set totale_docs.importo = totale_docs.importo + doc.importo_documento %}
+                            {% endif %}
+                        {% endfor %}
+                    {% endfor %}
+                    {% if totale_docs.count > 0 %}
+                    <div class="alert alert-light border mt-3">
+                        <div class="row text-center">
+                            <div class="col-md-6">
+                                <strong>Totale Documenti:</strong> {{ totale_docs.count }}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Totale Importi:</strong> &euro; {{ "%.2f"|format(totale_docs.importo) }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
                 <div class="tab-pane fade" id="tab-comunicazioni">
                     <div class="card border-0">
@@ -221,4 +292,84 @@
         </a>
     </div>
 
+<!-- === ANTEPRIMA DOCUMENTO - IN CORSO DI SVILUPPO ===
+Modal Anteprima Documento
+<div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="previewModalLabel">
+                    <i class="fas fa-file-alt me-2"></i>Anteprima Documento
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center" style="min-height: 500px;">
+                <div id="preview-content">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Caricamento...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="#" id="download-link" class="btn btn-primary">
+                    <i class="fas fa-download me-1"></i>Scarica
+                </a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
+            </div>
+        </div>
+    </div>
+</div>
+=== FINE ANTEPRIMA DOCUMENTO -->
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<!-- === SCRIPT ANTEPRIMA - COMMENTATO ===
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const previewModal = document.getElementById('previewModal');
+    
+    previewModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const fileUrl = button.getAttribute('data-file');
+        const filename = button.getAttribute('data-filename');
+        const tipo = button.getAttribute('data-tipo');
+        
+        const modalTitle = previewModal.querySelector('.modal-title');
+        const previewContent = document.getElementById('preview-content');
+        const downloadLink = document.getElementById('download-link');
+        
+        modalTitle.innerHTML = '<i class="fas fa-file-alt me-2"></i>' + tipo + ': ' + filename;
+        downloadLink.href = fileUrl;
+        
+        // Mostra spinner durante il caricamento
+        previewContent.innerHTML = '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Caricamento...</span></div>';
+        
+        // Determina il tipo di file dall'estensione
+        const ext = filename.split('.').pop().toLowerCase();
+        
+        // Piccolo ritardo per evitare sfarfallio
+        setTimeout(function() {
+            if (ext === 'pdf') {
+                // Usa object invece di iframe per migliore compatibilità PDF
+                previewContent.innerHTML = '<object data="' + fileUrl + '" type="application/pdf" style="width:100%; height:600px;">' +
+                    '<div class="alert alert-warning mt-3"><i class="fas fa-exclamation-triangle me-2"></i>' +
+                    'Il browser non supporta la visualizzazione PDF inline. ' +
+                    '<a href="' + fileUrl + '" class="alert-link" target="_blank">Apri in una nuova scheda</a></div></object>';
+            } else if (['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(ext)) {
+                previewContent.innerHTML = '<img src="' + fileUrl + '" class="img-fluid" style="max-height:600px;" alt="Anteprima documento" onload="this.style.opacity=1" style="opacity:0; transition: opacity 0.2s;">';
+            } else {
+                previewContent.innerHTML = '<div class="alert alert-info"><i class="fas fa-info-circle me-2"></i>Anteprima non disponibile per questo tipo di file. Usa il pulsante Scarica.</div>';
+            }
+        }, 100);
+    });
+    
+    previewModal.addEventListener('hidden.bs.modal', function() {
+        // Pulisci il contenuto quando il modal si chiude
+        document.getElementById('preview-content').innerHTML = '';
+    });
+});
+</script>
+=== FINE SCRIPT ANTEPRIMA -->
 {% endblock %}

@@ -141,7 +141,7 @@ def generate_codice(mapper, connection, target):
 class Spesa(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     data_spesa = db.Column(db.Date, nullable=False)
-    categoria = db.Column(db.String(1), nullable=False)
+    categoria = db.Column(db.String(2), nullable=False)
     descrizione_spesa = db.Column(db.String(250))
     importo_richiesto = db.Column(db.Float, nullable=False)
     importo_approvato = db.Column(db.Float)
@@ -154,6 +154,19 @@ class Spesa(db.Model):
     # Il 'backref' crea un attributo virtuale 'spesa' nel modello DocumentoSpesa.
     documenti = db.relationship('DocumentoSpesa', backref='spesa', lazy=True, cascade="all, delete-orphan")
     impiego_id = db.Column(db.Integer, db.ForeignKey('impiego_mezzo_attrezzatura.id'), nullable=True)
+
+    @property
+    def categoria_display(self):
+        """Restituisce il nome completo della categoria."""
+        categorie = {
+            '01': 'Carburante',
+            '02': 'Pedaggi autostradali',
+            '03': 'Pasti',
+            '04': 'Ripristino danni mezzi',
+            '05': 'Viaggio',
+            '06': 'Altro'
+        }
+        return categorie.get(self.categoria, self.categoria)
 
 class DocumentoSpesa(db.Model):
     id = db.Column(db.Integer, primary_key=True)
