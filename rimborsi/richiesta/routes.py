@@ -227,7 +227,8 @@ def crea_spesa(richiesta_id):
             categoria=form.categoria.data,
             data_spesa=form.data_spesa.data,
             descrizione_spesa=form.descrizione_spesa.data,
-            importo_richiesto=form.importo_richiesto.data
+            importo_richiesto=form.importo_richiesto.data,
+            numero_volontari_pasto=form.numero_volontari_pasto.data
         )
         db.session.add(nuova_spesa)
         db.session.commit() # Salviamo prima la spesa per ottenere un ID
@@ -237,6 +238,14 @@ def crea_spesa(richiesta_id):
         if impiego_selezionato:
             impiego_selezionato.spesa_id = nuova_spesa.id
             db.session.commit() # Salviamo l'aggiornamento dell'impiego
+        
+        # Warning per spese pasti
+        if nuova_spesa.categoria == '03':
+            if not nuova_spesa.numero_volontari_pasto:
+                flash('Ricorda di indicare il numero di volontari per verificare il limite di € 15,00 a persona.', 'info')
+            elif nuova_spesa.supera_limite_pasto:
+                flash(f'Attenzione: il costo pro-capite del pasto è € {nuova_spesa.costo_per_volontario:.2f}, '
+                      f'superiore al limite di € 15,00 per volontario.', 'warning')
         
         flash('Spesa creata con successo! Ora aggiungi i documenti.', 'success')
         return redirect(url_for('richiesta.aggiungi_documenti_spesa', spesa_id=nuova_spesa.id))
@@ -262,6 +271,7 @@ def modifica_spesa(richiesta_id, spesa_id):
         spesa.data_spesa = form.data_spesa.data
         spesa.descrizione_spesa = form.descrizione_spesa.data
         spesa.importo_richiesto = form.importo_richiesto.data
+        spesa.numero_volontari_pasto = form.numero_volontari_pasto.data
         
         # Gestisce il collegamento con l'impiego
         impiego_selezionato = form.impiego.data
@@ -273,6 +283,15 @@ def modifica_spesa(richiesta_id, spesa_id):
             spesa.impiego_id = None
             
         db.session.commit()
+        
+        # Warning per spese pasti
+        if spesa.categoria == '03':
+            if not spesa.numero_volontari_pasto:
+                flash('Ricorda di indicare il numero di volontari per verificare il limite di € 15,00 a persona.', 'info')
+            elif spesa.supera_limite_pasto:
+                flash(f'Attenzione: il costo pro-capite del pasto è € {spesa.costo_per_volontario:.2f}, '
+                      f'superiore al limite di € 15,00 per volontario.', 'warning')
+        
         flash('Spesa modificata con successo!', 'success')
         return redirect(url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id))
 

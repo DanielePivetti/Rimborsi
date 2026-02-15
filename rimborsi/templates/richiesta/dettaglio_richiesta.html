@@ -84,7 +84,22 @@
                             {% set residuo = spesa.importo_richiesto - totale_documentato %}
                             <tr>
                                 <td>{{ spesa.categoria_display }}</td>
-                                <td>{{ spesa.descrizione_spesa }}</td>
+                                <td>
+                                    {{ spesa.descrizione_spesa }}
+                                    {% if spesa.supera_limite_pasto %}
+                                        <span class="badge bg-danger ms-1" title="Costo pro-capite € {{ '%.2f'|format(spesa.costo_per_volontario) }} — supera il limite di € 15,00">
+                                            <i class="fas fa-exclamation-triangle"></i> € {{ "%.2f"|format(spesa.costo_per_volontario) }}/vol.
+                                        </span>
+                                    {% elif spesa.categoria == '03' and spesa.numero_volontari_pasto %}
+                                        <span class="badge bg-success ms-1" title="Costo pro-capite € {{ '%.2f'|format(spesa.costo_per_volontario) }} — entro il limite">
+                                            <i class="fas fa-check"></i> € {{ "%.2f"|format(spesa.costo_per_volontario) }}/vol.
+                                        </span>
+                                    {% elif spesa.categoria == '03' and not spesa.numero_volontari_pasto %}
+                                        <span class="badge bg-secondary ms-1" title="Indicare il numero di volontari per il controllo del limite">
+                                            <i class="fas fa-info-circle"></i> vol. n.d.
+                                        </span>
+                                    {% endif %}
+                                </td>
                                 <td>{{ spesa.data_spesa.strftime('%d/%m/%Y') }}</td>
                                 <td class="text-end">&euro; {{ "%.2f"|format(spesa.importo_richiesto) }}</td>
                                 <td class="text-end">

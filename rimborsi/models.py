@@ -148,12 +148,26 @@ class Spesa(db.Model):
     note_istruttoria = db.Column(db.Text)
     
     richiesta_id = db.Column(db.Integer, db.ForeignKey('richiesta.id'), nullable=False)
+    numero_volontari_pasto = db.Column(db.Integer, nullable=True)  # Solo per categoria '03' Pasti
     
     # --- RELAZIONE CORRETTA ---
     # Questa riga dice a SQLAlchemy: "una Spesa può avere molti Documenti".
     # Il 'backref' crea un attributo virtuale 'spesa' nel modello DocumentoSpesa.
     documenti = db.relationship('DocumentoSpesa', backref='spesa', lazy=True, cascade="all, delete-orphan")
     impiego_id = db.Column(db.Integer, db.ForeignKey('impiego_mezzo_attrezzatura.id'), nullable=True)
+
+    @property
+    def costo_per_volontario(self):
+        """Calcola il costo pro-capite per i pasti. Ritorna None se non applicabile."""
+        if self.categoria == '03' and self.numero_volontari_pasto and self.numero_volontari_pasto > 0:
+            return self.importo_richiesto / self.numero_volontari_pasto
+        return None
+
+    @property
+    def supera_limite_pasto(self):
+        """Ritorna True se il costo pro-capite supera €15."""
+        costo = self.costo_per_volontario
+        return costo is not None and costo > 15.0
 
     @property
     def categoria_display(self):

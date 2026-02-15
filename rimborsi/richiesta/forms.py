@@ -101,6 +101,10 @@ class SpesaForm(FlaskForm):
     descrizione_spesa = TextAreaField('Descrizione Dettagliata', validators=[DataRequired(), Length(max=250)])
     importo_richiesto = FloatField('Importo Richiesto (€)', validators=[DataRequired()])
     
+    # Campo per i pasti: numero volontari per calcolo €15/persona
+    numero_volontari_pasto = IntegerField('Numero Volontari al Pasto', 
+                                          validators=[Optional(), NumberRange(min=1, message="Il numero deve essere almeno 1.")])
+    
     # Campo per selezionare un impiego esistente
     impiego = QuerySelectField('Collega a un Impiego Mezzo (se necessario)',
                                get_label=lambda i: f"{i.mezzo_attrezzatura.targa_inventario} del {i.data_ora_inizio_impiego.strftime('%d/%m')}",
@@ -117,6 +121,12 @@ class SpesaForm(FlaskForm):
         categorie_con_impiego = ['01', '02', '04']
         if self.categoria.data in categorie_con_impiego and not field.data:
             raise ValidationError('Per questa categoria di spesa è obbligatorio selezionare un impiego.')
+
+    def validate_numero_volontari_pasto(self, field):
+        """Per la categoria Pasti il numero di volontari è consigliato ma non bloccante."""
+        # Se non è Pasti, azzeriamo il campo per sicurezza
+        if self.categoria.data != '03':
+            field.data = None
 
 
 # Definiamo i tipi di documento che NON richiedono un importo.

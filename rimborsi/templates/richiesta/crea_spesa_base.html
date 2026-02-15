@@ -26,6 +26,17 @@
         
         <div class="row">
             <div class="col-md-6 mb-3">{{ render_field(form.importo_richiesto) }}</div>
+            <div class="col-md-6 mb-3" id="volontari-pasto-container" style="display:none;">
+                {{ render_field(form.numero_volontari_pasto) }}
+                <small class="text-muted">Indica quanti volontari hanno consumato il pasto</small>
+                <div id="warning-pasto" class="alert alert-warning mt-2" style="display:none;">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    <span id="warning-pasto-text"></span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
             <div class="col-md-6 mb-3">
                 {{ render_field(form.impiego) }}
                 <small class="text-muted">Seleziona un impiego se la categoria lo richiede</small>
@@ -41,6 +52,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const categoriaField = document.getElementById('{{ form.categoria.id }}');
     const impiegoField = document.getElementById('{{ form.impiego.id }}');
     const impiegoContainer = impiegoField.closest('.mb-3');
+    const volontariContainer = document.getElementById('volontari-pasto-container');
+    const volontariField = document.getElementById('{{ form.numero_volontari_pasto.id }}');
+    const importoField = document.getElementById('{{ form.importo_richiesto.id }}');
+    const warningPasto = document.getElementById('warning-pasto');
+    const warningPastoText = document.getElementById('warning-pasto-text');
+    const LIMITE_PASTO = 15.0;
     
     function toggleImpiegoField() {
         const categoria = categoriaField.value;
@@ -56,8 +73,57 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    categoriaField.addEventListener('change', toggleImpiegoField);
-    toggleImpiegoField(); // Esegui all'inizializzazione
+    function toggleVolontariPasto() {
+        const categoria = categoriaField.value;
+        if (categoria === '03') {
+            volontariContainer.style.display = 'block';
+        } else {
+            volontariContainer.style.display = 'none';
+            volontariField.value = '';
+            warningPasto.style.display = 'none';
+        }
+    }
+    
+    function calcolaWarningPasto() {
+        const categoria = categoriaField.value;
+        if (categoria !== '03') {
+            warningPasto.style.display = 'none';
+            return;
+        }
+        
+        const importo = parseFloat(importoField.value) || 0;
+        const numVolontari = parseInt(volontariField.value) || 0;
+        
+        if (importo > 0 && numVolontari > 0) {
+            const costoProCapite = importo / numVolontari;
+            if (costoProCapite > LIMITE_PASTO) {
+                warningPasto.className = 'alert alert-danger mt-2';
+                warningPastoText.textContent = 
+                    `€ ${costoProCapite.toFixed(2)} per volontario — supera il limite di € ${LIMITE_PASTO.toFixed(2)}!`;
+                warningPasto.style.display = 'block';
+            } else {
+                warningPasto.className = 'alert alert-success mt-2';
+                warningPastoText.textContent = 
+                    `€ ${costoProCapite.toFixed(2)} per volontario — entro il limite di € ${LIMITE_PASTO.toFixed(2)}`;
+                warningPasto.style.display = 'block';
+            }
+        } else {
+            warningPasto.style.display = 'none';
+        }
+    }
+    
+    categoriaField.addEventListener('change', function() {
+        toggleImpiegoField();
+        toggleVolontariPasto();
+        calcolaWarningPasto();
+    });
+    importoField.addEventListener('input', calcolaWarningPasto);
+    volontariField.addEventListener('input', calcolaWarningPasto);
+    
+    // Inizializzazione
+    toggleImpiegoField();
+    toggleVolontariPasto();
+    calcolaWarningPasto();
 });
 </script>
 {% endblock %}
