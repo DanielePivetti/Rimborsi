@@ -265,6 +265,9 @@
                                 <a href="{{ url_for('richiesta.modifica_richiesta', richiesta_id=richiesta.id) }}" class="btn btn-success btn-sm" title="Modifica richiesta">
                                     <i class="fas fa-pencil-alt"></i>
                                 </a>
+                                <a href="{{ url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id) }}" class="btn btn-warning btn-sm" title="Continua Compilazione">
+                                    <i class="fas fa-rocket"></i>
+                                </a>
                                 {% if richiesta.spese|length == 0 and richiesta.impieghi|length == 0 %}
                                 <form action="{{ url_for('richiesta.cancella_richiesta', richiesta_id=richiesta.id) }}" method="POST" style="display:inline;">
                                     <button type="submit" class="btn btn-danger btn-sm" title="Cancella richiesta" onclick="return confirm('Sei sicuro di voler cancellare questa richiesta?');">
@@ -272,9 +275,6 @@
                                     </button>
                                 </form>
                                 {% endif %}
-                                      <a href="{{ url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id) }}" class="btn btn-warning btn-sm" title="Continua Compilazione">
-                                  <i class="fas fa-arrow-right"></i> Continua
-                                </a>
                                 </td>
                             </tr>
                             {% else %}

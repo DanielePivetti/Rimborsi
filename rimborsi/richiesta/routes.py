@@ -599,39 +599,49 @@ def crea_mezzo_temporaneo(richiesta_id):
     """Crea un mezzo temporaneo per la richiesta corrente"""
     richiesta = Richiesta.query.get_or_404(richiesta_id)
     
+    # Verifica che l'utente abbia almeno un'organizzazione
+    if not current_user.organizzazioni:
+        flash('Utente non associato a nessuna organizzazione.', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
     # Verifica che l'utente possa modificare questa richiesta
-    if richiesta.organizzazione_id != current_user.organizzazioni[0].id:
+    user_org_ids = [org.id for org in current_user.organizzazioni]
+    if richiesta.organizzazione_id not in user_org_ids:
         flash('Non hai i permessi per modificare questa richiesta.', 'danger')
         return redirect(url_for('main.dashboard'))
     
     form = TemporaryMezzoForm()
     
     if form.validate_on_submit():
-        # Salva documento autorizzazione
-        file = form.authorization_document.data
-        filename = secure_filename(f"{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}_{file.filename}")
-        auth_docs_dir = os.path.join(current_app.instance_path, 'uploads', 'authorization_docs')
-        os.makedirs(auth_docs_dir, exist_ok=True)
-        filepath = os.path.join(auth_docs_dir, filename)
-        file.save(filepath)
-        
-        # Crea mezzo temporaneo
-        mezzo = MezzoAttrezzatura(
-            tipologia=form.tipologia.data,
-            targa_inventario=form.targa_inventario.data,
-            descrizione=form.descrizione.data,
-            organizzazione_id=current_user.organizzazioni[0].id,
-            is_temporary=True,
-            authorization_document=filename,
-            authorizing_entity=form.authorizing_entity.data,
-            authorization_date=form.authorization_date.data
-        )
-        
-        db.session.add(mezzo)
-        db.session.commit()
-        
-        flash('Mezzo temporaneo creato con successo!', 'success')
-        return redirect(url_for('richiesta.crea_impiego', richiesta_id=richiesta_id))
+        try:
+            # Salva documento autorizzazione
+            file = form.authorization_document.data
+            filename = secure_filename(f"{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}_{file.filename}")
+            auth_docs_dir = os.path.join(current_app.instance_path, 'uploads', 'authorization_docs')
+            os.makedirs(auth_docs_dir, exist_ok=True)
+            filepath = os.path.join(auth_docs_dir, filename)
+            file.save(filepath)
+            
+            # Crea mezzo temporaneo
+            mezzo = MezzoAttrezzatura(
+                tipologia=form.tipologia.data,
+                targa_inventario=form.targa_inventario.data,
+                descrizione=form.descrizione.data,
+                organizzazione_id=richiesta.organizzazione_id,
+                is_temporary=True,
+                authorization_document=filename,
+                authorizing_entity=form.authorizing_entity.data,
+                authorization_date=form.authorization_date.data
+            )
+            
+            db.session.add(mezzo)
+            db.session.commit()
+            
+            flash('Mezzo temporaneo creato con successo!', 'success')
+            return redirect(url_for('richiesta.crea_impiego', richiesta_id=richiesta_id))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Errore durante il salvataggio: {str(e)}', 'danger')
     
     return render_template('richiesta/crea_mezzo_temporaneo.html', form=form, richiesta=richiesta)
 
