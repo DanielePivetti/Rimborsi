@@ -12,7 +12,7 @@
                     {% if tutti_verificati %}
                         <form action="{{ url_for('istruttoria.reset_verifica_documenti', spesa_id=spesa.id) }}" method="POST" class="d-inline">
                             <button type="submit" class="btn btn-sm btn-outline-secondary"
-                                {% if spesa.richiesta.stato != 'B' %}disabled{% endif %}>
+                                {% if spesa.richiesta.stato != StatoRichiesta.IN_ISTRUTTORIA %}disabled{% endif %}>
                                 <i class="fas fa-undo me-1"></i> Annulla Verifica Documenti
                             </button>
                         </form>

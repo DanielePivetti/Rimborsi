@@ -11,12 +11,12 @@
             Riepilogo finale e registrazione dell'esito per la richiesta <strong>{{ richiesta.protocollo_invio }}</strong>.
           </p>
         </div>
-        {% set totale_rischiesto = richiesta.spese | sum(attribute='importo_richiesto') %}
+        {% set totale_richiesto = richiesta.spese | sum(attribute='importo_richiesto') %}
         {% set totale_approvato = richiesta.spese | selectattr('importo_approvato', 'ne', None) | sum(attribute='importo_approvato') %}
         <div class="row text-center mb-4">
           <div class="col">
             <div class="stat-box p-2">
-              <span class="fs-4 fw-bold text-danger">&euro; {{ "%.2f"|format(totale_rischiesto) }}</span>
+              <span class="fs-4 fw-bold text-danger">&euro; {{ "%.2f"|format(totale_richiesto) }}</span>
               <br><span class="text-muted">Importo Totale Richiesto</span>
             </div>
           </div>
