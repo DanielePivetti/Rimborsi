@@ -279,43 +279,6 @@ def reset_importi_approvati(richiesta_id):
     flash('Tutte le verifiche e gli importi approvati sono stati annullati.', 'info')
     return redirect(url_for('istruttoria.dettaglio_istruttoria', richiesta_id=richiesta.id))
 
-# in rimborsi/istruttoria/routes.py
-
-# Reset per documenti spesa
-
-@istruttoria_bp.route('/spese/<int:spesa_id>/verifica_tutti_documenti', methods=['POST'])
-@login_required
-def verifica_tutti_documenti(spesa_id):
-    """Imposta 'verificato = True' per tutti i documenti di una spesa."""
-    if current_user.role != 'istruttore':
-        flash("Accesso non autorizzato.", "danger")
-        return redirect(url_for('main.dashboard'))
-    spesa = Spesa.query.get_or_404(spesa_id)
-    for doc in spesa.documenti:
-        doc.verificato = True
-    db.session.commit()
-    flash(f"Tutti i documenti per la spesa #{spesa.id} sono stati contrassegnati come verificati.", 'success')
-    return redirect(url_for('istruttoria.dettaglio_istruttoria', richiesta_id=spesa.richiesta_id))
-
-# Annullo reset per documenti spesa
-
-@istruttoria_bp.route('/spese/<int:spesa_id>/reset_verifica_documenti', methods=['POST'])
-@login_required
-def reset_verifica_documenti(spesa_id):
-    """Resetta verificato, conforme e importo_approvato per tutti i documenti di una spesa."""
-    if current_user.role != 'istruttore':
-        flash("Accesso non autorizzato.", "danger")
-        return redirect(url_for('main.dashboard'))
-    spesa = Spesa.query.get_or_404(spesa_id)
-    for doc in spesa.documenti:
-        doc.verificato = False
-        doc.conforme = None
-        doc.importo_approvato = None
-    spesa.importo_approvato = None
-    db.session.commit()
-    flash(f"La verifica per i documenti della spesa #{spesa.id} è stata annullata.", 'info')
-    return redirect(url_for('istruttoria.dettaglio_istruttoria', richiesta_id=spesa.richiesta_id))
-
 # --- ROTTE SERVER-SIDE PER VERIFICA DOCUMENTI ---
 
 @istruttoria_bp.route('/spese/<int:spesa_id>/salva_verifica', methods=['POST'])
