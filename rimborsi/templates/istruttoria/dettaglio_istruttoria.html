@@ -54,7 +54,7 @@
             <ul class="nav nav-tabs card-header-tabs">
                 <li class="nav-item">
                     <a class="nav-link active" data-bs-toggle="tab" href="#tab-documenti">
-                        <i class="fas fa-file-alt me-1"></i> 1. Verifica Documenti
+                        <i class="fas fa-file-alt me-1"></i> 1. Verifica Documenti e Mezzi
                     </a>
                 </li>
                 <li class="nav-item">
@@ -78,7 +78,7 @@
                 <div class="tab-pane fade show active" id="tab-documenti">
                     <div class="alert alert-primary py-2">
                         <i class="fas fa-info-circle me-2"></i>
-                        <strong>Step 1:</strong> Per ogni spesa, verificare i documenti, indicare la conformità e l'importo approvato.
+                        <strong>Step 1:</strong> Per ogni spesa, verificare i documenti, indicare la conformità e l'importo approvato. Per i mezzi temporanei, verificare la conformità dell'autorizzazione.
                     </div>
 
                     {% if not richiesta.spese %}
@@ -219,7 +219,105 @@
                                             <i class="fas fa-folder-open me-1"></i> Nessun documento per questa spesa.
                                         </div>
                                         {% endif %}
+                                        {# === Dettaglio Impiego Mezzo collegato === #}
+                                        {% if spesa.impiego %}
+                                        {% set impiego = spesa.impiego %}
+                                        {% set mezzo = impiego.mezzo_attrezzatura %}
+                                        <div class="card border-success mb-3 mt-2">
+                                            <div class="card-header bg-success bg-opacity-10 py-2">
+                                                <i class="fas fa-truck me-1"></i>
+                                                <strong>Impiego Mezzo</strong>
+                                                {% if mezzo.is_temporary %}
+                                                    <span class="badge bg-warning text-dark ms-2">TEMPORANEO</span>
+                                                {% endif %}
+                                            </div>
+                                            <div class="card-body py-2 bg-success bg-opacity-10">
+                                                <div class="row small">
+                                                    <div class="col-md-3">
+                                                        <strong>Mezzo:</strong> {{ mezzo.targa_inventario }}
+                                                        <div class="text-muted">{{ mezzo.descrizione or 'N/D' }}</div>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <strong>Località:</strong> {{ impiego.localita_impiego or '—' }}
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <strong>Periodo:</strong>
+                                                        {% if impiego.data_ora_inizio_impiego %}
+                                                            {{ impiego.data_ora_inizio_impiego.strftime('%d/%m %H:%M') }}
+                                                        {% endif %}
+                                                        {% if impiego.data_ora_fine_impiego %}
+                                                            — {{ impiego.data_ora_fine_impiego.strftime('%d/%m %H:%M') }}
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <strong>Km Totali:</strong> {{ "%.2f"|format(impiego.km_totali) if impiego.km_totali else 'N/A' }} km
+                                                    </div>
+                                                </div>
 
+                                                {# Conformità autorizzazione per mezzi temporanei #}
+                                                {% if mezzo.is_temporary %}
+                                                <hr class="my-2">
+                                                <div class="row align-items-end">
+                                                    <div class="col-md-3">
+                                                        <strong class="small">Autorizzazione:</strong>
+                                                        <div class="small">
+                                                            {{ mezzo.authorizing_entity or '—' }}
+                                                            {% if mezzo.authorization_date %}
+                                                                <span class="text-muted">({{ mezzo.authorization_date.strftime('%d/%m/%Y') }})</span>
+                                                            {% endif %}
+                                                        </div>
+                                                        {% if mezzo.authorization_document %}
+                                                            <a href="{{ url_for('richiesta.download_authorization', mezzo_id=mezzo.id) }}" 
+                                                               class="btn btn-outline-info btn-sm mt-1">
+                                                                <i class="fas fa-download me-1"></i>Scarica allegato
+                                                            </a>
+                                                        {% else %}
+                                                            <div class="text-danger small">Documento mancante</div>
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <label class="form-label small fw-bold mb-1">Conformità:</label>
+                                                        <select name="authorization_conforme" form="form-conformita-{{ mezzo.id }}"
+                                                                class="form-select form-select-sm"
+                                                                {% if not is_in_istruttoria %}disabled{% endif %}>
+                                                            <option value="" {% if mezzo.authorization_conforme is none %}selected{% endif %}>—</option>
+                                                            <option value="true" {% if mezzo.authorization_conforme == true %}selected{% endif %}>Conforme</option>
+                                                            <option value="false" {% if mezzo.authorization_conforme == false %}selected{% endif %}>Non conforme</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-label small fw-bold mb-1">Note autorizzazione:</label>
+                                                        <input type="text" name="authorization_note" form="form-conformita-{{ mezzo.id }}"
+                                                               class="form-control form-control-sm"
+                                                               value="{{ mezzo.authorization_note or '' }}"
+                                                               placeholder="Note..."
+                                                               {% if not is_in_istruttoria %}disabled{% endif %}>
+                                                    </div>
+                                                    <div class="col-md-2 text-end">
+                                                        <form id="form-conformita-{{ mezzo.id }}" 
+                                                              action="{{ url_for('istruttoria.salva_conformita_autorizzazione', mezzo_id=mezzo.id) }}" 
+                                                              method="POST">
+                                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                            <input type="hidden" name="richiesta_id" value="{{ richiesta.id }}">
+                                                            {% if is_in_istruttoria %}
+                                                            <button type="submit" class="btn btn-primary btn-sm">
+                                                                <i class="fas fa-save me-1"></i>Salva
+                                                            </button>
+                                                            {% endif %}
+                                                        </form>
+                                                        {% if mezzo.authorization_conforme is none %}
+                                                            <span class="badge bg-secondary mt-1">Da valutare</span>
+                                                        {% elif mezzo.authorization_conforme %}
+                                                            <span class="badge bg-success mt-1">Conforme</span>
+                                                        {% else %}
+                                                            <span class="badge bg-danger mt-1">Non conforme</span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        {% endif %}
                                         {# Note istruttoria per la spesa #}
                                         <div class="row mb-2">
                                             <div class="col-md-8">

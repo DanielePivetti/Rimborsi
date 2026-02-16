@@ -54,6 +54,8 @@ class MezzoAttrezzatura(db.Model):
     authorization_document = db.Column(db.String(255), nullable=True)  # Nome file autorizzazione
     authorizing_entity = db.Column(db.String(200), nullable=True)  # Ente che rilascia autorizzazione
     authorization_date = db.Column(db.Date, nullable=True)  # Data autorizzazione
+    authorization_conforme = db.Column(db.Boolean, nullable=True)  # Conformità autorizzazione (istruttoria)
+    authorization_note = db.Column(db.Text, nullable=True)  # Note istruttoria autorizzazione
     
     impieghi = db.relationship('ImpiegoMezzoAttrezzatura', backref='mezzo_attrezzatura', lazy=True)
     

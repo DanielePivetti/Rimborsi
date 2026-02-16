@@ -776,10 +776,11 @@ def download_authorization(mezzo_id):
     """Download del documento di autorizzazione per mezzi temporanei"""
     mezzo = MezzoAttrezzatura.query.get_or_404(mezzo_id)
     
-    # Verifica accesso (solo la stessa organizzazione)
-    if mezzo.organizzazione_id != current_user.organizzazioni[0].id:
-        flash('Accesso negato', 'danger')
-        return redirect(url_for('main.dashboard'))
+    # Verifica accesso (istruttore o stessa organizzazione)
+    if current_user.role != 'istruttore':
+        if not current_user.organizzazioni or mezzo.organizzazione_id not in [org.id for org in current_user.organizzazioni]:
+            flash('Accesso negato', 'danger')
+            return redirect(url_for('main.dashboard'))
     
     if not mezzo.is_temporary or not mezzo.authorization_document:
         flash('Documento non disponibile', 'danger')

@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
-from rimborsi.models import Evento, db, Richiesta, Spesa, DocumentoSpesa, Comunicazione, StatoRichiesta 
+from rimborsi.models import Evento, db, Richiesta, Spesa, DocumentoSpesa, Comunicazione, StatoRichiesta, MezzoAttrezzatura 
 from datetime import datetime
 from .forms import EventoForm, IntegrazioneRequestForm
 
@@ -377,6 +377,52 @@ def reset_verifica_spesa(spesa_id):
     db.session.commit()
     flash(f"La verifica della spesa #{spesa.id} è stata resettata.", 'info')
     return redirect(url_for('istruttoria.dettaglio_istruttoria', richiesta_id=spesa.richiesta_id))
+
+
+@istruttoria_bp.route('/mezzi-temporanei/<int:mezzo_id>/salva_conformita', methods=['POST'])
+@login_required
+def salva_conformita_autorizzazione(mezzo_id):
+    """Salva la conformità dell'autorizzazione per i mezzi temporanei."""
+    if current_user.role != 'istruttore':
+        flash("Accesso non autorizzato.", "danger")
+        return redirect(url_for('main.dashboard'))
+
+    mezzo = MezzoAttrezzatura.query.get_or_404(mezzo_id)
+    richiesta_id = request.form.get('richiesta_id', type=int)
+    richiesta = Richiesta.query.get_or_404(richiesta_id)
+
+    if richiesta.stato != StatoRichiesta.IN_ISTRUTTORIA:
+        flash("Azione non permessa: la richiesta non è in stato di istruttoria.", "danger")
+        return redirect(url_for('istruttoria.dettaglio_istruttoria', richiesta_id=richiesta.id))
+
+    # Verifica che il mezzo sia effettivamente usato nella richiesta
+    if not any(impiego.mezzo_attrezzatura_id == mezzo.id for impiego in richiesta.impieghi):
+        flash("Mezzo non associato alla richiesta.", "danger")
+        return redirect(url_for('istruttoria.dettaglio_istruttoria', richiesta_id=richiesta.id))
+
+    if not mezzo.is_temporary:
+        flash("La conformità è richiesta solo per mezzi temporanei.", "warning")
+        return redirect(url_for('istruttoria.dettaglio_istruttoria', richiesta_id=richiesta.id))
+
+    conforme_val = request.form.get('authorization_conforme', '')
+    if conforme_val == 'true':
+        mezzo.authorization_conforme = True
+    elif conforme_val == 'false':
+        mezzo.authorization_conforme = False
+    else:
+        mezzo.authorization_conforme = None
+
+    note = request.form.get('authorization_note', '').strip()
+    mezzo.authorization_note = note or None
+
+    try:
+        db.session.commit()
+        flash('Conformità autorizzazione salvata.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Errore durante il salvataggio: {e}", "danger")
+
+    return redirect(url_for('istruttoria.dettaglio_istruttoria', richiesta_id=richiesta.id))
 
 # Rotta per visualizzare il log delle comunicazioni
 
