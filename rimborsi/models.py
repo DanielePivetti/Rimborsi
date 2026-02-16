@@ -170,6 +170,19 @@ class Spesa(db.Model):
         return costo is not None and costo > 15.0
 
     @property
+    def importo_approvato_calcolato(self):
+        """Calcola l'importo approvato come somma degli importi approvati dei documenti."""
+        totale = sum(doc.importo_approvato for doc in self.documenti if doc.importo_approvato is not None)
+        return totale if totale > 0 else None
+
+    @property
+    def tutti_documenti_verificati(self):
+        """True se tutti i documenti sono stati verificati e hanno conformità espressa."""
+        if not self.documenti:
+            return False
+        return all(doc.verificato and doc.conforme is not None for doc in self.documenti)
+
+    @property
     def categoria_display(self):
         """Restituisce il nome completo della categoria."""
         categorie = {
@@ -189,6 +202,8 @@ class DocumentoSpesa(db.Model):
     importo_documento = db.Column(db.Float, nullable=False)
     tipo_documento = db.Column(db.String(50))
     verificato = db.Column(db.Boolean, default=False)
+    conforme = db.Column(db.Boolean, nullable=True)  # None=da valutare, True=conforme, False=non conforme
+    importo_approvato = db.Column(db.Float, nullable=True)  # Importo confermato dall'istruttore
     note_istruttoria = db.Column(db.Text, nullable=True)
 
     # --- CHIAVE ESTERNA CORRETTA ---

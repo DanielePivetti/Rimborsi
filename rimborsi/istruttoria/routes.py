@@ -304,7 +304,7 @@ def salva_verifica_documento(documento_id):
     try:
         data = request.get_json()
         documento.verificato = data.get('verificato', False)
-        documento.note_istruttore = data.get('note', '')
+        documento.note_istruttoria = data.get('note', '')
         
         db.session.commit()
         return jsonify({'success': True, 'message': 'Documento salvato con successo'})
@@ -326,7 +326,7 @@ def salva_documenti(spesa_id):
         doc.verificato = f"verificato_{doc.id}" in request.form
         
         # Recupera le note per il documento
-        doc.note_istruttore = request.form.get(f"note_documento_{doc.id}")
+        doc.note_istruttoria = request.form.get(f"note_documento_{doc.id}")
     
     db.session.commit()
     flash(f"Verifiche documenti per la spesa #{spesa.id} salvate con successo.", 'success')

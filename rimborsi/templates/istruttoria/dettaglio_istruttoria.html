@@ -89,7 +89,7 @@
                                                       class="form-control form-control-sm" 
                                                       rows="1" 
                                                       placeholder="Note..."
-                                                      {% if richiesta.stato != StatoRichiesta.IN_ISTRUTTORIA %}disabled{% endif %}>{{ doc.note_istruttore or '' }}</textarea>
+                                                      {% if richiesta.stato != StatoRichiesta.IN_ISTRUTTORIA %}disabled{% endif %}>{{ doc.note_istruttoria or '' }}</textarea>
                                         </td>
                                         <td class="text-center">
                                             {% if doc.nome_file %}
@@ -232,9 +232,9 @@
                                 <strong>{{ doc.get_tipo_documento_display() }}</strong> del {{ doc.data_documento.strftime('%d/%m/%Y') }}
                                 <br>
                                 <small class="text-muted">{{ doc.fornitore or 'N/D' }} - &euro; {{ "%.2f"|format(doc.importo_documento) }}</small>
-                                {% if doc.note_istruttore %}
+                                {% if doc.note_istruttoria %}
                                 <br>
-                                <small><strong>Note:</strong> {{ doc.note_istruttore }}</small>
+                                <small><strong>Note:</strong> {{ doc.note_istruttoria }}</small>
                                 {% endif %}
                             </div>
                             <div class="col-md-4 text-end">

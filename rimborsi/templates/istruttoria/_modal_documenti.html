@@ -42,7 +42,7 @@
                                     <input class="form-check-input" type="checkbox" name="verificato_{{ doc.id }}" id="verificato_{{ doc.id }}" {% if doc.verificato %}checked{% endif %}>
                                     <label class="form-check-label" for="verificato_{{ doc.id }}">Verificato</label>
                                 </div>
-                                <textarea name="note_documento_{{ doc.id }}" class="form-control form-control-sm mt-1" rows="1" placeholder="Note su questo documento...">{{ doc.note_istruttore or '' }}</textarea>
+                                <textarea name="note_documento_{{ doc.id }}" class="form-control form-control-sm mt-1" rows="1" placeholder="Note su questo documento...">{{ doc.note_istruttoria or '' }}</textarea>
                             </div>
                         </div>
                     </li>
