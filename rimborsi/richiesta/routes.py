@@ -124,12 +124,24 @@ def dettaglio_richiesta(richiesta_id):
 
     # Corretto: renderizziamo un template invece di reindirizzare alla stessa route
     comunicazioni = Comunicazione.query.filter_by(richiesta_id=richiesta.id).order_by(Comunicazione.data_transazione.desc()).all()
+    
+    # Se la richiesta è in integrazione, recupera l'ultima comunicazione di integrazione
+    motivazione_integrazione = None
+    if richiesta.stato == StatoRichiesta.IN_INTEGRAZIONE:
+        com_integrazione = Comunicazione.query.filter_by(
+            richiesta_id=richiesta.id,
+            stato_successore=StatoRichiesta.IN_INTEGRAZIONE.value
+        ).order_by(Comunicazione.data_transazione.desc()).first()
+        if com_integrazione:
+            motivazione_integrazione = com_integrazione.descrizione
+
     return render_template(
         'richiesta/dettaglio_richiesta.html',
         richiesta=richiesta,
         comunicazioni=comunicazioni,
         statoRichiesta=StatoRichiesta,
-        StatoRichiesta=StatoRichiesta
+        StatoRichiesta=StatoRichiesta,
+        motivazione_integrazione=motivazione_integrazione
     )
 
 # Rotta per Impiego Mezzo
@@ -504,9 +516,9 @@ def aggiungi_documento_richiesta(richiesta_id):
     """Aggiunge un documento selezionando la spesa di riferimento"""
     richiesta = Richiesta.query.get_or_404(richiesta_id)
     
-    # Verifica stato bozza
-    if richiesta.stato != StatoRichiesta.BOZZA:
-        flash('Non è possibile aggiungere documenti a una richiesta non in bozza.', 'warning')
+    # Verifica stato bozza o in integrazione
+    if richiesta.stato not in [StatoRichiesta.BOZZA, StatoRichiesta.IN_INTEGRAZIONE]:
+        flash('Non è possibile aggiungere documenti a una richiesta non in bozza o in integrazione.', 'warning')
         return redirect(url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta_id))
     
     # Verifica che ci siano spese
@@ -627,6 +639,14 @@ def trasmetti_richiesta(richiesta_id):
     """
     richiesta = Richiesta.query.get_or_404(richiesta_id)
 
+    # Verifica che lo stato sia BOZZA o IN_INTEGRAZIONE
+    if richiesta.stato not in [StatoRichiesta.BOZZA, StatoRichiesta.IN_INTEGRAZIONE]:
+        flash("Azione non permessa: la richiesta non è in uno stato trasmissibile.", "danger")
+        return redirect(url_for('main.dashboard'))
+
+    # Salva lo stato corrente prima di cambiarlo
+    stato_corrente = richiesta.stato
+
     # Controlla se è la prima trasmissione verificando se la data_invio è vuota
     is_first_transmission = not richiesta.data_invio
 
@@ -652,7 +672,7 @@ def trasmetti_richiesta(richiesta_id):
         utente=current_user,
         data_transazione=datetime.utcnow(),
         protocollo=protocollo_per_log,
-        stato_precedente= StatoRichiesta.BOZZA.value,
+        stato_precedente=stato_corrente.value,
         stato_successore= StatoRichiesta.IN_ISTRUTTORIA.value,
         descrizione=descrizione_log
     )

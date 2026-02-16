@@ -2,11 +2,13 @@ import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
-from flask_migrate import Migrate 
+from flask_migrate import Migrate
+from flask_wtf.csrf import CSRFProtect
 
 # Inizializza il database
 
 db = SQLAlchemy()
+csrf = CSRFProtect()
 
 
 def create_app():
@@ -21,6 +23,7 @@ def create_app():
     
     db.init_app(app)
     Migrate(app, db)
+    csrf.init_app(app)  # Abilita csrf_token() nei template
 
         # Importa User dopo aver inizializzato db
     
@@ -52,6 +55,9 @@ def create_app():
     
     from .richiesta.routes import richiesta_bp
     app.register_blueprint(richiesta_bp)
+
+    from .integrazione.routes import integrazione_bp
+    app.register_blueprint(integrazione_bp)
     
         
     # Crea la cartella instance se non esiste

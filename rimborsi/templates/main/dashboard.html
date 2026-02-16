@@ -39,6 +39,14 @@
             </div>
         </div>
         <div class="col">
+            <div class="card text-dark bg-warning shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">In Integrazione</h5>
+                    <p class="card-text fs-2 fw-bold">{{ conteggio_in_integrazione }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col">
             <div class="card text-white bg-success shadow-sm h-100">
                 <div class="card-body">
                     <h5 class="card-title">Istruite</h5>
@@ -63,6 +71,11 @@
                 <li class="nav-item">
                     <a class="nav-link active" data-bs-toggle="tab" href="#tab-da-istruire">
                         Da Istruire <span class="badge bg-primary">{{ conteggio_da_istruire }}</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#tab-in-integrazione">
+                        In Integrazione <span class="badge bg-warning text-dark">{{ conteggio_in_integrazione }}</span>
                     </a>
                 </li>
                 <li class="nav-item">
@@ -104,6 +117,39 @@
                             </tr>
                             {% else %}
                             <tr><td colspan="5" class="text-center text-muted">Nessuna richiesta da istruire.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="tab-pane fade" id="tab-in-integrazione">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Codice Identificativo</th>
+                                <th>Protocollo invio</th>
+                                <th>Evento</th>
+                                <th>Organizzazione</th>
+                                <th class="text-end">Importo Richiesto</th>
+                                <th class="text-center">Azione</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for richiesta in richieste_in_integrazione %}
+                            <tr>
+                                <td>{{ richiesta.codice_uni }}</td>
+                                <td>{{ richiesta.protocollo_invio }}</td>
+                                <td>{{ richiesta.evento.nome }}</td>
+                                <td>{{ richiesta.organizzazione.nome }}</td>
+                                <td class="text-end">&euro; {{ "%.2f"|format(richiesta.spese|sum(attribute='importo_richiesto')) }}</td>
+                                <td class="text-center">
+                                    <a href="{{ url_for('istruttoria.dettaglio_istruttoria', richiesta_id=richiesta.id) }}" class="btn btn-outline-warning btn-sm" title="Visualizza Dettaglio">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="6" class="text-center text-muted">Nessuna richiesta in integrazione.</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -230,6 +276,11 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#tab-integrazione-comp">
+                        In Integrazione <span class="badge bg-warning text-dark">{{ richieste_in_integrazione|length }}</span>
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" data-bs-toggle="tab" href="#tab-istruttoria">
                         In Istruttoria <span class="badge bg-info">{{ richieste_in_istruttoria|length }}</span>
                     </a>
@@ -279,6 +330,37 @@
                             </tr>
                             {% else %}
                             <tr><td colspan="4" class="text-center">Nessuna richiesta in bozza.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="tab-pane fade" id="tab-integrazione-comp">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Codice Identificativo</th>
+                                <th>Protocollo invio</th>
+                                <th>Evento</th>
+                                <th class="text-end">Importo Richiesto</th>
+                                <th class="text-center">Azione</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for richiesta in richieste_in_integrazione %}
+                            <tr>
+                                <td>{{ richiesta.codice_uni }}</td>
+                                <td>{{ richiesta.protocollo_invio }}</td>
+                                <td>{{ richiesta.evento.nome }}</td>
+                                <td class="text-end">&euro; {{ "%.2f"|format(richiesta.spese|sum(attribute='importo_richiesto')) }}</td>
+                                <td class="text-center">
+                                    <a href="{{ url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id) }}" class="btn btn-danger btn-sm" title="Completa Integrazione">
+                                        <i class="fas fa-exclamation-circle me-1"></i> Integra
+                                    </a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="5" class="text-center text-muted">Nessuna richiesta in integrazione.</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>

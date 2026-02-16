@@ -88,6 +88,7 @@ class StatoRichiesta(enum.Enum):
     BOZZA = 'A'
     IN_ISTRUTTORIA = 'B'
     ISTRUITA = 'C'
+    IN_INTEGRAZIONE = 'D'
  
     @property
     def label(self):
@@ -95,7 +96,8 @@ class StatoRichiesta(enum.Enum):
         return {
             self.BOZZA: 'In Bozza',
             self.IN_ISTRUTTORIA: 'In Istruttoria',
-            self.ISTRUITA: 'Istruita'
+            self.ISTRUITA: 'Istruita',
+            self.IN_INTEGRAZIONE: 'In Integrazione'
         }.get(self)
 
 

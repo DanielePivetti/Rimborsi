@@ -176,8 +176,8 @@ def richiedi_integrazione(richiesta_id):
     form = IntegrazioneRequestForm()
 
     if form.validate_on_submit():
-        # Cambia lo stato della richiesta da 'B' a 'A'
-        richiesta.stato = StatoRichiesta.BOZZA
+        # Cambia lo stato della richiesta da 'B' a 'D' (In Integrazione)
+        richiesta.stato = StatoRichiesta.IN_INTEGRAZIONE
 
         comunicazione = Comunicazione(richiesta_id=richiesta.id)
         comunicazione.utente = current_user
@@ -185,7 +185,7 @@ def richiedi_integrazione(richiesta_id):
         protocollo = f"INT-{datetime.utcnow().strftime('%Y%m%d')}-{richiesta.id}"
         comunicazione.protocollo = protocollo
         comunicazione.stato_precedente = StatoRichiesta.IN_ISTRUTTORIA.value
-        comunicazione.stato_successore = StatoRichiesta.BOZZA.value
+        comunicazione.stato_successore = StatoRichiesta.IN_INTEGRAZIONE.value
         comunicazione.descrizione = form.motivazione.data
 
         db.session.add(comunicazione)

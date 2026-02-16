@@ -20,12 +20,15 @@ def dashboard():
         # Esempio di query reale: conta le richieste trasmesse
         richieste_da_istruire = Richiesta.query.filter_by(stato=StatoRichiesta.IN_ISTRUTTORIA).all()
         richieste_istruite = Richiesta.query.filter_by(stato=StatoRichiesta.ISTRUITA).all()
+        richieste_in_integrazione = Richiesta.query.filter_by(stato=StatoRichiesta.IN_INTEGRAZIONE).all()
 
         
         template_data['richieste_da_istruire'] = richieste_da_istruire
         template_data['richieste_istruite'] = richieste_istruite
+        template_data['richieste_in_integrazione'] = richieste_in_integrazione
         template_data['conteggio_da_istruire'] = len(richieste_da_istruire)
         template_data['conteggio_istruite'] = len(richieste_istruite)
+        template_data['conteggio_in_integrazione'] = len(richieste_in_integrazione)
 
        
     elif current_user.role == 'compilatore':
@@ -63,12 +66,19 @@ def dashboard():
                 organizzazione_id=organizzazione_utente.id
             ).order_by(Richiesta.data_invio.desc()).all()
             
+            # Query per le richieste in integrazione (stato 'D')
+            richieste_in_integrazione = Richiesta.query.filter_by(
+                stato=StatoRichiesta.IN_INTEGRAZIONE,
+                organizzazione_id=organizzazione_utente.id
+            ).order_by(Richiesta.data_invio.desc()).all()
+            
             template_data['compilatore_senza_organizzazione'] = False
             
             # Passiamo le liste di richieste al template
             template_data['richieste_in_bozza'] = richieste_in_bozza
             template_data['richieste_in_istruttoria'] = richieste_in_istruttoria
             template_data['richieste_istruite'] = richieste_istruite
+            template_data['richieste_in_integrazione'] = richieste_in_integrazione
 
     elif current_user.role == 'amministratore':
         # Query per trovare utenti COMPILATORI non associati a nessuna organizzazione

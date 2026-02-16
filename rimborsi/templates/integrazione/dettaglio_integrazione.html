@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}Integrazione Richiesta {{ richiesta.codice_uni }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="mb-0">
+            <i class="fas fa-exclamation-circle text-warning me-2"></i>
+            Richiesta di Integrazione
+        </h3>
+    </div>
+
+    {# === Alert motivazione integrazione === #}
+    <div class="alert alert-warning shadow-sm mb-3">
+        <div class="d-flex align-items-start">
+            <i class="fas fa-exclamation-triangle fa-2x me-3 mt-1"></i>
+            <div>
+                <h5 class="alert-heading mb-1">L'istruttore ha richiesto un'integrazione</h5>
+                {% if ultima_integrazione %}
+                <p class="mb-1"><strong>Data richiesta:</strong> {{ ultima_integrazione.data_transazione.strftime('%d/%m/%Y %H:%M') }}</p>
+                <p class="mb-1"><strong>Protocollo:</strong> {{ ultima_integrazione.protocollo }}</p>
+                <p class="mb-0"><strong>Motivazione:</strong></p>
+                <div class="bg-white rounded p-2 mt-1 border">
+                    {{ ultima_integrazione.descrizione }}
+                </div>
+                {% else %}
+                <p class="mb-0">Nessun dettaglio disponibile sulla richiesta di integrazione.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {# === Intestazione richiesta === #}
+    <div class="card shadow-sm mb-3">
+        <div class="card-body py-2">
+            <div class="row small">
+                <div class="col-md-3"><strong>Codice:</strong> {{ richiesta.codice_uni }}</div>
+                <div class="col-md-3"><strong>Organizzazione:</strong> {{ richiesta.organizzazione.nome }}</div>
+                <div class="col-md-3"><strong>Evento:</strong> {{ richiesta.evento.nome }}</div>
+                <div class="col-md-3"><strong>Stato:</strong> 
+                    <span class="badge bg-warning text-dark">{{ richiesta.stato.label }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# === Azioni === #}
+    <div class="d-flex justify-content-between align-items-center mt-4">
+        <div>
+            <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Torna alla Dashboard
+            </a>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('richiesta.dettaglio_richiesta', richiesta_id=richiesta.id) }}" class="btn btn-primary">
+                <i class="fas fa-edit me-1"></i> Modifica e Completa Integrazione
+            </a>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
