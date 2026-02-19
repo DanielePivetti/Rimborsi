@@ -6,3 +6,4 @@ WTForms
 Flask-Migrate
 wtforms_sqlalchemy
 email_validator
+waitress
